@@ -17,7 +17,7 @@ const visitor = (
   hostDepartment: "Operations",
   visitDate: "2026-09-07",
   visitTime: "09:30 AM",
-  status: "approved",
+  status: "visitor_accepted",
   visitorNeedsParking: true,
   parkingType: "valet",
   isWalkIn: false,
@@ -37,6 +37,8 @@ describe("Valet Admin visitors table", () => {
         status: "rejected",
         visitTime: "08:00 AM",
       }),
+      visitor({ requestId: "awaiting-response", status: "approved" }),
+      visitor({ requestId: "ambiguous-expected", status: "expected" }),
       visitor({
         requestId: "no-parking",
         visitorNeedsParking: false,
@@ -47,6 +49,14 @@ describe("Valet Admin visitors table", () => {
     ]);
 
     expect(result.map((item) => item.requestId)).toEqual(["early", "late"]);
+  });
+
+  it("keeps approved walk-ins and confirmed completed visits", () => {
+    expect(filterAndSortValetVisitors([
+      visitor({ requestId: "walk-in", isWalkIn: true, status: "approved" }),
+      visitor({ requestId: "checked-out", status: "checked_out" }),
+      visitor({ requestId: "pending-walk-in", isWalkIn: true, status: "pending_host_approval" }),
+    ]).map(item => item.requestId)).toEqual(["walk-in", "checked-out"]);
   });
 
   it("maps only user-safe visitor, schedule, host, status, and service fields", () => {
@@ -64,7 +74,7 @@ describe("Valet Admin visitors table", () => {
       company: "Acme",
       visitDate: "2026-09-07",
       plannedInTime: "09:30 AM",
-      status: "approved",
+      status: "visitor_accepted",
       hostName: "Omar Ali",
       hostDepartment: "Operations",
       hasParking: true,

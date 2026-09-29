@@ -34,6 +34,7 @@ import {
   VALET_ADMIN_DEFAULT_VIEW_MODE,
   type ValetAdminVisitorsViewMode,
 } from "@/utils/valetAdminVisitorsTable";
+import { isOperationalVisitVisible } from "@/utils/operationalVisitVisibility";
 
 const LAYOUT = {
   cardPadding: Spacing.sm,
@@ -328,6 +329,17 @@ export default function ValetAllRequestsScreen() {
     if (!displayedData?.data) return [];
     return filterAndSortValetVisitors(displayedData.data);
   }, [displayedData?.data]);
+  const visibleSummary = useMemo(() => {
+    const confirmed = (displayedData?.data ?? []).filter(isOperationalVisitVisible);
+    const withParking = confirmed.filter(visitor =>
+      getValetVisitorParkingDecision(visitor) === 'required',
+    ).length;
+    return {
+      totalVisitors: confirmed.length,
+      withParking,
+      withoutParking: confirmed.length - withParking,
+    };
+  }, [displayedData?.data]);
   const tableVisitors = useMemo(
     () => filteredVisitors.map(mapValetVisitorToMatrixItem),
     [filteredVisitors],
@@ -360,9 +372,9 @@ export default function ValetAllRequestsScreen() {
           <DashboardKpiSection />
         ) : (
           <StatsCards
-            totalVisitors={displayedData?.summary.totalVisitors ?? 0}
-            withParking={displayedData?.summary.withParking ?? 0}
-            withoutParking={displayedData?.summary.withoutParking ?? 0}
+            totalVisitors={visibleSummary.totalVisitors}
+            withParking={visibleSummary.withParking}
+            withoutParking={visibleSummary.withoutParking}
             theme={theme}
             t={t}
           />

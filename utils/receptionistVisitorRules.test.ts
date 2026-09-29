@@ -2,11 +2,45 @@ import {
   getReceptionistDateRange,
   isReceptionistAllVisitorsRecordVisible,
   isReceptionistDashboardVisitorVisible,
+  isReceptionistAwaitingCheckIn,
+  isReceptionistUpcomingVisitorVisible,
   keepReceptionistAllVisitorsRecord,
 } from './receptionistVisitorRules';
 
 describe('Receptionist visitor rules', () => {
-  it('shows all active Today requests, including scheduled requests pending host approval', () => {
+  it('keeps host-accepted walk-ins awaiting manager approval in pending Receptionist filters', () => {
+    const awaitingManager = { status: 'pending_approval', isWalkIn: true, visitDate: '2026-09-04' };
+    expect(isReceptionistDashboardVisitorVisible(awaitingManager)).toBe(true);
+    expect(isReceptionistUpcomingVisitorVisible(awaitingManager)).toBe(true);
+    expect(isReceptionistAllVisitorsRecordVisible(
+      awaitingManager,
+      new Date('2026-09-04T12:00:00Z'),
+    )).toBe(true);
+    expect(isReceptionistAwaitingCheckIn(awaitingManager)).toBe(true);
+    expect(isReceptionistAwaitingCheckIn({ status: 'pending_host_approval', isWalkIn: true })).toBe(true);
+    expect(isReceptionistAwaitingCheckIn({ status: 'pending_approval', isWalkIn: false })).toBe(false);
+  });
+  it('keeps pending walk-ins and accepted invitations upcoming, not departed visits or pending invitations', () => {
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'pending_approval', isWalkIn: true,
+    })).toBe(true);
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'pending_approval', isWalkIn: false,
+    })).toBe(false);
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'approved', isWalkIn: false,
+    })).toBe(false);
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'approved', isWalkIn: true,
+    })).toBe(true);
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'visitor_accepted', isWalkIn: false,
+    })).toBe(true);
+    expect(isReceptionistUpcomingVisitorVisible({
+      status: 'checked_out', isWalkIn: true,
+    })).toBe(false);
+  });
+  it('keeps pending walk-ins visible, but hides unconfirmed scheduled visits', () => {
     expect(isReceptionistDashboardVisitorVisible({
       isWalkIn: true,
       status: 'pending_host_approval',
@@ -14,7 +48,7 @@ describe('Receptionist visitor rules', () => {
     expect(isReceptionistDashboardVisitorVisible({
       isWalkIn: false,
       status: 'pending_host_approval',
-    })).toBe(true);
+    })).toBe(false);
     expect(keepReceptionistAllVisitorsRecord({
       isWalkIn: true,
       status: 'pending_host_approval',
@@ -30,14 +64,18 @@ describe('Receptionist visitor rules', () => {
   });
 
   it.each([
-    ['expected', true],
-    ['pending', true],
-    ['pending_host_approval', true],
+    ['expected', false],
+    ['pending', false],
+    ['pending_host_approval', false],
+    ['approved', false],
+    ['visitor_pending', false],
+    ['waiting_acceptance', false],
+    ['visitor_accepted', true],
     ['accepted', true],
     ['checked_in', true],
     ['checked_out', true],
     ['completed', true],
-    ['no_show', true],
+    ['no_show', false],
     ['rejected', false],
     ['visitor_rejected', false],
     ['cancelled', false],
@@ -49,13 +87,13 @@ describe('Receptionist visitor rules', () => {
     })).toBe(expected);
   });
 
-  it('shows a pending-host request in the All Visitors Today section without broadening history', () => {
+  it('does not reveal unconfirmed scheduled visits in Today or history', () => {
     const now = new Date('2026-09-04T12:00:00.000Z');
     expect(isReceptionistAllVisitorsRecordVisible({
       isWalkIn: false,
       status: 'pending_host_approval',
       visitDate: '2026-09-04',
-    }, now)).toBe(true);
+    }, now)).toBe(false);
     expect(isReceptionistAllVisitorsRecordVisible({
       isWalkIn: false,
       status: 'pending_host_approval',
@@ -63,7 +101,7 @@ describe('Receptionist visitor rules', () => {
     }, now)).toBe(false);
   });
 
-  it('allows an exact precise status filter to reveal matching hidden history records only', () => {
+  it('does not allow a precise filter to bypass confirmation', () => {
     const cancelledVisit = {
       isWalkIn: false,
       status: 'cancelled',
@@ -76,7 +114,7 @@ describe('Receptionist visitor rules', () => {
       cancelledVisit,
       new Date('2026-09-04T12:00:00.000Z'),
       retainedSourceStatus,
-    )).toBe(true);
+    )).toBe(false);
     expect(isReceptionistAllVisitorsRecordVisible(
       cancelledVisit,
       new Date('2026-09-04T12:00:00.000Z'),

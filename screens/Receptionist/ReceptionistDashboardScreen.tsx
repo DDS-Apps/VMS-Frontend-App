@@ -34,6 +34,7 @@ import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavig
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import {
   isReceptionistDashboardVisitorVisible,
+  isReceptionistAwaitingCheckIn,
   isReceptionistAllVisitorsRecordVisible,
 } from "@/utils/receptionistVisitorRules";
 import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
@@ -259,9 +260,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
           : visitor.status === preciseVisitorStatus,
       );
     } else if (visitorFilter === 'to_be_checked') {
-      result = result.filter((visitor) =>
-        ['expected', 'pending', 'approved', 'visitor_accepted'].includes(visitor.status),
-      );
+      result = result.filter(isReceptionistAwaitingCheckIn);
     } else if (visitorFilter === 'checked_in') {
       result = result.filter((visitor) => visitor.status === 'checked_in');
     } else if (visitorFilter === 'checked_out') {

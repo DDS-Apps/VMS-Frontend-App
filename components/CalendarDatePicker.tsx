@@ -152,6 +152,9 @@ export function CalendarDatePicker({
     if (tempRange.startDate && tempRange.endDate) {
       const start = tempRange.startDate;
       const end = tempRange.endDate;
+      if (start.toDateString() === end.toDateString()) {
+        return `${formatLocalNumber(start.getDate())} ${localizedMonthsShort[start.getMonth()]} ${formatLocalNumber(start.getFullYear())}`;
+      }
       return `${formatLocalNumber(start.getDate())} ${localizedMonthsShort[start.getMonth()]} - ${formatLocalNumber(end.getDate())} ${localizedMonthsShort[end.getMonth()]} ${formatLocalNumber(end.getFullYear())}`;
     }
     

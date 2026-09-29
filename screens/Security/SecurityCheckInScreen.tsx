@@ -35,6 +35,7 @@ import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { mapSecurityVisitorToMatrixItem } from "@/utils/securityVisitorTable";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
+import { isOperationalVisitVisible } from "@/utils/operationalVisitVisibility";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -265,10 +266,8 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
   const visitors = useMemo(() => {
     if (!displayedApiResponse?.data) return [];
-    // Security only sees invitation-verified visits — pending, rejected, cancelled are excluded.
-    const SECURITY_VISIBLE_STATUSES = ['approved', 'visitor_accepted', 'checked_in', 'on_site', 'checked_out', 'completed'];
     return displayedApiResponse.data
-      .filter(dto => SECURITY_VISIBLE_STATUSES.includes(dto.status))
+      .filter(isOperationalVisitVisible)
       .map(mapApiToSecurityVisitor);
   }, [displayedApiResponse]);
 

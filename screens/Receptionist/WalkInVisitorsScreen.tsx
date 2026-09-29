@@ -24,6 +24,7 @@ import type { TodayVisitorDto } from "@/types";
 import { DirectionalRow } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { isReceptionistAwaitingCheckIn } from "@/utils/receptionistVisitorRules";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import {
   computeIsPendingApprovalWalkInExpired,
@@ -172,10 +173,10 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
         return name.includes(query) || phone.includes(searchQuery) || company.includes(query);
       })
       .filter(visitor => {
-        if (preciseStatus === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
+        if (preciseStatus === 'pending') return isReceptionistAwaitingCheckIn(visitor);
         if (preciseStatus) return visitor.status === preciseStatus;
         if (statusFilter === 'all') return true;
-        if (statusFilter === 'pending') return visitor.status === 'pending' || visitor.status === 'expected';
+        if (statusFilter === 'pending') return isReceptionistAwaitingCheckIn(visitor);
         return visitor.status === statusFilter;
       });
   }, [walkInVisitors, searchQuery, statusFilter, preciseStatus]);

@@ -4,7 +4,7 @@ import { Typography, Spacing } from "@/constants/theme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { formatFilterDate } from "@/utils/activeDateRangeLabel";
+import { formatActiveDateRange } from "@/utils/activeDateRangeLabel";
 
 type DateValue = Date | string | null | undefined;
 
@@ -20,16 +20,15 @@ export function ActiveDateRangeLabel({
   const { isRTL } = useLanguage();
   const { theme } = useTheme();
   if (!startDate) return null;
-  const from = formatFilterDate(startDate, isRTL);
-  const to = formatFilterDate(endDate ?? startDate, isRTL);
-  if (!from || !to) return null;
+  const label = formatActiveDateRange(startDate, endDate ?? startDate, isRTL, t("common.from"), t("common.to"));
+  if (!label) return null;
 
   return (
     <ThemedText
       style={[Typography.caption, { color: theme.textSecondary, marginStart: Spacing.sm, flexShrink: 1, alignSelf: "center" }]}
-      accessibilityLabel={`${t("common.from")} ${from} – ${t("common.to")} ${to}`}
+      accessibilityLabel={label}
     >
-      {t("common.from")} {from} – {t("common.to")} {to}
+      {label}
     </ThemedText>
   );
 }

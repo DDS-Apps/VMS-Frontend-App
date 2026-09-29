@@ -1,4 +1,5 @@
 import { getBusinessDateKey } from './dateTimeUtils';
+import { isOperationalVisitVisible } from './operationalVisitVisibility';
 
 export type ReceptionistDateFilter = 'all' | 'today' | 'this_week' | 'this_month' | 'custom';
 export type ReceptionistStatusSource = 'waiting_acceptance' | 'accepted';
@@ -10,7 +11,6 @@ interface ReceptionistVisitorLike {
 }
 
 const SCHEDULED_VISIBLE_STATUSES = new Set([
-  'waiting_acceptance',
   'accepted',
   'visitor_accepted',
   'checked_in',
@@ -27,17 +27,55 @@ const TODAY_HIDDEN_STATUSES = new Set([
 
 export const isReceptionistDashboardVisitorVisible = (
   visitor: ReceptionistVisitorLike,
-): boolean => !TODAY_HIDDEN_STATUSES.has(visitor.status.toLowerCase());
+): boolean =>
+  (isOperationalVisitVisible(visitor) ||
+    (visitor.isWalkIn === true && !TODAY_HIDDEN_STATUSES.has(visitor.status.toLowerCase()))) &&
+  !TODAY_HIDDEN_STATUSES.has(visitor.status.toLowerCase());
+
+const UPCOMING_STATUSES = new Set([
+  'pending_approval',
+  'approved',
+  'visitor_accepted',
+  'accepted',
+  'expected',
+  'pending',
+]);
+
+/** Pending walk-ins have no visitor invitation to accept, but historical visits are not upcoming. */
+export const isReceptionistUpcomingVisitorVisible = (
+  visitor: ReceptionistVisitorLike,
+): boolean =>
+  UPCOMING_STATUSES.has(visitor.status.toLowerCase()) &&
+  (isOperationalVisitVisible(visitor) ||
+    (visitor.isWalkIn === true && !TODAY_HIDDEN_STATUSES.has(visitor.status.toLowerCase())));
+
+const AWAITING_CHECK_IN_STATUSES = new Set([
+  'expected',
+  'pending',
+  'approved',
+  'visitor_accepted',
+  'accepted',
+]);
+
+export const isReceptionistAwaitingCheckIn = (visitor: ReceptionistVisitorLike): boolean =>
+  isReceptionistDashboardVisitorVisible(visitor) &&
+  (AWAITING_CHECK_IN_STATUSES.has(visitor.status.toLowerCase()) ||
+    (visitor.isWalkIn === true &&
+      ['pending_approval', 'pending_host_approval'].includes(visitor.status.toLowerCase())));
 
 export const keepReceptionistAllVisitorsRecord = (
   visitor: ReceptionistVisitorLike,
-): boolean => visitor.isWalkIn === true || SCHEDULED_VISIBLE_STATUSES.has(visitor.status);
+): boolean =>
+  (visitor.isWalkIn === true && !TODAY_HIDDEN_STATUSES.has(visitor.status.toLowerCase())) ||
+  SCHEDULED_VISIBLE_STATUSES.has(visitor.status.toLowerCase());
 
 export const isReceptionistAllVisitorsRecordVisible = (
   visitor: ReceptionistVisitorLike,
   now = new Date(),
   preciseStatus?: string | null,
 ): boolean => {
+  // A precise filter cannot bypass the confirmation boundary.
+  if (!isReceptionistDashboardVisitorVisible(visitor)) return false;
   if (preciseStatus) {
     return visitor.status.toLowerCase() === preciseStatus.toLowerCase();
   }

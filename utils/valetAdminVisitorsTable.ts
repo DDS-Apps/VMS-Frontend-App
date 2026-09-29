@@ -4,19 +4,12 @@ import {
   resolveParkingDisplayDecision,
   type ParkingDisplayDecision,
 } from "@/utils/parkingDecision";
+import { isOperationalVisitVisible } from "@/utils/operationalVisitVisibility";
 
 export type ValetAdminVisitorsViewMode = "card" | "table";
 
 export const VALET_ADMIN_DEFAULT_VIEW_MODE: ValetAdminVisitorsViewMode =
   "table";
-
-export const VALET_ACCEPTED_STATUSES = new Set([
-  "approved",
-  "expected",
-  "visitor_accepted",
-  "checked_in",
-  "completed",
-]);
 
 export function getValetVisitorParkingDecision(
   visitor: ValetParkingVisitorDto,
@@ -55,7 +48,7 @@ export function filterAndSortValetVisitors(
   return visitors
     .filter(
       (visitor) =>
-        VALET_ACCEPTED_STATUSES.has(visitor.status) &&
+        isOperationalVisitVisible(visitor) &&
         valetVisitorHasParking(visitor),
     )
     .sort(

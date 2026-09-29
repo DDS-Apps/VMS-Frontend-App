@@ -24,3 +24,16 @@ export function formatFilterDate(value: Date | string, isRTL: boolean): string {
     timeZone: "UTC",
   }).format(date);
 }
+
+export function formatActiveDateRange(
+  startDate: Date | string,
+  endDate: Date | string,
+  isRTL: boolean,
+  fromLabel: string,
+  toLabel: string,
+): string {
+  const from = formatFilterDate(startDate, isRTL);
+  const to = formatFilterDate(endDate, isRTL);
+  if (!from || !to) return "";
+  return from === to ? from : `${fromLabel} ${from} – ${toLabel} ${to}`;
+}

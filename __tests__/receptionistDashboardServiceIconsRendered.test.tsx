@@ -33,7 +33,7 @@ const mockParkingVisitor = {
   visitDate: "2026-09-12",
   visitTime: "09:00",
   endTime: "10:00",
-  status: "approved",
+  status: "visitor_accepted",
   isWalkIn: false,
   parkingDecision: "required",
   visitorNeedsParking: true,
@@ -52,7 +52,7 @@ const mockNoParkingVisitor = {
   visitDate: "2026-09-12",
   visitTime: "10:00",
   endTime: "11:00",
-  status: "approved",
+  status: "visitor_accepted",
   isWalkIn: false,
   parkingDecision: "not_required",
   visitorNeedsParking: false,
@@ -436,25 +436,25 @@ describe("rendered Receptionist dashboard service icons", () => {
       const cards = renderer!.root.findAllByType("GHTouchableOpacity");
       expect(cards).toHaveLength(2);
 
-      const parkingCard = cards.find((card) => hasIcon(card, "map-pin"));
-      const noParkingCard = cards.find((card) => !hasIcon(card, "map-pin"));
+      const parkingCard = cards.find((card) => hasIcon(card, "parking"));
+      const noParkingCard = cards.find((card) => !hasIcon(card, "parking"));
       expect(parkingCard).toBeDefined();
       expect(noParkingCard).toBeDefined();
       expect(iconNames(parkingCard!)).toEqual(
-        expect.arrayContaining(["cloche", "briefcase", "map-pin"]),
+        expect.arrayContaining(["cloche", "meeting-room", "parking"]),
       );
       expect(iconNames(noParkingCard!)).toEqual(
-        expect.arrayContaining(["cloche", "briefcase"]),
+        expect.arrayContaining(["cloche", "meeting-room"]),
       );
-      expect(iconNames(noParkingCard!)).not.toContain("map-pin");
+      expect(iconNames(noParkingCard!)).not.toContain("parking");
       expectClocheIcon(parkingCard!);
       expectClocheIcon(noParkingCard!);
 
       const allIcons = iconNames(renderer!.root);
-      expect(allIcons.filter((name) => name === "map-pin")).toHaveLength(1);
+      expect(allIcons.filter((name) => name === "parking")).toHaveLength(1);
       expect(allIcons.filter((name) => name === "cloche")).toHaveLength(2);
       expect(allIcons).not.toContain("coffee");
-      expect(allIcons.filter((name) => name === "briefcase")).toHaveLength(2);
+      expect(allIcons.filter((name) => name === "meeting-room")).toHaveLength(2);
 
       const cardWrappers = renderer!.root
         .findAllByType("View")
@@ -492,16 +492,16 @@ describe("rendered Receptionist dashboard service icons", () => {
     const cards = renderer!.root.findAllByType("GHTouchableOpacity");
     expect(cards).toHaveLength(2);
 
-    const parkingCard = cards.find((card) => hasIcon(card, "map-pin"));
-    const buffetDisabledCard = cards.find((card) => !hasIcon(card, "map-pin"));
+    const parkingCard = cards.find((card) => hasIcon(card, "parking"));
+    const buffetDisabledCard = cards.find((card) => !hasIcon(card, "parking"));
     expect(parkingCard).toBeDefined();
     expect(buffetDisabledCard).toBeDefined();
     expectClocheIcon(parkingCard!);
     expect(iconNames(buffetDisabledCard!)).toEqual(
-      expect.arrayContaining(["briefcase"]),
+      expect.arrayContaining(["meeting-room"]),
     );
     expect(iconNames(buffetDisabledCard!)).not.toContain("cloche");
-    expect(iconNames(buffetDisabledCard!)).not.toContain("map-pin");
+    expect(iconNames(buffetDisabledCard!)).not.toContain("parking");
     expect(iconNames(renderer!.root).filter((name) => name === "cloche")).toHaveLength(1);
 
     act(() => {

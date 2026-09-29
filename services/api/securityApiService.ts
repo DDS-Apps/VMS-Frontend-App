@@ -1,6 +1,7 @@
 import { get, post } from '@/api/httpClient';
 import { apiConfig } from '@/api/config';
 import { getBusinessDateKey } from '@/utils/dateTimeUtils';
+import { isOperationalVisitVisible } from '@/utils/operationalVisitVisibility';
 import type {
   PaginatedResponse,
   SecurityVisitorDto,
@@ -132,7 +133,7 @@ export const securityApiService = {
     const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
     
     return {
-      data: response.data.map(mapVisitToSecurityVisitor),
+      data: response.data.filter(isOperationalVisitVisible).map(mapVisitToSecurityVisitor),
       pagination: response.pagination,
     };
   },
@@ -149,7 +150,7 @@ export const securityApiService = {
     const queryString = buildQueryString(queryParams);
     const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
     
-    return response.data.map(mapVisitToSecurityVisitor);
+    return response.data.filter(isOperationalVisitVisible).map(mapVisitToSecurityVisitor);
   },
 
   getTodaySummary: async (): Promise<SecuritySummary> => {
@@ -162,13 +163,13 @@ export const securityApiService = {
     });
     const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
     
-    const statuses = response.data.map(v => v.status);
-    const expectedStatuses = ['approved', 'checked_in', 'checked_out'];
-    const expectedToday = statuses.filter(s => expectedStatuses.includes(s)).length;
+    const visibleVisits = response.data.filter(isOperationalVisitVisible);
+    const statuses = visibleVisits.map(v => v.status);
+    const expectedToday = visibleVisits.length;
     const checkedIn = statuses.filter(s => s === 'checked_in').length;
     const checkedOut = statuses.filter(s => s === 'checked_out').length;
     
-    const walkIns = response.data.filter(v => v.isWalkIn).length;
+    const walkIns = visibleVisits.filter(v => v.isWalkIn).length;
 
     return {
       expectedToday,
@@ -216,6 +217,9 @@ export const securityApiService = {
 
   getVisitorDetails: async (visitId: string): Promise<SecurityVisitorDto> => {
     const response = await get<VisitDetailsDto>(visits.byId(visitId));
+    if (!isOperationalVisitVisible(response)) {
+      throw new Error('Visit is not available to Security until the visitor accepts.');
+    }
     return mapVisitDetailsToSecurityVisitor(response);
   },
 
@@ -231,7 +235,7 @@ export const securityApiService = {
     const queryString = buildQueryString(queryParams);
     const response = await get<VisitListResponse>(`${visits.base}${queryString}`);
     
-    return response.data.map(mapVisitToSecurityVisitor);
+    return response.data.filter(isOperationalVisitVisible).map(mapVisitToSecurityVisitor);
   },
 };
 

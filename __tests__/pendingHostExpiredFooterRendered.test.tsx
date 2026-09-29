@@ -321,6 +321,7 @@ jest.mock("@/utils/groupVisitsByDate", () => ({
 }));
 
 jest.mock("@/utils/formatters", () => ({
+  getInitials: (value: string) => value.slice(0, 2),
   capitalizeFirst: (value: string) => value,
   formatPhoneForDisplay: (value: string) => value,
   formatPhoneNumber: (value: string) => value,

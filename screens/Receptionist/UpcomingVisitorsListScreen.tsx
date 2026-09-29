@@ -20,6 +20,7 @@ import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 import type { VisitListItemDto } from "@/types/api.types";
 import { DirectionalRow } from '@/components/DirectionalRow';
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { isReceptionistUpcomingVisitorVisible } from "@/utils/receptionistVisitorRules";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import {
   computeIsPendingApprovalWalkInExpired,
@@ -33,13 +34,6 @@ import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const UPCOMING_STATUSES = new Set([
-  'pending_approval',
-  'approved',
-  'visitor_accepted',
-  'expected',
-  'pending',
-]);
 const PAGE_SIZE = 50;
 
 // ─── date-grouping helpers ────────────────────────────────────────────────────
@@ -158,7 +152,7 @@ export default function UpcomingVisitorsListScreen() {
   // ── flatten + filter ──
   const allVisits = useMemo<VisitListItemDto[]>(() => {
     const pages = displayedInfiniteData?.pages ?? [];
-    return pages.flatMap(p => p.data ?? []).filter(v => UPCOMING_STATUSES.has(v.status));
+    return pages.flatMap(p => p.data ?? []).filter(isReceptionistUpcomingVisitorVisible);
   }, [displayedInfiniteData]);
   const expirationBoundaries = useMemo(
     () =>

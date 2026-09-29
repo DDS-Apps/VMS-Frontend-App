@@ -1,10 +1,10 @@
 ---
 name: Receptionist Today scope
-description: Business definition for Receptionist Today visitor counts and sections.
+description: Confirmation boundary for Receptionist Today visitor lists.
 ---
 
-Receptionist Today KPIs, dashboard sections, and Today lists include every active request scheduled for the current Riyadh business date, including scheduled requests pending host approval. Rejected and cancelled requests are excluded.
+Receptionist Today lists should not expose scheduled invitation requests before the visitor accepts. Walk-ins have no visitor-response step, so active walk-ins can still appear while host/manager approval is pending. Visitor-accepted and later visits are visible.
 
-**Why:** The user confirmed that Receptionists need the complete set of people expected today; limiting scheduled requests to accepted statuses caused the KPI to show zero and removed valid requests from the Today section.
+**Why:** The earlier requirement to show all active Today requests conflicts with the later explicit requirement that operational roles, including Receptionist, not see unconfirmed invitations. The exception preserves the earlier walk-in workflow without exposing unconfirmed scheduled invitations. Backend-provided KPI totals require separate verification because client-side list filtering cannot change their membership.
 
-**How to apply:** Derive Today counts and list membership from the same Riyadh-date population. Do not let a narrower backend summary overwrite a complete visible-list count, and do not apply this broader Today rule to historical dates.
+**How to apply:** Apply the confirmation boundary on all Receptionist list surfaces, including Today and historical views; preserve walk-in visibility separately. Verify server-provided counts against this same boundary before treating them as confirmed-visitor totals.
