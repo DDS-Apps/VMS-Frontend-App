@@ -7,7 +7,7 @@
  *
  * Status labels: Checked In · Checked Out · To Be Checked (pending/expected/approved)
  */
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -116,6 +116,7 @@ const LAYOUT = {
   fixedColWidth: 160,
   scrollColWidth: 170,
   matrixColWidth: 170,
+  matrixHeaderHeight: 41,
   matrixRowMinHeight: 68,
 };
 
@@ -561,6 +562,21 @@ function MatrixTable({
   const statusHeaderLabel = showApproveReject || showCheckActions || showEditDelete
     ? t("common.actions").toUpperCase()
     : t("common.status").toUpperCase();
+  // The frozen names and the scrolling cells are sibling stacks. A wrapped name,
+  // subtitle, or action may grow one side; give both sides the taller row height.
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>({});
+  // Re-measure after the displayed content or controls change, so a row can
+  // shrink as well as grow (for example after leaving selection mode).
+  useEffect(() => {
+    setRowHeights((previous) => Object.keys(previous).length ? {} : previous);
+  }, [visitors, isRTL, isSelectionMode, showApproveReject, showCheckActions, showEditDelete, showExpiredState]);
+  const measureRow = (id: string, height: number) => {
+    setRowHeights((previous) =>
+      height > (previous[id] ?? LAYOUT.matrixRowMinHeight)
+        ? { ...previous, [id]: height }
+        : previous,
+    );
+  };
 
   const handleRowPress = (id: string) => {
     if (isSelectionMode) {
@@ -589,6 +605,7 @@ function MatrixTable({
           {visitors.map((item, idx) => (
             <Pressable
               key={item.id}
+              onLayout={(event) => measureRow(item.id, event.nativeEvent.layout.height)}
               accessibilityRole={onPressRow || isSelectionMode ? "button" : undefined}
               accessibilityLabel={
                 onPressRow || isSelectionMode
@@ -611,7 +628,7 @@ function MatrixTable({
               android_ripple={{ color: applyOpacity(theme.primary, "10") }}
               style={[
                 styles.matrixDataCell,
-                { width: LAYOUT.matrixColWidth },
+                { width: LAYOUT.matrixColWidth, minHeight: rowHeights[item.id] ?? LAYOUT.matrixRowMinHeight },
                 idx === visitors.length - 1 ? {} : { borderBottomWidth: 1, borderBottomColor: theme.border },
               ]}
             >
@@ -677,6 +694,8 @@ function MatrixTable({
                 key={item.id}
                 item={item}
                 isLast={idx === visitors.length - 1}
+                rowHeight={rowHeights[item.id] ?? LAYOUT.matrixRowMinHeight}
+                onRowLayout={(height) => measureRow(item.id, height)}
                 onPressRow={handleRowPress}
                 onLongPressRow={onLongPressRow}
                 onCheckIn={onCheckIn}
@@ -709,6 +728,8 @@ function MatrixTable({
 function MatrixDataRowCells({
   item,
   isLast,
+  rowHeight,
+  onRowLayout,
   onPressRow,
   onLongPressRow,
   onCheckIn,
@@ -732,6 +753,8 @@ function MatrixDataRowCells({
 }: {
   item: VisitorMatrixItem;
   isLast: boolean;
+  rowHeight: number;
+  onRowLayout: (height: number) => void;
   onPressRow?: (id: string) => void;
   onLongPressRow?: (id: string) => void;
   onCheckIn?: (id: string) => void;
@@ -783,6 +806,7 @@ function MatrixDataRowCells({
 
   return (
     <Pressable
+      onLayout={(event) => onRowLayout(event.nativeEvent.layout.height)}
       accessibilityRole={onPressRow ? "button" : undefined}
       accessibilityLabel={
         onPressRow
@@ -801,11 +825,11 @@ function MatrixDataRowCells({
       onPress={() => onPressRow?.(item.id)}
       onLongPress={onLongPressRow ? () => onLongPressRow(item.id) : undefined}
       android_ripple={{ color: applyOpacity(theme.primary, "10") }}
-      style={{ minHeight: LAYOUT.matrixRowMinHeight }}
+      style={{ minHeight: rowHeight }}
     >
       {/* Use the same View-based column layout as the header. Pressable's web
           direction inheritance is not guaranteed to match a plain View. */}
-      <View style={[{ minHeight: LAYOUT.matrixRowMinHeight }, getTableColumnStyle(isRTL)]}>
+      <View style={[{ minHeight: rowHeight }, getTableColumnStyle(isRTL)]}>
       {isSimple ? (
         <>
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
@@ -1150,10 +1174,11 @@ const styles = StyleSheet.create({
     borderEndWidth: 1,
   },
   matrixHeaderRow: {
+    height: LAYOUT.matrixHeaderHeight,
     borderBottomWidth: 1,
   },
   matrixHeaderCell: {
-    minHeight: 40,
+    height: LAYOUT.matrixHeaderHeight - 1,
     paddingHorizontal: Spacing.md,
     justifyContent: "center",
   },

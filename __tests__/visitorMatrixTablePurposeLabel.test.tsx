@@ -3,6 +3,7 @@ import { act, create } from "react-test-renderer";
 import { StyleSheet } from "react-native";
 
 import { en, ar, getTranslation } from "@/constants/i18n";
+import { Spacing } from "@/constants/theme";
 import { PURPOSE_VALUE_TO_KEY } from "@/constants/requestConstants";
 import { LanguageContext } from "@/contexts/LanguageContext";
 import {
@@ -430,4 +431,68 @@ describe("Overview Upcoming Visits table services", () => {
     expect(iconNames.filter((name) => name === "parking")).toHaveLength(1);
     act(() => renderer.unmount());
   });
+});
+
+describe("VisitorMatrixTable frozen name column alignment", () => {
+  it.each(["en", "ar"] as const)(
+    "keeps the name header and multi-row data aligned with the scrolling columns in %s",
+    (locale) => {
+      const visitors = [
+        { ...baseVisitor, visitorName: "A long visitor name that wraps", visitorSubtitle: "Department" },
+        { ...baseVisitor, id: "visitor-2", visitorName: "Visitor Two", company: "Second Co" },
+      ];
+      const renderer = renderTable("matrix", visitors, locale);
+      const styleOf = (node: ReturnType<typeof create>["root"]) => StyleSheet.flatten(node.props.style);
+      const measuredCells = () =>
+        renderer.root.findAll((node) => typeof node.props.onLayout === "function");
+      const findName = (name: string) => measuredCells().find((node) =>
+        styleOf(node)?.width === 170 && themedTextsIn(node).includes(name));
+      const findData = (company: string) => measuredCells().find((node) =>
+        styleOf(node)?.width !== 170 && themedTextsIn(node).includes(company));
+
+      const nameHeader = renderer.root.findAll((node) =>
+        styleOf(node)?.width === 170 &&
+        themedTextsIn(node).includes(getTranslation(locale, "visitor.visitorName").toUpperCase()),
+      ).find((node) => styleOf(node)?.backgroundColor === mockTheme.surfaceSecondary);
+      const dataHeader = renderer.root.findAll((node) =>
+        styleOf(node)?.backgroundColor === mockTheme.surfaceSecondary &&
+        themedTextsIn(node).includes(getTranslation(locale, "visitor.date").toUpperCase()),
+      ).find((node) => styleOf(node)?.height !== undefined);
+      expect(nameHeader).toBeDefined();
+      expect(dataHeader).toBeDefined();
+      expect(typeof styleOf(nameHeader!)?.height).toBe("number");
+      expect(styleOf(nameHeader!)?.height).toBe(styleOf(dataHeader!)?.height);
+      expect(styleOf(nameHeader!)?.paddingHorizontal).toBe(Spacing.md);
+
+      expect(findName(visitors[0].visitorName)).toBeDefined();
+      expect(findData("Acme")).toBeDefined();
+      act(() => findName(visitors[0].visitorName)!.props.onLayout({
+        nativeEvent: { layout: { height: 96 } },
+      }));
+      expect(styleOf(findName(visitors[0].visitorName)!)?.minHeight).toBe(96);
+      expect(styleOf(findData("Acme")!)?.minHeight).toBe(96);
+      expect(styleOf(findName(visitors[1].visitorName)!)?.minHeight).toBe(68);
+
+      act(() => findData("Second Co")!.props.onLayout({
+        nativeEvent: { layout: { height: 112 } },
+      }));
+      expect(styleOf(findName(visitors[1].visitorName)!)?.minHeight).toBe(112);
+      expect(styleOf(findData("Second Co")!)?.minHeight).toBe(112);
+
+      act(() => {
+        renderer.update(
+          <LanguageContext.Provider value={localeContextValue(locale)}>
+            <VisitorMatrixTable visitors={visitors} variant="matrix" isSelectionMode />
+          </LanguageContext.Provider>,
+        );
+      });
+      expect(renderer.root.findAllByType("SelectionCheckbox")).toHaveLength(2);
+      expect(styleOf(findName(visitors[0].visitorName)!)?.minHeight).toBe(68);
+      act(() => findData("Acme")!.props.onLayout({
+        nativeEvent: { layout: { height: 104 } },
+      }));
+      expect(styleOf(findName(visitors[0].visitorName)!)?.minHeight).toBe(104);
+      act(() => renderer.unmount());
+    },
+  );
 });
