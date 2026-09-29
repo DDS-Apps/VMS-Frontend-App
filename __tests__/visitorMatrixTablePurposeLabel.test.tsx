@@ -9,6 +9,9 @@ import {
   VisitorMatrixTable,
   type VisitorMatrixItem,
 } from "@/components/shared/VisitorMatrixTable";
+import type { PendingApprovalDto } from "@/types/api.types";
+import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
+import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
 
 const mockTheme = {
   background: "#ffffff",
@@ -359,6 +362,35 @@ describe("VisitorMatrixTable purpose labels", () => {
       expect(themedTexts(renderer)).toContain(ar.visitor.businessMeeting);
       expect(themedTexts(renderer)).not.toContain(en.visitor.businessMeeting);
       expect(visitors[0].purpose).toBe("business_meeting");
+    },
+  );
+});
+
+describe("Manager dashboard table services", () => {
+  const makeRow = (isMeetingRoom: boolean, isBuffet: boolean) => {
+    const request = mapPendingApprovalToVisitorRequest({
+      id: "visit-1",
+      employeeName: "Host",
+      visitor: { id: "visitor-1", fullName: "Visitor" },
+      visitDate: "2026-09-29",
+      visitTime: "09:00",
+      createdAt: "2026-09-28T09:00:00Z",
+      status: "pending_approval",
+      isWalkIn: false,
+      isMeetingRoom,
+      isBuffet,
+    } as PendingApprovalDto);
+    return mapManagerRequestToMatrixItem(request, "Meeting", false);
+  };
+
+  it.each(["card", "matrix"] as const)(
+    "renders only selected Meeting Room and Buffet icons in %s view",
+    (variant) => {
+      const renderer = renderTable(variant, [makeRow(true, true), makeRow(false, false)]);
+      const iconNames = renderer.root.findAllByType("DDIcon").map((icon) => icon.props.name);
+      expect(iconNames.filter((name) => name === "meeting-room")).toHaveLength(1);
+      expect(iconNames.filter((name) => name === "cloche")).toHaveLength(1);
+      act(() => renderer.unmount());
     },
   );
 });

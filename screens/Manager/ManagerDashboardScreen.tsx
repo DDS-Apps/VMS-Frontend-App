@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, ActivityIndicator } from "react-native";
-import { capitalizeFirst } from "@/utils/formatters";
 import { ROUTES } from "@/constants";
 import { useRefetchOnRefocus } from "@/hooks/useRefetchOnRefocus";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,7 +35,7 @@ import type { Theme } from "@/types/theme.types";
 import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { isVisitExpired } from "@/utils/dateTimeUtils";
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
-import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
 import {
   computeIsPendingApprovalWalkInExpired,
   getPendingApprovalWalkInScheduledEndMs,
@@ -725,27 +724,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const toMatrixItem = useCallback((request: VisitorRequest): VisitorMatrixItem => {
     const pv = normalizePurposeValue(request.purpose || '');
     const purposeLabel = PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : request.purpose;
-    return {
-      id: request.id,
-      visitorName: capitalizeFirst(request.visitor.fullName),
-      company: request.visitor.company || undefined,
-      visitDate: request.visitDate,
-      plannedInTime: request.visitTime,
-      plannedOutTime: request.endTime,
-      status: request.status,
-      hostName: request.employeeName || undefined,
-      hasParking: resolveParkingDisplayDecision({
-        parkingDecision: request.parkingDecision,
-        visitorNeedsParking: request.visitorNeedsParking,
-        isVisitorNeedsParking: request.isVisitorNeedsParking,
-        hasParkingAllocation: !!request.parkingSlot,
-      }) === 'required',
-      hasBuffet: !!request.buffet,
-      hasValet: !!request.valet,
-      hasMeetingRoom: !!request.meetingRoom,
-      purpose: purposeLabel || undefined,
-      isExpired: isRequestExpired(request),
-    };
+    return mapManagerRequestToMatrixItem(request, purposeLabel, isRequestExpired(request));
   }, [expirationTick, isRequestExpired, t]);
 
   const renderStickyHeader = () => (
