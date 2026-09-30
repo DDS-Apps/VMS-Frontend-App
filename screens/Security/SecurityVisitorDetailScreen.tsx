@@ -13,6 +13,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
 import { RequestTimeline, type TimelineStep } from "@/components/shared/RequestTimeline";
+import { MovementHistory } from "@/components/shared/MovementHistory";
 import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
@@ -92,8 +93,8 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
   const getTimelineSteps = (): TimelineStep[] => {
     const status = visitorData.status;
     const isCheckedIn = status === 'checked_in';
-    const isCheckedOut = status === 'checked_out' || status === 'completed';
     const timestamps = getSecurityTimelineTimestamps(visitorData);
+    const isCheckedOut = status === 'checked_out' || !!timestamps.checkedOutAt;
     
     return [
       {
@@ -675,11 +676,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      <RequestTimeline
-        steps={timelineSteps}
-        title={t('timeline.requestTimeline')}
-        timezone={visitorData.timezone}
-      />
+      {visitorData.movementHistory ? (
+        <MovementHistory movementHistory={visitorData.movementHistory} />
+      ) : (
+        <RequestTimeline
+          steps={timelineSteps}
+          title={t('timeline.requestTimeline')}
+          timezone={visitorData.timezone}
+        />
+      )}
     </ScreenScrollView>
   );
 }

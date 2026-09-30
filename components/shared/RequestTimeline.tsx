@@ -11,7 +11,6 @@ import {
   VISITOR_DECLINED_STATUSES,
   AWAITING_VISITOR_STATUSES,
   CHECKED_IN_STATUSES,
-  COMPLETED_REQUEST_STATUSES,
 } from "@/constants/requestConstants";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -713,11 +712,11 @@ function buildStandardTimeline(
       status: 'pending',
       icon: 'check-circle',
     });
-  } else if (COMPLETED_REQUEST_STATUSES.includes(data.status) || data.completedAt || data.checkedOutAt) {
+  } else if (data.status === 'completed') {
     steps.push({
       id: 'completed',
       label: t('timeline.visitCompleted'),
-      timestamp: data.timeline?.completedAt || data.timeline?.checkedOutAt || data.completedAt || data.checkedOutAt,
+      timestamp: data.timeline?.completedAt || data.completedAt,
       status: 'completed',
       icon: 'check-circle',
     });
@@ -816,7 +815,7 @@ function buildReceptionistTimeline(
   // Check if visitor has checked in - either by timestamp or by status
   const isCheckedIn = data.checkedInAt || data.status === 'checked_in' || data.status === 'completed';
   // Check if visitor has checked out / visit completed - either by timestamp or by status
-  const isCheckedOut = data.completedAt || data.checkedOutAt || data.status === 'completed';
+  const isCheckedOut = data.checkedOutAt || data.status === 'checked_out' || data.status === 'completed';
 
   if (isCheckedIn) {
     steps.push({
@@ -831,7 +830,7 @@ function buildReceptionistTimeline(
       steps.push({
         id: 'checked_out',
         label: t('timeline.visitorCheckedOut'),
-        timestamp: data.completedAt || data.checkedOutAt,
+        timestamp: data.checkedOutAt,
         status: 'completed',
         icon: 'log-out',
       });
@@ -882,11 +881,11 @@ function buildReceptionistTimeline(
   }
 
   // ============ Visit Completed Step ============
-  if (data.completedAt || data.checkedOutAt || data.status === 'completed') {
+  if (data.status === 'completed') {
     steps.push({
       id: 'completed',
       label: t('timeline.visitCompleted'),
-      timestamp: data.completedAt || data.checkedOutAt,
+      timestamp: data.timeline?.completedAt || data.completedAt,
       status: 'completed',
       icon: 'check-circle',
     });

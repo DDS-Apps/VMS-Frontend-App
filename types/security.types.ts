@@ -1,4 +1,5 @@
 import type { VisitStatus, AlertPriority, BaseListParams } from './common.types';
+import type { VisitMovementHistory } from './api.types';
 
 export type SecurityAlertType =
   | 'blacklist_match'
@@ -59,6 +60,7 @@ export interface SecurityVisitorDto {
   checkedInAt?: string;
   checkedOutAt?: string;
   completedAt?: string;
+  movementHistory?: VisitMovementHistory;
   timeline?: {
     checkedInAt?: string;
     checkedOutAt?: string;

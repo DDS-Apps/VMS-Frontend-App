@@ -51,6 +51,7 @@ import {
   type TimelineData,
   type TimelineActionCallbacks,
 } from "@/components/shared/RequestTimeline";
+import { MovementHistory } from "@/components/shared/MovementHistory";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { REQUEST_STATUS, PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
@@ -2283,7 +2284,11 @@ export default function RequestDetailsScreen({
         {/* Responsive 2-column layout for Timeline and QR Code on web */}
         <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
           <View style={isWebLayout ? { width: '48%' } : undefined}>
-            <RequestTimeline steps={timelineSteps} timezone={(request as any)?.timezone} />
+            <RequestTimeline
+              steps={visitData?.movementHistory ? timelineSteps.filter(step => step.id !== 'checked_in' && step.id !== 'checked_out') : timelineSteps}
+              timezone={visitData?.timezone}
+            />
+            <MovementHistory movementHistory={visitData?.movementHistory} />
           </View>
 
           {!isWebLayout && <Spacer height={Spacing.lg} />}

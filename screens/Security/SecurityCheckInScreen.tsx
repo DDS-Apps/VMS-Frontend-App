@@ -85,7 +85,7 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
   );
 };
 
-type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out';
+type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'completed';
 
 interface SecurityVisitor {
   id: string;
@@ -132,8 +132,9 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
       case 'on_site':
         return 'checked_in';
       case 'checked_out':
-      case 'completed':
         return 'checked_out';
+      case 'completed':
+        return 'completed';
       default:
         return 'expected';
     }
@@ -277,6 +278,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     { key: 'expected', label: t('visitor.expectedVisitors').split(' ')[0] },
     { key: 'checked_in', label: t('status.checkedIn') },
     { key: 'checked_out', label: t('status.checkedOut') },
+    { key: 'completed', label: t('status.completed') },
   ];
   const effectiveStatusFilter = isShowingPreviousQueryData
     ? displayedSourceContext.status
@@ -356,7 +358,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       if (timeDifference !== 0) return timeDifference;
 
       // Use status order only when visits have the same date and time.
-      const statusOrder: Record<SecurityVisitorStatus, number> = { expected: 0, checked_in: 1, checked_out: 2 };
+      const statusOrder: Record<SecurityVisitorStatus, number> = { expected: 0, checked_in: 1, checked_out: 2, completed: 3 };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
@@ -414,6 +416,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
       expected: dateFilteredVisitors.filter(v => v.status === 'expected').length,
       checked_in: dateFilteredVisitors.filter(v => v.status === 'checked_in').length,
       checked_out: dateFilteredVisitors.filter(v => v.status === 'checked_out').length,
+      completed: dateFilteredVisitors.filter(v => v.status === 'completed').length,
     };
   };
 

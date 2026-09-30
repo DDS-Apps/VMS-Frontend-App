@@ -1,0 +1,89 @@
+Frontend Guide: Multiple Check-ins / Check-outs
+
+API
+GET /api/v1/visits/{requestId}
+Authorization: Bearer <token>
+
+Use response.movementHistory.data for entry/exit history, NOT the existing summary timeline.
+
+Example Response
+Relevant portion only; sample IDs are illustrative.
+
+{
+  "id": "request-1",
+  "movementHistory": {
+    "requestId": "request-1",
+    "timezone": "Asia/Riyadh",
+    "data": [
+      {
+        "id": "entry-1",
+        "requestId": "request-1",
+        "eventType": "checked_in",
+        "occurredAt": "2026-09-29T07:00:00.000Z",
+        "recordedAt": "2026-09-29T07:00:01.000Z",
+        "source": "security",
+        "timestampBasis": "occurred_at",
+        "actor": null,
+        "gate": { "id": "main", "name": "Main gate" },
+        "departureEventId": "exit-1"
+      },
+      {
+        "id": "exit-1",
+        "requestId": "request-1",
+        "eventType": "checked_out",
+        "occurredAt": "2026-09-29T08:00:00.000Z",
+        "recordedAt": "2026-09-29T08:00:01.000Z",
+        "source": "matrix",
+        "timestampBasis": "occurred_at",
+        "actor": null,
+        "gate": null
+      },
+      {
+        "id": "entry-2",
+        "requestId": "request-1",
+        "eventType": "checked_in",
+        "occurredAt": "2026-09-29T09:00:00.000Z",
+        "recordedAt": "2026-09-29T09:00:01.000Z",
+        "source": "matrix",
+        "timestampBasis": "occurred_at",
+        "actor": null,
+        "gate": null,
+        "departureEventId": null
+      }
+    ]
+  }
+}
+
+UI Rules
+
+Pair each check-in with its checkout using departureEventId → 
+event.id - Domain Premium Dijual / For Sale . Do not pair by array position.
+
+Display occurredAt in movementHistory.timezone. API timestamps are UTC.
+
+Use 
+event.id - Domain Premium Dijual / For Sale  as the row key. Events already arrive oldest first.
+
+departureEventId: null → show “No checkout recorded”, NOT “Currently inside”.
+
+administrative_completion → show “Visit closed administratively” separately. It is NOT a physical checkout.
+
+Keep unmatched checkout events visible; do not invent a check-in.
+
+Empty data: [] → show “No movement history recorded”.
+
+actor and gate can be null.
+
+timestampBasis: "legacy_audit_time" → label the time “Legacy recorded time”.
+
+Example UI in Asia/Riyadh:
+Entry 1: Check-in 10:00 AM | Check-out 11:00 AM
+Entry 2: Check-in 12:00 PM | No checkout recorded
+
+Refresh
+After a check-in or checkout, refetch the detail API.
+
+To refresh only movement history:
+GET /api/v1/visits/{requestId}/movement-history
+
+This endpoint returns { requestId, timezone, data } directly.

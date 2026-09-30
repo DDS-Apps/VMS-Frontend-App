@@ -101,6 +101,8 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     checkedOutAt: visit.checkedOutAt,
     completedAt: visit.completedAt,
     timeline: visit.timeline,
+    movementHistory: visit.movementHistory,
+    timezone: visit.timezone,
   };
 }
 

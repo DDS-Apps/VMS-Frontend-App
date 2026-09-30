@@ -1,6 +1,6 @@
 import { TranslationKeys } from './types';
 
-export const en: TranslationKeys = {
+export const en: TranslationKeys & { movementHistory: Record<string, string> } = {
   common: {
     appName: 'VMS',
     brandName: 'Dallah Albaraka',
@@ -1614,6 +1614,17 @@ export const en: TranslationKeys = {
     identityVerified: 'Identity Verified',
     entryGranted: 'Entry Granted',
     exitRecorded: 'Exit Recorded',
+  },
+  movementHistory: {
+    title: 'Movement history',
+    checkIn: 'Check-in',
+    checkOut: 'Check-out',
+    noCheckout: 'No checkout recorded',
+    administrativelyClosed: 'Visit closed administratively',
+    noHistory: 'No movement history recorded',
+    legacyRecordedTime: 'Legacy recorded time',
+    actor: 'Recorded by',
+    gate: 'Gate',
   },
   toast: {
     errorTitle: 'Error',

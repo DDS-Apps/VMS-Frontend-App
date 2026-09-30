@@ -1,6 +1,6 @@
 import { TranslationKeys } from './types';
 
-export const ar: TranslationKeys = {
+export const ar: TranslationKeys & { movementHistory: Record<string, string> } = {
   common: {
     appName: 'نظام إدارة الزوار',
     brandName: 'دله ديجيتال',
@@ -1614,6 +1614,17 @@ export const ar: TranslationKeys = {
     identityVerified: 'تم التحقق من الهوية',
     entryGranted: 'تم السماح بالدخول',
     exitRecorded: 'تم تسجيل الخروج',
+  },
+  movementHistory: {
+    title: 'سجل الحركة',
+    checkIn: 'تسجيل الدخول',
+    checkOut: 'تسجيل الخروج',
+    noCheckout: 'لم يتم تسجيل الخروج',
+    administrativelyClosed: 'تم إغلاق الزيارة إدارياً',
+    noHistory: 'لم يتم تسجيل سجل للحركة',
+    legacyRecordedTime: 'وقت التسجيل القديم',
+    actor: 'تم التسجيل بواسطة',
+    gate: 'البوابة',
   },
   toast: {
     errorTitle: 'خطأ',

@@ -369,6 +369,9 @@ export function useVisitDetailsQuery(id: string, enabled = true) {
     queryFn: ({ signal }) => requestApiService.getVisitById(id, { signal }),
     enabled: enabled && !!id,
     retry: false,
+    // An early physical checkout remains active until the server closes the
+    // visit after its scheduled end. Keep an open detail screen up to date.
+    refetchInterval: (query) => query.state.data?.status === 'checked_out' ? 60_000 : false,
   });
 }
 

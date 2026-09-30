@@ -31,3 +31,4 @@
 - [Status dropdown source scope](status-dropdown-source-scope.md) — a status option must match its screen's source and filtering path, not just the global request lifecycle.
 - [Visit purpose choices](visit-purpose-choices.md) — restrict new/edit picker choices without discarding translations for historical purpose values.
 - [Compact status badge preference](compact-status-badges.md) — keep read-only status and Visit Expired badges at the original compact size; standardize without enlarging.
+- [Visit movements vs completion](visit-movements-vs-completion.md) — physical exits are separate from lifecycle completion; only the backend can finalize a visit after its scheduled window.

@@ -33,6 +33,7 @@ import {
   useTimelineSteps,
   type TimelineData,
 } from "@/components/shared/RequestTimeline";
+import { MovementHistory } from "@/components/shared/MovementHistory";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -2016,7 +2017,11 @@ export default function ManagerApprovalDetailScreen({
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <RequestTimeline steps={timelineSteps} timezone={visitData?.timezone} />
+        <RequestTimeline
+          steps={visitData?.movementHistory ? timelineSteps.filter(step => step.id !== 'checked_in' && step.id !== 'checked_out') : timelineSteps}
+          timezone={visitData?.timezone}
+        />
+        <MovementHistory movementHistory={visitData?.movementHistory} />
 
         <Spacer height={showPendingHostExpiredFooter || showExpiredWalkInFooter ? 0 : 100} />
       </ScreenScrollView>

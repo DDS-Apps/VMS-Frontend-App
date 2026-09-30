@@ -102,6 +102,7 @@ export function useSecurityVisitorQuery(
     queryKey: securityKeys.visitor(visitId),
     queryFn: () => securityApiService.getVisitorDetails(visitId),
     enabled: !!visitId,
+    refetchInterval: (query) => query.state.data?.status === 'checked_out' ? 60_000 : false,
     ...options,
   });
 }
@@ -167,7 +168,10 @@ export function useGateCheckInMutation() {
   return useMutation<SecurityVisitorDto, ApiError, GateCheckInDto>({
     mutationFn: (data) => securityApiService.gateCheckIn(data),
     onSuccess: (data) => {
-      queryClient.setQueryData(securityKeys.visitor(data.id), data);
+      // Mutation responses are not necessarily the complete detail payload.
+      // Re-read the canonical visit, including every recorded movement.
+      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.id] });
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
@@ -182,7 +186,8 @@ export function useGateCheckOutMutation() {
   return useMutation<SecurityVisitorDto, ApiError, GateCheckOutDto>({
     mutationFn: (data) => securityApiService.gateCheckOut(data),
     onSuccess: (data) => {
-      queryClient.setQueryData(securityKeys.visitor(data.id), data);
+      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.id] });
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });

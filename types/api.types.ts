@@ -1578,6 +1578,44 @@ export interface VisitDetailsRejection {
   reason: string;
 }
 
+export type VisitMovementEventType =
+  | 'checked_in'
+  | 'checked_out'
+  | 'administrative_completion';
+
+export interface VisitMovementActor {
+  id?: string;
+  name?: string;
+}
+
+export interface VisitMovementGate {
+  id?: string;
+  name?: string;
+}
+
+export interface VisitMovementEvent {
+  id: string;
+  requestId: string;
+  eventType: VisitMovementEventType;
+  /** ISO 8601 UTC timestamp. */
+  occurredAt: string;
+  /** ISO 8601 UTC timestamp when this event was recorded. */
+  recordedAt: string;
+  source: string;
+  timestampBasis: 'occurred_at' | 'legacy_audit_time';
+  actor: VisitMovementActor | null;
+  gate: VisitMovementGate | null;
+  /** Checkout event ID linked to this check-in, or null when no checkout was recorded. */
+  departureEventId?: string | null;
+}
+
+export interface VisitMovementHistory {
+  requestId: string;
+  timezone: string;
+  /** Events are returned oldest first. */
+  data: VisitMovementEvent[];
+}
+
 export interface VisitDetailsDto {
   id: string;
   employeeId: string;
@@ -1636,6 +1674,7 @@ export interface VisitDetailsDto {
   createdAt: string;
   updatedAt: string;
   timezone?: string;
+  movementHistory?: VisitMovementHistory;
   checkedInAt?: string;
   checkedOutAt?: string;
   completedAt?: string;

@@ -16,6 +16,8 @@ import {
   useTimelineSteps,
   type TimelineData,
 } from "@/components/shared/RequestTimeline";
+import { MovementHistory } from "@/components/shared/MovementHistory";
+import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -110,6 +112,24 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
   // Always fetch from server - use visitor.id from passed object or visitId param
   const effectiveVisitId = visitId ?? legacyVisitor?.id ?? '';
   const { data: visitDetails, isLoading, isFetching, isError, refetch } = useVisitDetailsQuery(effectiveVisitId, !!effectiveVisitId);
+  const checkInMutation = useReceptionCheckInMutation();
+  const checkOutMutation = useReceptionCheckOutMutation();
+  const isUpdatingMovement = checkInMutation.isPending || checkOutMutation.isPending;
+  const canCheckIn = !!visitDetails && ['expected', 'approved', 'visitor_accepted', 'checked_out'].includes(visitDetails.status);
+  const canCheckOut = visitDetails?.status === 'checked_in';
+  const updateMovement = async (action: 'check_in' | 'check_out') => {
+    if (!effectiveVisitId || isUpdatingMovement || (action === 'check_in' ? !canCheckIn : !canCheckOut)) return;
+    try {
+      if (action === 'check_in') {
+        await checkInMutation.mutateAsync({ visitId: effectiveVisitId });
+      } else {
+        await checkOutMutation.mutateAsync({ visitId: effectiveVisitId });
+      }
+      await refetch();
+    } catch (error) {
+      Alert.alert(t('errors.somethingWentWrong'), error instanceof Error ? error.message : t('errors.submitFailed'));
+    }
+  };
   useFocusEffect(
     useCallback(() => {
       if (effectiveVisitId) void refetch();
@@ -716,7 +736,23 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {/* Responsive 2-column layout: Timeline left, QR Code right (web) / stacked (mobile) */}
       <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
         <View style={isWebLayout ? { width: '48%' } : undefined}>
-          <RequestTimeline steps={timelineSteps} timezone={visitDetails?.timezone} />
+          <RequestTimeline
+            steps={visitDetails?.movementHistory ? timelineSteps.filter(step => step.id !== 'checked_in' && step.id !== 'checked_out') : timelineSteps}
+            timezone={visitDetails?.timezone}
+          />
+          {canCheckIn || canCheckOut ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={isUpdatingMovement}
+              onPress={() => void updateMovement(canCheckIn ? 'check_in' : 'check_out')}
+              style={{ alignSelf: 'flex-start', marginTop: Spacing.md, padding: Spacing.md, borderRadius: BorderRadius.md, backgroundColor: theme.primary, opacity: isUpdatingMovement ? 0.5 : 1 }}
+            >
+              <ThemedText style={{ color: theme.buttonText }}>
+                {isUpdatingMovement ? t('common.loading') : t(canCheckIn ? 'actions.checkIn' : 'actions.checkOut')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+          <MovementHistory movementHistory={visitDetails?.movementHistory} />
         </View>
 
         {!isWebLayout && <Spacer height={Spacing.lg} />}

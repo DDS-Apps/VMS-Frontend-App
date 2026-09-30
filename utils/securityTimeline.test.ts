@@ -19,7 +19,7 @@ describe('getSecurityTimelineTimestamps', () => {
     });
   });
 
-  it('falls back to flat timestamps and completedAt', () => {
+  it('does not treat administrative completion as a physical checkout', () => {
     expect(
       getSecurityTimelineTimestamps({
         checkedInAt: '2026-09-02T11:01:40.000Z',
@@ -28,7 +28,7 @@ describe('getSecurityTimelineTimestamps', () => {
     ).toEqual({
       arrivedAt: '2026-09-02T11:01:40.000Z',
       checkedInAt: '2026-09-02T11:01:40.000Z',
-      checkedOutAt: '2026-09-02T11:45:15.000Z',
+      checkedOutAt: undefined,
     });
   });
 });
