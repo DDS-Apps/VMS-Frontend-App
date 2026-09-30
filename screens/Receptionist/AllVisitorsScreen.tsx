@@ -604,14 +604,6 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       <Spacer height={Spacing.md} />
 
-      <StatusDropdown
-        value={preciseStatus}
-        onChange={handlePreciseStatusChange}
-        statuses={RECEPTIONIST_ALLOWED_STATUSES}
-        language={localeCode}
-      />
-      <Spacer height={Spacing.sm} />
-
       {/* Existing quick status chips remain available alongside the precise selector. */}
       <RTLHorizontalScrollView
         showsHorizontalScrollIndicator={false}
@@ -661,6 +653,12 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
             setDateFilter('all');
           }}
           clearAccessibilityLabel={t('common.clear')}
+        />
+        <StatusDropdown
+          value={preciseStatus}
+          onChange={handlePreciseStatusChange}
+          statuses={RECEPTIONIST_ALLOWED_STATUSES}
+          language={localeCode}
         />
         <ActiveDateRangeLabel
           startDate={selectedDateRange.startDate}

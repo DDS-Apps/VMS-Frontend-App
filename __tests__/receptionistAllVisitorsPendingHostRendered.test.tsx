@@ -4,6 +4,8 @@ import { act, create } from "react-test-renderer";
 type ViewMode = "card" | "list";
 
 let mockViewMode: ViewMode = "list";
+let mockRTL = false;
+let mockWidth = 400;
 let mockQueryData: unknown;
 let mockQueryError = false;
 const mockMatrixProps: Array<Record<string, any>> = [];
@@ -79,7 +81,7 @@ jest.mock("@/hooks/useTranslation", () => ({
 }));
 
 jest.mock("@/contexts/LanguageContext", () => ({
-  useLanguage: () => ({ isRTL: false, localeCode: "en-US" }),
+  useLanguage: () => ({ isRTL: mockRTL, localeCode: mockRTL ? "ar-SA" : "en-US" }),
 }));
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -174,7 +176,7 @@ jest.mock("react-native", () => {
     AppState: {
       addEventListener: () => ({ remove: jest.fn() }),
     },
-    useWindowDimensions: () => ({ width: 400, height: 800, scale: 1, fontScale: 1 }),
+    useWindowDimensions: () => ({ width: mockWidth, height: 800, scale: 1, fontScale: 1 }),
     ActivityIndicator: () => null,
     RefreshControl: () => null,
     FlatList: (props: Record<string, any>) => {
@@ -248,6 +250,8 @@ describe("rendered Receptionist All Visitors pending-host expiration", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-09-11T20:59:59.900Z"));
     mockViewMode = "list";
+    mockRTL = false;
+    mockWidth = 400;
     mockQueryData = mockResponse;
     mockQueryError = false;
     mockMatrixProps.length = 0;
@@ -259,6 +263,34 @@ describe("rendered Receptionist All Visitors pending-host expiration", () => {
   afterEach(() => {
     jest.useRealTimers();
   });
+
+  it.each([[400, false], [1200, false], [400, true], [1200, true]])(
+    "keeps Status between Date and its range at width %s (RTL=%s)",
+    (width, rtl) => {
+      mockWidth = width as number;
+      mockRTL = rtl as boolean;
+      const { RTLHorizontalScrollView, FilterChip } = require("@/components/shared");
+      const { StatusDropdown } = require("@/components/shared/RequestStatusDropdown");
+      const { ActiveDateRangeLabel } = require("@/components/shared/ActiveDateRangeLabel");
+      let tree: ReturnType<typeof create>;
+      act(() => {
+        tree = create(<AllVisitorsScreen navigation={{ navigate: jest.fn() }} route={{ params: {} }} />);
+      });
+      const row = tree!.root.findByType(RTLHorizontalScrollView);
+      const children = row.findAll(node =>
+        node.type === FilterChip || node.type === StatusDropdown || node.type === ActiveDateRangeLabel,
+      );
+      const index = children.findIndex(node => node.type === StatusDropdown);
+      expect(children[index - 1].props.label).toBe("visitor.date");
+      expect(children[index + 1].type).toBe(ActiveDateRangeLabel);
+      expect(tree!.root.findAllByType(StatusDropdown)).toHaveLength(1);
+      act(() => children[index].props.onChange("completed"));
+      expect(tree!.root.findByType(StatusDropdown).props.value).toBe("completed");
+      act(() => tree!.root.findByType(StatusDropdown).props.onChange(null));
+      expect(tree!.root.findByType(StatusDropdown).props.value).toBeNull();
+      act(() => tree!.unmount());
+    },
+  );
 
   it("recomputes card and matrix expiration across Riyadh midnight without remounting or changing retained rows", () => {
     const navigation = { navigate: jest.fn() };
