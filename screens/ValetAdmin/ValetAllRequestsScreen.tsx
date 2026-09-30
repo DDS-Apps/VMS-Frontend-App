@@ -195,11 +195,10 @@ export const VisitorCard = React.memo(({
         {parkingDecision === 'required' ? (
           <>
             <View style={{ height: Spacing.xs }} />
-            <DirectionalRow
-              style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.primary, '10') }]}
-              alignItems="center"
-            >
-               <DDIcon name="parking" size={14} color={theme.info} />
+            <DirectionalRow alignItems="center">
+              <View style={[styles.parkingBadge, { backgroundColor: applyOpacity(theme.info, '20') }]}>
+                <DDIcon name="parking" size={14} color={theme.info} />
+              </View>
             </DirectionalRow>
           </>
         ) : null}
@@ -690,11 +689,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     flex: 1,
   },
-  compactCarInfo: {
-    gap: 6,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
+  parkingBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   compactCarText: {
     fontSize: 12,

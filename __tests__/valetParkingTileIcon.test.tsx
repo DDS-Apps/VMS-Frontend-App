@@ -3,6 +3,9 @@ import { act, create } from 'react-test-renderer';
 import type { ValetParkingVisitorDto } from '@/types/api.types';
 import { VisitorCard } from '@/screens/ValetAdmin/ValetAllRequestsScreen';
 import { DDIcon } from '@/components/DDIcon';
+import { StyleSheet } from 'react-native';
+import { BorderRadius } from '@/constants/theme';
+import { applyOpacity } from '@/utils/statusStyles';
 
 jest.mock('@/components/DDIcon', () => ({ DDIcon: 'DDIcon' }));
 jest.mock('@/components/ScreenScrollView', () => ({ ScreenScrollView: 'ScreenScrollView' }));
@@ -51,6 +54,16 @@ describe.each([false, true])('Valet parking tile (RTL=%s)', isRTL => {
     const parking = tree!.root.findAllByType(DDIcon as any).find(node => node.props.name === 'parking')!;
     expect(parking.props.size).toBe(14);
     expect(parking.props.color).toBe(theme.info);
+    const badgeStyle = StyleSheet.flatten(parking.parent!.props.style);
+    expect(badgeStyle).toMatchObject({
+      width: 32,
+      height: 32,
+      borderRadius: BorderRadius.full,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: applyOpacity(theme.info, '20'),
+    });
+    expect(badgeStyle).not.toHaveProperty('flex');
 
     act(() => {
       tree!.update(<VisitorCard visitor={{ ...baseVisitor, visitorNeedsParking: false, parkingType: 'none' }} theme={theme} t={key => key} isRTL={isRTL} />);
