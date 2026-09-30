@@ -29,7 +29,7 @@ const movementHistory: VisitMovementHistory = {
     eventType: eventType as 'checked_in' | 'checked_out',
     occurredAt: `2026-09-30T${String(i + 8).padStart(2, '0')}:00:00Z`,
     recordedAt: '2026-09-30T15:00:00Z', source: 'reception',
-    timestampBasis: 'occurred_at', actor: null, gate: null,
+    timestampBasis: 'legacy_audit_time', actor: null, gate: null,
   })),
 };
 
@@ -54,6 +54,7 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     expect(text.filter(v => v === dictionary.movementHistory.checkIn)).toHaveLength(2);
     expect(text.filter(v => v === dictionary.movementHistory.checkOut)).toHaveLength(2);
     expect(text).not.toContain(dictionary.movementHistory.title);
+    expect(text).not.toContain(dictionary.movementHistory.legacyRecordedTime);
     expect(text.indexOf('Approval marker')).toBeLessThan(text.indexOf(dictionary.movementHistory.checkIn));
     expect(text.indexOf('Completion marker')).toBeGreaterThan(text.lastIndexOf(dictionary.movementHistory.checkOut));
   });

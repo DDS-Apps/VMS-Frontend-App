@@ -63,7 +63,7 @@ describe('unified visitor movement timeline', () => {
     }
   });
 
-  it('retains recorded time, timezone, actor, gate and legacy qualification', () => {
+  it('retains recorded time, timezone, actor and gate without a legacy annotation', () => {
     const entry = {
       ...event('entry', 'checked_in', 8),
       timestampBasis: 'legacy_audit_time' as const,
@@ -75,6 +75,7 @@ describe('unified visitor movement timeline', () => {
     expect(step.timezone).toBe('Asia/Riyadh');
     expect(step.metadata?.join(' ')).toContain('Reception desk');
     expect(step.metadata?.join(' ')).toContain('Main gate');
-    expect(step.metadata?.join(' ')).toContain('movementHistory.legacyRecordedTime');
+    expect(step.metadata?.join(' ')).not.toContain('movementHistory.legacyRecordedTime');
+    expect(entry.timestampBasis).toBe('legacy_audit_time');
   });
 });

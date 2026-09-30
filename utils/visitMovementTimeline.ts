@@ -48,7 +48,6 @@ export function mergeVisitMovementTimeline(
       icon: event.eventType === 'checked_in' ? 'log-in'
         : event.eventType === 'checked_out' ? 'log-out' : 'check-circle',
       metadata: [
-        ...(event.timestampBasis === 'legacy_audit_time' ? [t('movementHistory.legacyRecordedTime')] : []),
         ...(event.actor?.name ? [`${t('movementHistory.actor')}: ${event.actor.name}`] : []),
         ...(event.gate?.name ? [`${t('movementHistory.gate')}: ${event.gate.name}`] : []),
       ],

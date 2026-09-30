@@ -396,6 +396,44 @@ export interface TimelineData {
   };
 }
 
+interface ReceptionistVisitTimelineProps {
+  data: TimelineData;
+  movementHistory?: VisitMovementHistory;
+  timezone?: string;
+}
+
+/** Keep the Receptionist's movement-aware flow selection in the rendered timeline path. */
+export function ReceptionistVisitTimeline({ data, movementHistory, timezone }: ReceptionistVisitTimelineProps) {
+  const { t } = useTranslation();
+  const steps = useTimelineSteps({
+    data,
+    role: 'receptionist',
+    flowType: movementHistory || data.isWalkIn ? 'standard' : 'receptionist_checkin',
+    showActions: false,
+  });
+  let displaySteps = steps;
+  if (data.isWalkIn && movementHistory === undefined) {
+    // Older responses still need both legacy movement rows, but must not lose
+    // the walk-in's approval lifecycle just because the event feed is absent.
+    const legacySteps = buildReceptionistTimeline(withCanonicalTimelineTimestamps(data), t);
+    const movements = legacySteps.filter(step => ['checked_in', 'checked_out'].includes(step.id));
+    displaySteps = [
+      ...steps.filter(step => !['verified', 'checked_in', 'checked_out', 'completed'].includes(step.id)),
+      ...movements,
+      ...steps.filter(step => step.id === 'completed'),
+    ];
+  }
+
+  return (
+    <RequestTimeline
+      steps={displaySteps}
+      movementHistory={movementHistory}
+      visitStatus={data.status}
+      timezone={timezone}
+    />
+  );
+}
+
 export interface TimelineActionCallbacks {
   onAccept?: () => void;
   onReject?: () => void;
@@ -651,6 +689,14 @@ function buildStandardTimeline(
       id: 'visitor_response',
       label: t('timeline.visitorAccepted'),
       timestamp: data.timeline?.visitorAcceptedAt || data.acceptedAt,
+      status: 'completed',
+      icon: 'user-check',
+    });
+  } else if (role === 'receptionist' && data.isWalkIn && data.status === 'approved' && !reachedTerminalOrCurrent) {
+    // A walk-in is already present; approval does not await an invitation response.
+    steps.push({
+      id: 'visitor_response',
+      label: t('timeline.visitorAccepted'),
       status: 'completed',
       icon: 'user-check',
     });

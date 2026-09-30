@@ -12,8 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import {
-  RequestTimeline,
-  useTimelineSteps,
+  ReceptionistVisitTimeline,
   type TimelineData,
 } from "@/components/shared/RequestTimeline";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
@@ -274,14 +273,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
     } : undefined),
     timeline: (visitor as any)?.timeline,
   }), [visitor, visitDetails?.approval]);
-
-  const timelineSteps = useTimelineSteps({
-    data: timelineData,
-    role: 'receptionist',
-    flowType: visitDetails?.movementHistory ? 'standard' : 'receptionist_checkin',
-    actions: undefined,
-    showActions: false,
-  });
 
   if (isLoading && !visitor) {
     return (
@@ -735,10 +726,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {/* Responsive 2-column layout: Timeline left, QR Code right (web) / stacked (mobile) */}
       <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
         <View style={isWebLayout ? { width: '48%' } : undefined}>
-          <RequestTimeline
-            steps={timelineSteps}
+          <ReceptionistVisitTimeline
+            data={timelineData}
             movementHistory={visitDetails?.movementHistory}
-            visitStatus={visitDetails?.status}
             timezone={visitDetails?.timezone}
           />
           {canCheckIn || canCheckOut ? (

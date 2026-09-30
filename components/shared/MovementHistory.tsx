@@ -81,11 +81,6 @@ export function MovementHistory({ movementHistory }: MovementHistoryProps) {
       <ThemedText style={styles.timestamp}>
         {formatMovementTimestamp(event.occurredAt, movementHistory.timezone, isRTL)}
       </ThemedText>
-      {event.timestampBasis === 'legacy_audit_time' && (
-        <ThemedText style={[styles.metadata, { color: theme.textSecondary }]}>
-          {strings.legacyRecordedTime}
-        </ThemedText>
-      )}
       {renderMetadata(event)}
     </View>
   );
