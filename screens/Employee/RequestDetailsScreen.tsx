@@ -51,7 +51,6 @@ import {
   type TimelineData,
   type TimelineActionCallbacks,
 } from "@/components/shared/RequestTimeline";
-import { MovementHistory } from "@/components/shared/MovementHistory";
 import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography, getInputFontFamily } from "@/constants/theme";
 import { REQUEST_STATUS, PURPOSE_OPTIONS, PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
@@ -2285,10 +2284,11 @@ export default function RequestDetailsScreen({
         <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
           <View style={isWebLayout ? { width: '48%' } : undefined}>
             <RequestTimeline
-              steps={visitData?.movementHistory ? timelineSteps.filter(step => step.id !== 'checked_in' && step.id !== 'checked_out') : timelineSteps}
+              steps={timelineSteps}
+              movementHistory={visitData?.movementHistory}
+              visitStatus={visitData?.status}
               timezone={visitData?.timezone}
             />
-            <MovementHistory movementHistory={visitData?.movementHistory} />
           </View>
 
           {!isWebLayout && <Spacer height={Spacing.lg} />}

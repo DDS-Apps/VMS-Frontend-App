@@ -16,7 +16,6 @@ import {
   useTimelineSteps,
   type TimelineData,
 } from "@/components/shared/RequestTimeline";
-import { MovementHistory } from "@/components/shared/MovementHistory";
 import { useReceptionCheckInMutation, useReceptionCheckOutMutation } from "@/hooks/queries/useReceptionQueries";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
@@ -268,18 +267,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       required: true,
       rejectedAt: visitor.rejectedAt,
     } : undefined,
-    approval: visitor?.rejectedAt ? {
+    approval: visitDetails?.approval ?? (visitor?.rejectedAt ? {
       requiresApproval: true,
       rejectedAt: visitor.rejectedAt,
       rejectionReason: visitor.rejectionReason,
-    } : undefined,
+    } : undefined),
     timeline: (visitor as any)?.timeline,
-  }), [visitor]);
+  }), [visitor, visitDetails?.approval]);
 
   const timelineSteps = useTimelineSteps({
     data: timelineData,
     role: 'receptionist',
-    flowType: 'receptionist_checkin',
+    flowType: visitDetails?.movementHistory ? 'standard' : 'receptionist_checkin',
     actions: undefined,
     showActions: false,
   });
@@ -737,7 +736,9 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
         <View style={isWebLayout ? { width: '48%' } : undefined}>
           <RequestTimeline
-            steps={visitDetails?.movementHistory ? timelineSteps.filter(step => step.id !== 'checked_in' && step.id !== 'checked_out') : timelineSteps}
+            steps={timelineSteps}
+            movementHistory={visitDetails?.movementHistory}
+            visitStatus={visitDetails?.status}
             timezone={visitDetails?.timezone}
           />
           {canCheckIn || canCheckOut ? (
@@ -752,7 +753,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </ThemedText>
             </Pressable>
           ) : null}
-          <MovementHistory movementHistory={visitDetails?.movementHistory} />
         </View>
 
         {!isWebLayout && <Spacer height={Spacing.lg} />}

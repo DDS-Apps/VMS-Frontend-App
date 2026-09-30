@@ -17,6 +17,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatTimestamp, DEFAULT_SERVER_TIMEZONE } from "@/utils/dateTimeUtils";
 import { withCanonicalTimelineTimestamps } from "@/utils/timelineTimestamps";
+import type { VisitMovementHistory } from "@/types/api.types";
+import { mergeVisitMovementTimeline } from "@/utils/visitMovementTimeline";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -36,6 +38,9 @@ export interface TimelineStep {
   timestamp?: string;
   status: TimelineStepStatus;
   icon: IconName;
+  /** Optional event-specific timezone, overriding the request's timezone. */
+  timezone?: string;
+  metadata?: string[];
   actions?: TimelineAction[];
 }
 
@@ -57,6 +62,8 @@ export type TimelineRole =
 
 interface RequestTimelineProps {
   steps: TimelineStep[];
+  movementHistory?: VisitMovementHistory;
+  visitStatus?: string;
   title?: string;
   showTitle?: boolean;
   /** IANA timezone for formatting absolute timestamps. Defaults to Asia/Riyadh. */
@@ -65,6 +72,8 @@ interface RequestTimelineProps {
 
 export function RequestTimeline({ 
   steps, 
+  movementHistory,
+  visitStatus,
   title,
   showTitle = true,
   timezone,
@@ -72,6 +81,7 @@ export function RequestTimeline({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  const displaySteps = mergeVisitMovementTimeline(steps, movementHistory, t, visitStatus);
 
   const getStepColor = (status: TimelineStepStatus) => {
     switch (status) {
@@ -178,10 +188,10 @@ export function RequestTimeline({
         </ThemedText>
       ) : null}
 
-      {steps.map((step, index) => {
-        const isLast = index === steps.length - 1;
+      {displaySteps.map((step, index) => {
+        const isLast = index === displaySteps.length - 1;
         const stepColor = getStepColor(step.status);
-        const lineColor = !isLast ? getLineColor(step.status, steps[index + 1]?.status) : theme.border;
+        const lineColor = !isLast ? getLineColor(step.status, displaySteps[index + 1]?.status) : theme.border;
         const isCompleted = step.status === 'completed';
         const isCurrent = step.status === 'current';
         const isError = step.status === 'error';
@@ -270,7 +280,7 @@ export function RequestTimeline({
         const formattedTimestamp = step.timestamp
           ? (() => {
               try {
-                const ts = formatTimestamp(step.timestamp, isRTL, timezone ?? DEFAULT_SERVER_TIMEZONE);
+                const ts = formatTimestamp(step.timestamp, isRTL, step.timezone ?? timezone ?? DEFAULT_SERVER_TIMEZONE);
                 if (!ts.time) return null;
                 return ts.isToday ? ts.time : `${ts.time} · ${ts.date}`;
               } catch {
@@ -308,6 +318,15 @@ export function RequestTimeline({
                 {formattedTimestamp}
               </ThemedText>
             ) : null}
+
+            {step.metadata?.map((item, metadataIndex) => (
+              <ThemedText
+                key={`${step.id}-metadata-${metadataIndex}`}
+                style={[Typography.caption, { color: theme.textSecondary, marginTop: 2 }]}
+              >
+                {item}
+              </ThemedText>
+            ))}
 
             {hasActions ? (
               <View style={[styles.actionsContainer, { justifyContent: isRTL ? 'flex-end' : 'flex-start', gap: Spacing.sm }]}>

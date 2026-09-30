@@ -60,8 +60,18 @@ export interface SecurityVisitorDto {
   checkedInAt?: string;
   checkedOutAt?: string;
   completedAt?: string;
+  createdAt?: string;
+  approval?: {
+    requiresApproval: boolean;
+    autoApproved?: boolean;
+    approvedAt?: string;
+    rejectedAt?: string;
+  };
   movementHistory?: VisitMovementHistory;
   timeline?: {
+    requestedAt?: string;
+    approvedAt?: string;
+    visitorAcceptedAt?: string;
     checkedInAt?: string;
     checkedOutAt?: string;
     completedAt?: string;

@@ -12,8 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useFormatters } from "@/hooks/useFormatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { RequestStatusBadge } from "@/components/shared/RequestStatusBadge";
-import { RequestTimeline, type TimelineStep } from "@/components/shared/RequestTimeline";
-import { MovementHistory } from "@/components/shared/MovementHistory";
+import { RequestTimeline, useTimelineSteps, type TimelineStep } from "@/components/shared/RequestTimeline";
 import { formatPhoneNumber, formatPhoneForDisplay, getInitials } from "@/utils/formatters";
 import { useSecurityVisitorQuery } from "@/hooks/queries/useSecurityQueries";
 import type { SecurityVisitorDetailScreenProps } from "@/types/securityNavigation.types";
@@ -40,6 +39,19 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     isError,
     refetch,
   } = useSecurityVisitorQuery(visitorId);
+
+  const lifecycleSteps = useTimelineSteps({
+    data: {
+      createdAt: visitorData?.createdAt ?? '',
+      status: visitorData?.status ?? '',
+      approval: visitorData?.approval,
+      checkedInAt: visitorData?.checkedInAt,
+      checkedOutAt: visitorData?.checkedOutAt,
+      completedAt: visitorData?.completedAt,
+      timeline: visitorData?.timeline,
+    },
+    role: 'security',
+  });
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.lg,
@@ -676,15 +688,13 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      {visitorData.movementHistory ? (
-        <MovementHistory movementHistory={visitorData.movementHistory} />
-      ) : (
-        <RequestTimeline
-          steps={timelineSteps}
-          title={t('timeline.requestTimeline')}
-          timezone={visitorData.timezone}
-        />
-      )}
+      <RequestTimeline
+        steps={visitorData.movementHistory ? lifecycleSteps : timelineSteps}
+        movementHistory={visitorData.movementHistory}
+        visitStatus={visitorData.status}
+        title={t('timeline.requestTimeline')}
+        timezone={visitorData.timezone}
+      />
     </ScreenScrollView>
   );
 }

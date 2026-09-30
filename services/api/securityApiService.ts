@@ -100,6 +100,8 @@ function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisit
     checkedInAt: visit.checkedInAt,
     checkedOutAt: visit.checkedOutAt,
     completedAt: visit.completedAt,
+    createdAt: visit.createdAt,
+    approval: visit.approval,
     timeline: visit.timeline,
     movementHistory: visit.movementHistory,
     timezone: visit.timezone,
