@@ -123,7 +123,7 @@ const StatsCards = ({
   </KPICardRow>
 );
 
-const VisitorCard = React.memo(({ 
+export const VisitorCard = React.memo(({
   visitor, 
   theme,
   t,
@@ -199,7 +199,7 @@ const VisitorCard = React.memo(({
               style={[styles.compactCarInfo, { backgroundColor: applyOpacity(theme.primary, '10') }]}
               alignItems="center"
             >
-              <DDIcon name="map-pin" size={12} color={theme.primary} />
+               <DDIcon name="parking" size={14} color={theme.info} />
             </DirectionalRow>
           </>
         ) : null}
