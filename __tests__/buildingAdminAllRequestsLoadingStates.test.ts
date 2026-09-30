@@ -149,7 +149,8 @@ describe("Building Admin All Requests loading states", () => {
     expect(screenSource).toContain("displayedNonValetSnapshot?.sourceKey === nonValetSourceKey");
     expect(screenSource).toContain("isStatusCountsLoading");
     expect(screenSource).toContain("isStatusCountsError");
-    expect(screenSource).toContain("isStatusCountsUnavailable");
+    expect(screenSource).toContain("loadedStatusCountsNotice");
+    expect(querySource).toContain("exactVisitCounts ?? getLoadedVisitStatusCounts(visitsResult.data?.pages)");
     expect(screenSource).not.toContain("(hasNextPage || isFetchingNextPage || hasNextPageError)");
   });
 });

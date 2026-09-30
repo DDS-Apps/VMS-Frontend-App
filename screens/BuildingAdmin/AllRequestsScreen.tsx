@@ -602,7 +602,6 @@ export default function AllRequestsScreen() {
     fetchNextPage,
     isStatusCountsLoading,
     isStatusCountsError,
-    isStatusCountsUnavailable,
   } = useAllRequestsQuery(filters, { includeValet: false });
   
   const valetDateParams = useMemo(() => getAdminDateQueryRange(dateRange), [dateRange]);
@@ -1259,10 +1258,10 @@ export default function AllRequestsScreen() {
           <ThemedText style={{ color: theme.textSecondary }}>{t('common.loading')}</ThemedText>
         </View>
       ) : null}
-      {typeFilter === 'visitor' && isStatusCountsUnavailable ? (
+      {typeFilter === 'visitor' && tileStats && !tileStats.areStatusCountsComplete ? (
         <View style={styles.paddedContent}>
           <ThemedText style={{ color: theme.textSecondary }}>
-            {t('common.statusCountsUnavailable')}
+            {t('common.loadedStatusCountsNotice')}
           </ThemedText>
         </View>
       ) : null}

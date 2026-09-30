@@ -38,7 +38,7 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     ok: 'موافق',
     done: 'تم',
     retry: 'إعادة المحاولة',
-    statusCountsUnavailable: 'إجماليات الحالات غير متاحة حتى يوفر الخادم تفاصيلها أو يتم تحميل جميع الزيارات.',
+    loadedStatusCountsNotice: 'أعداد الحالات تخص الزيارات المحمّلة فقط. يعرض «الكل» الإجمالي الكامل. تتحدث الأعداد عند تحميل المزيد من الزيارات.',
     loadedVisitsFilterNotice: 'تُطبّق عوامل التصفية حاليًا على الزيارات المحمّلة فقط. حمّل المزيد لرؤية نتائج إضافية.',
     loadMoreVisits: 'تحميل المزيد من الزيارات',
     refresh: 'تحديث',

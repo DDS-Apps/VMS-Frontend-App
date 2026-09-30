@@ -37,7 +37,7 @@ export interface TranslationKeys {
     ok: string;
     done: string;
     retry: string;
-    statusCountsUnavailable: string;
+    loadedStatusCountsNotice: string;
     loadedVisitsFilterNotice: string;
     loadMoreVisits: string;
     refresh: string;

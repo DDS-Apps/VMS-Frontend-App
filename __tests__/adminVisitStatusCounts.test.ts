@@ -1,4 +1,4 @@
-import { getAdminVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
+import { getAdminVisitStatusCounts, getLoadedVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
 import type { VisitListResponse } from '@/types/api.types';
 import fs from 'fs';
 import path from 'path';
@@ -13,6 +13,29 @@ const page = (statuses: string[], total = statuses.length, offset = 0): VisitLis
 });
 
 describe('Admin status counts from the list response only', () => {
+  it('fills every status card from the first 20 of 52 rows', () => {
+    const statuses = [
+      ...Array(6).fill('pending_approval'), ...Array(5).fill('visitor_accepted'),
+      ...Array(3).fill('checked_in'), ...Array(3).fill('checked_out'),
+      'cancelled', 'rejected', 'auto_cancelled',
+    ];
+    const pages = [page(statuses, 52)];
+    expect(getLoadedVisitStatusCounts(pages)).toEqual({
+      pending: 6, approved: 5, in_progress: 3, completed: 3,
+      cancelled: 1, rejected: 1, auto_cancelled: 1,
+    });
+    expect(getAdminVisitStatusCounts(pages, true)).toBeNull();
+  });
+  it('updates loaded counts as pages arrive, deduplicating overlapping rows', () => {
+    const first = page(['pending', 'approved'], 52);
+    expect(getLoadedVisitStatusCounts([first])?.completed).toBe(0);
+    expect(getLoadedVisitStatusCounts([first, page(['approved', 'checked_out'], 52, 1)]))
+      .toMatchObject({ pending: 1, approved: 1, completed: 1 });
+    expect(getLoadedVisitStatusCounts([page(['rejected'], 52)]))
+      .toMatchObject({ pending: 0, approved: 0, rejected: 1 });
+    expect(getLoadedVisitStatusCounts([page([])])?.pending).toBe(0);
+    expect(getLoadedVisitStatusCounts(undefined)).toBeNull();
+  });
   it('uses a full 660-visit breakdown with only the first page loaded', () => {
     expect(getAdminVisitStatusCounts([{ ...page(['approved'], 660), statusCounts: counts }], true))
       .toEqual(counts);

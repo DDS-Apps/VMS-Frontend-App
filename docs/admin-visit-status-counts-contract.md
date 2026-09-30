@@ -40,6 +40,8 @@ If server-side filtering is introduced later, explicitly distinguish filtered
 pagination totals from unfiltered date-scoped tile totals; do not reuse this
 reconciliation rule unchanged.
 
-When the field is absent or invalid, the frontend shows unavailable counts for an
-incomplete list. It can count already-loaded complete lists, but does not request
-additional pages for that purpose. Existing analytics totals are not substituted.
+When the field is absent or invalid, the frontend calculates counts from unique
+already-loaded rows and labels them as loaded-visit counts while the list is
+incomplete. All still shows the server total. Additional pages update those local
+counts, but are never requested merely to fill the tiles. Existing analytics
+totals are not substituted.

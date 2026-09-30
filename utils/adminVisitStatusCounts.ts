@@ -44,6 +44,17 @@ export function normalizeVisitStatus(status: string): UnifiedStatus {
   }
 }
 
+/** Counts the unique rows already in memory; never fetches missing pages. */
+export function getLoadedVisitStatusCounts(
+  pages: VisitListResponse[] | undefined,
+): VisitStatusCounts | null {
+  if (!pages?.length) return null;
+  const visits = new Map(pages.flatMap(page => page.data).map(visit => [visit.id, visit]));
+  const counts = emptyCounts();
+  for (const visit of visits.values()) counts[normalizeVisitStatus(visit.status)]++;
+  return counts;
+}
+
 /** Pure calculation: never initiates a request or counts a partial list as complete. */
 export function getAdminVisitStatusCounts(
   pages: VisitListResponse[] | undefined,
@@ -63,7 +74,5 @@ export function getAdminVisitStatusCounts(
   if (hasNextPage) return null;
   const visits = new Map(pages.flatMap(page => page.data).map(visit => [visit.id, visit]));
   if (visits.size !== total) return null;
-  const counts = emptyCounts();
-  for (const visit of visits.values()) counts[normalizeVisitStatus(visit.status)]++;
-  return counts;
+  return getLoadedVisitStatusCounts(pages);
 }

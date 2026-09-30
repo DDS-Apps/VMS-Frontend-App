@@ -13,7 +13,7 @@ import type {
 } from '@/types/api.types';
 import type { RequestStatus, UserRole } from '@/types/vms.types';
 import { compareRequestsNewestFirst } from '@/utils/allRequestsPresentation';
-import { getAdminVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
+import { getAdminVisitStatusCounts, getLoadedVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
 import {
   extractAllRequestsArray,
   fetchValetTasksForDateRange,
@@ -211,10 +211,11 @@ export function useAllRequestsQuery(
     retry: false,
   });
 
-  const visitCounts = getAdminVisitStatusCounts(
+  const exactVisitCounts = getAdminVisitStatusCounts(
     visitsResult.data?.pages,
     Boolean(visitsResult.hasNextPage),
   );
+  const visitCounts = exactVisitCounts ?? getLoadedVisitStatusCounts(visitsResult.data?.pages);
 
   const buffetResult = useQuery({
     queryKey: ['all-requests', 'buffet-admin-tasks', type, startDate],
@@ -310,7 +311,7 @@ export function useAllRequestsQuery(
   filteredRequests.sort(compareRequestsNewestFirst);
 
   const areStatusCountsComplete =
-    !shouldFetchVisits || visitCounts !== null;
+    !shouldFetchVisits || exactVisitCounts !== null;
   const statusCount = (statusToCount: UnifiedStatus): number | null =>
     shouldFetchVisits && visitCounts
       ? visitCounts[statusToCount] + allRequests.filter(r => r.type !== 'visitor' && r.status === statusToCount).length
@@ -353,7 +354,6 @@ export function useAllRequestsQuery(
     error,
     isStatusCountsLoading: shouldFetchVisits && !areStatusCountsComplete && visitsResult.isLoading,
     isStatusCountsError: shouldFetchVisits && !areStatusCountsComplete && visitsResult.isError,
-    isStatusCountsUnavailable: shouldFetchVisits && !areStatusCountsComplete && Boolean(visitsResult.data),
     hasResolvedData,
     dataUpdatedAt,
     refetch,

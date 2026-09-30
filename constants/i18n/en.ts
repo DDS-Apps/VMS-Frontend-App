@@ -38,7 +38,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     ok: 'OK',
     done: 'Done',
     retry: 'Retry',
-    statusCountsUnavailable: 'Status totals are unavailable until the server provides a breakdown or all visits have been loaded.',
+    loadedStatusCountsNotice: 'Status counts cover loaded visits only. “All” shows the full total. Counts update as more visits load.',
     loadedVisitsFilterNotice: 'Filters currently apply to loaded visits only. Load more visits to see additional matches.',
     loadMoreVisits: 'Load more visits',
     refresh: 'Refresh',
