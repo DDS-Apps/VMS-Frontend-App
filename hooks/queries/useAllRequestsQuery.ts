@@ -14,6 +14,7 @@ import type {
 } from '@/types/api.types';
 import type { RequestStatus, UserRole } from '@/types/vms.types';
 import { compareRequestsNewestFirst } from '@/utils/allRequestsPresentation';
+import { fetchAdminVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
 import {
   extractAllRequestsArray,
   fetchValetTasksForDateRange,
@@ -52,38 +53,6 @@ export interface UnifiedRequest {
   duration?: string;
   checkedInAt?: string;
   checkedOutAt?: string;
-}
-
-function normalizeVisitStatus(status: string): UnifiedStatus {
-  const statusLower = status.toLowerCase();
-  switch (statusLower) {
-    case 'pending':
-    case 'pending_approval':
-    case 'pending_host_approval':
-    case 'visitor_pending':
-      return 'pending';
-    case 'approved':
-    case 'confirmed':
-    case 'accepted':
-    case 'visitor_accepted':
-      return 'approved';
-    case 'checked_in':
-    case 'in_progress':
-      return 'in_progress';
-    case 'checked_out':
-    case 'completed':
-      return 'completed';
-    case 'cancelled':
-      return 'cancelled';
-    case 'auto_cancelled':
-      return 'auto_cancelled';
-    case 'rejected':
-    case 'visitor_rejected':
-    case 'expired':
-      return 'rejected';
-    default:
-      return 'pending';
-  }
 }
 
 function normalizeValetStatus(status?: string): UnifiedStatus {
@@ -244,6 +213,22 @@ export function useAllRequestsQuery(
     retry: false,
   });
 
+  const visitTotal = visitsResult.data
+    ? Number(visitsResult.data.pages[0]?.pagination?.total)
+    : undefined;
+  const visitCountsResult = useQuery({
+    queryKey: ['all-requests', 'visit-status-counts', startDate, endDate, visitTotal],
+    queryFn: ({ signal }) => fetchAdminVisitStatusCounts({
+      startDate,
+      endDate,
+      expectedTotal: visitTotal!,
+      signal,
+    }),
+    enabled: shouldFetchVisits && visitTotal !== undefined && Number.isSafeInteger(visitTotal),
+    staleTime: 30 * 1000,
+    retry: false,
+  });
+
   useEffect(() => {
     if (shouldAutoFetchAllVisitorPages({
       requestType: type,
@@ -308,16 +293,17 @@ export function useAllRequestsQuery(
   const dataUpdatedAt = Math.max(
     0,
     ...enabledResults.map(result => result?.dataUpdatedAt ?? 0),
+    shouldFetchVisits ? visitCountsResult.dataUpdatedAt : 0,
   );
 
   const allRequests: UnifiedRequest[] = [];
-  let visitTotal = 0;
+  let loadedVisitTotal = 0;
 
   if (shouldFetchVisits && visitsResult.data) {
     const rawVisits = visitsResult.data.pages.flatMap(page => extractAllRequestsArray<VisitListItemDto>(page));
     const uniqueVisits = Array.from(new Map(rawVisits.map(visit => [visit.id, visit])).values());
     allRequests.push(...uniqueVisits.map(mapVisitToUnified));
-    visitTotal = Number(
+    loadedVisitTotal = Number(
       visitsResult.data.pages[0]?.pagination?.total ?? uniqueVisits.length,
     );
   }
@@ -358,15 +344,18 @@ export function useAllRequestsQuery(
 
   filteredRequests.sort(compareRequestsNewestFirst);
 
-  const areStatusCountsComplete = !shouldFetchVisits || !visitsResult.hasNextPage;
+  const areStatusCountsComplete =
+    !shouldFetchVisits || Boolean(visitCountsResult.data) || (Boolean(visitsResult.data) && !visitsResult.hasNextPage);
   const statusCount = (statusToCount: UnifiedStatus): number | null =>
-    areStatusCountsComplete
-      ? allRequests.filter(r => r.status === statusToCount).length
-      : null;
+    shouldFetchVisits && visitCountsResult.data
+      ? visitCountsResult.data[statusToCount] + allRequests.filter(r => r.type !== 'visitor' && r.status === statusToCount).length
+      : areStatusCountsComplete
+        ? allRequests.filter(r => r.status === statusToCount).length
+        : null;
   const nonVisitorCount = allRequests.filter(r => r.type !== 'visitor').length;
 
   const stats = {
-    total: shouldFetchVisits ? visitTotal + nonVisitorCount : allRequests.length,
+    total: shouldFetchVisits ? loadedVisitTotal + nonVisitorCount : allRequests.length,
     pending: statusCount('pending'),
     approved: statusCount('approved'),
     inProgress: statusCount('in_progress'),
@@ -376,7 +365,7 @@ export function useAllRequestsQuery(
     areStatusCountsComplete,
     byType: {
       visitor: shouldFetchVisits
-        ? visitTotal
+        ? loadedVisitTotal
         : allRequests.filter(r => r.type === 'visitor').length,
       buffet: allRequests.filter(r => r.type === 'buffet').length,
       valet: allRequests.filter(r => r.type === 'valet').length,
@@ -384,7 +373,12 @@ export function useAllRequestsQuery(
   };
 
   const refetch = async () => {
-    await Promise.all(enabledResults.map(r => r!.refetch()));
+    await Promise.all([
+      ...enabledResults.map(r => r!.refetch()),
+      ...(shouldFetchVisits && visitTotal !== undefined && Number.isSafeInteger(visitTotal)
+        ? [visitCountsResult.refetch()]
+        : []),
+    ]);
   };
 
   return {
@@ -395,6 +389,8 @@ export function useAllRequestsQuery(
     isFetching,
     isError,
     error,
+    isStatusCountsLoading: shouldFetchVisits && !areStatusCountsComplete && !visitCountsResult.isError,
+    isStatusCountsError: shouldFetchVisits && !areStatusCountsComplete && visitCountsResult.isError,
     hasResolvedData,
     dataUpdatedAt,
     refetch,

@@ -138,12 +138,14 @@ interface StatCardProps {
   label: string;
   color: string;
   isActive: boolean;
+  loading?: boolean;
+  error?: boolean;
   onPress: () => void;
   theme: Theme;
   isLargeScreen?: boolean;
 }
 
-function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen }: StatCardProps) {
+function StatCard({ value, label, color, isActive, loading, error, onPress, theme, isLargeScreen }: StatCardProps) {
   const handlePress = () => {
     console.log('[StatCard] PRESSED:', label, 'value:', value, 'isActive:', isActive);
     onPress();
@@ -161,7 +163,9 @@ function StatCard({ value, label, color, isActive, onPress, theme, isLargeScreen
         }
       ]}
     >
-      <ThemedText style={[styles.statValue, { color }]}>{value ?? '—'}</ThemedText>
+      {value === null && loading
+        ? <ActivityIndicator size="small" color={color} />
+        : <ThemedText style={[styles.statValue, { color }]}>{value ?? (error ? '!' : '—')}</ThemedText>}
       <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={2}>
         {label}
       </ThemedText>
@@ -596,6 +600,8 @@ export default function AllRequestsScreen() {
     isFetchingNextPage,
     hasNextPageError,
     fetchNextPage,
+    isStatusCountsLoading,
+    isStatusCountsError,
   } = useAllRequestsQuery(filters, { includeValet: false });
   
   const valetDateParams = useMemo(() => getAdminDateQueryRange(dateRange), [dateRange]);
@@ -770,6 +776,14 @@ export default function AllRequestsScreen() {
     typeFilter === 'valet'
       ? (valetStats ?? stats)
       : (displayedNonValetSnapshot?.stats ?? stats);
+  // Retained rows are useful during a source transition, but their totals
+  // must not appear under a different module/date while the new data loads.
+  const tileStats = typeFilter === 'valet'
+    ? valetStats
+    : currentNonValetSnapshot?.stats ??
+      (displayedNonValetSnapshot?.sourceKey === nonValetSourceKey
+        ? displayedNonValetSnapshot.stats
+        : null);
   const hasUsableDisplayData =
     typeFilter === 'valet'
       ? displayedValetDashboardData !== undefined
@@ -1190,18 +1204,20 @@ export default function AllRequestsScreen() {
 
       {(() => {
         const cards = [
-          { key: 'all' as const, value: displayStats.total, label: t('common.all'), color: StatusCardColors.all },
-          { key: 'pending' as const, value: displayStats.pending, label: t('status.pending'), color: StatusCardColors.pending },
-          { key: 'approved' as const, value: displayStats.approved, label: t('status.approved'), color: StatusCardColors.approved },
-          { key: 'in_progress' as const, value: displayStats.inProgress, label: t('status.checkedIn'), color: StatusCardColors.inProgress },
-          { key: 'completed' as const, value: displayStats.completed, label: t('status.checkedOut'), color: StatusCardColors.done },
-          { key: 'cancelled' as const, value: displayStats.cancelled, label: t('status.cancelled'), color: StatusCardColors.cancelled },
-          { key: 'rejected' as const, value: displayStats.rejected, label: t('status.rejected'), color: StatusCardColors.rejected },
+          { key: 'all' as const, value: tileStats?.total ?? null, label: t('common.all'), color: StatusCardColors.all },
+          { key: 'pending' as const, value: tileStats?.pending ?? null, label: t('status.pending'), color: StatusCardColors.pending },
+          { key: 'approved' as const, value: tileStats?.approved ?? null, label: t('status.approved'), color: StatusCardColors.approved },
+          { key: 'in_progress' as const, value: tileStats?.inProgress ?? null, label: t('status.checkedIn'), color: StatusCardColors.inProgress },
+          { key: 'completed' as const, value: tileStats?.completed ?? null, label: t('status.checkedOut'), color: StatusCardColors.done },
+          { key: 'cancelled' as const, value: tileStats?.cancelled ?? null, label: t('status.cancelled'), color: StatusCardColors.cancelled },
+          { key: 'rejected' as const, value: tileStats?.rejected ?? null, label: t('status.rejected'), color: StatusCardColors.rejected },
         ];
         const content = cards.map(card => (
           <StatCard
             key={card.key}
             value={card.value}
+            loading={card.key !== 'all' && typeFilter === 'visitor' && isStatusCountsLoading}
+            error={card.key !== 'all' && typeFilter === 'visitor' && isStatusCountsError}
             label={card.label}
             color={card.color}
             isActive={effectiveStatusFilter === card.key}
@@ -1225,6 +1241,23 @@ export default function AllRequestsScreen() {
           </RTLHorizontalScrollView>
         );
       })()}
+
+      {typeFilter === 'visitor' && isStatusCountsError ? (
+        <Pressable
+          style={styles.paddedContent}
+          accessibilityRole="button"
+          onPress={() => void refetch()}
+        >
+          <ThemedText style={{ color: theme.error }}>
+            {t('common.errorLoadingData')}. {t('common.retry')}
+          </ThemedText>
+        </Pressable>
+      ) : null}
+      {typeFilter === 'visitor' && isStatusCountsLoading ? (
+        <View style={styles.paddedContent}>
+          <ThemedText style={{ color: theme.textSecondary }}>{t('common.loading')}</ThemedText>
+        </View>
+      ) : null}
 
       <Spacer height={Spacing.lg} />
 

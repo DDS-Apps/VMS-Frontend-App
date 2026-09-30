@@ -141,4 +141,13 @@ describe("Building Admin All Requests loading states", () => {
       "matchesAllRequestsStatus(r, status, exactStatus)",
     );
   });
+
+  it("updates retained tile totals when status counts resolve after the list", () => {
+    expect(querySource).toContain("visitCountsResult.dataUpdatedAt");
+    expect(querySource).toContain("visitCountsResult.data[statusToCount]");
+    expect(screenSource).toContain("currentNonValetSnapshot?.stats");
+    expect(screenSource).toContain("displayedNonValetSnapshot?.sourceKey === nonValetSourceKey");
+    expect(screenSource).toContain("isStatusCountsLoading");
+    expect(screenSource).toContain("isStatusCountsError");
+  });
 });
