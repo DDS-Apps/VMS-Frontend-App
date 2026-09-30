@@ -25,9 +25,15 @@ describe('unified visitor movement timeline', () => {
     expect(mergeVisitMovementTimeline(base, undefined, t, 'checked_out')).toEqual(base);
   });
 
-  it('does not invent physical events for explicitly empty history', () => {
+  it('shows planned grey milestones but does not invent physical events for empty history', () => {
     const result = mergeVisitMovementTimeline(base, history([]), t, 'approved');
-    expect(result.map(s => s.id)).toEqual(['submitted', 'approval', 'completed']);
+    expect(result.map(s => s.id)).toEqual([
+      'submitted', 'approval', 'pending-check-in', 'pending-check-out', 'completed',
+    ]);
+    expect(result.slice(2, 4)).toEqual([
+      { id: 'pending-check-in', label: 'timeline.visitorCheckedIn', status: 'pending', icon: 'log-in' },
+      { id: 'pending-check-out', label: 'timeline.visitorCheckedOut', status: 'pending', icon: 'log-out' },
+    ]);
   });
 
   it('places every repeat movement chronologically between approval and completion', () => {
@@ -51,6 +57,39 @@ describe('unified visitor movement timeline', () => {
     expect(result.slice(2, -1).map(s => s.timestamp)).toEqual(events.map(e => e.occurredAt));
   });
 
+  it('keeps checkout pending after a single recorded entry', () => {
+    const result = mergeVisitMovementTimeline(base, history([event('entry', 'checked_in', 8)]), t, 'checked_in');
+    expect(result.slice(2, -1).map(step => [step.id, step.status])).toEqual([
+      ['movement-entry', 'completed'], ['pending-check-out', 'pending'],
+    ]);
+    expect(result[3].timestamp).toBeUndefined();
+  });
+
+  it('keeps check-in pending before a checkout-only history without inventing an entry', () => {
+    const result = mergeVisitMovementTimeline(base, history([event('exit', 'checked_out', 8)]), t, 'checked_out');
+    expect(result.slice(2, -1).map(step => [step.id, step.status])).toEqual([
+      ['pending-check-in', 'pending'], ['movement-exit', 'completed'],
+    ]);
+  });
+
+  it('keeps movement buttons on pending steps without presenting an unrecorded event as green', () => {
+    const onCheckIn = jest.fn();
+    const onCheckOut = jest.fn();
+    const actionable = base.map(step =>
+      step.id === 'checked_in'
+        ? { ...step, status: 'current' as const, actions: [{ type: 'check_in' as const, label: 'Check In', onPress: onCheckIn }] }
+        : step.id === 'checked_out'
+          ? { ...step, status: 'current' as const, actions: [{ type: 'check_out' as const, label: 'Check Out', onPress: onCheckOut }] }
+          : step,
+    );
+    const empty = mergeVisitMovementTimeline(actionable, history([]), t, 'approved');
+    expect(empty.find(step => step.id === 'pending-check-in')).toMatchObject({ status: 'pending', actions: [{ onPress: onCheckIn }] });
+    expect(empty.find(step => step.id === 'pending-check-out')).toMatchObject({ status: 'pending', actions: [{ onPress: onCheckOut }] });
+    const entered = mergeVisitMovementTimeline(actionable, history([event('entry', 'checked_in', 8)]), t, 'checked_in');
+    expect(entered.some(step => step.id === 'pending-check-in')).toBe(false);
+    expect(entered.find(step => step.id === 'pending-check-out')?.actions?.[0].onPress).toBe(onCheckOut);
+  });
+
   it('never marks lifecycle completion based on checkout or administrative closure', () => {
     for (const status of ['checked_out', 'checked_in']) {
       const result = mergeVisitMovementTimeline(base, history([
@@ -58,7 +97,7 @@ describe('unified visitor movement timeline', () => {
       ]), t, status);
       expect(result.at(-1)?.status).toBe('pending');
       expect(result.slice(2, -1).map(s => s.label)).toEqual([
-        'movementHistory.checkOut', 'movementHistory.administrativelyClosed',
+        'timeline.visitorCheckedIn', 'movementHistory.checkOut', 'movementHistory.administrativelyClosed',
       ]);
     }
   });

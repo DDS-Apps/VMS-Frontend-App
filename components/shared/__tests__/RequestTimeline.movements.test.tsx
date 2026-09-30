@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
-import { RequestTimeline } from '../RequestTimeline';
+import { RequestTimeline, useTimelineSteps, type TimelineData } from '../RequestTimeline';
 import { en } from '@/constants/i18n/en';
 import { ar } from '@/constants/i18n/ar';
 import type { VisitMovementHistory } from '@/types/api.types';
@@ -32,6 +32,11 @@ const movementHistory: VisitMovementHistory = {
     timestampBasis: 'legacy_audit_time', actor: null, gate: null,
   })),
 };
+
+function ScheduledTimeline({ data, history }: { data: TimelineData; history?: VisitMovementHistory }) {
+  const steps = useTimelineSteps({ data, role: 'employee', flowType: 'standard' });
+  return <RequestTimeline steps={steps} movementHistory={history} visitStatus={data.status} />;
+}
 
 describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
   let tree: ReactTestRenderer;
@@ -66,5 +71,72 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     const json = JSON.stringify(tree.toJSON());
     expect(json).not.toContain((rtl ? ar : en).movementHistory.noHistory);
     expect(tree.root.findAllByType('ThemedView' as any)).toHaveLength(1);
+  });
+
+  it('shows awaiting response followed by grey check-in, checkout and completion with empty history', () => {
+    const dictionary = rtl ? ar : en;
+    const data: TimelineData = {
+      createdAt: '2026-09-30T07:00:00Z',
+      status: 'visitor_pending',
+      approval: { requiresApproval: false, autoApproved: true },
+    };
+    act(() => {
+      tree = create(<ScheduledTimeline data={data} history={{ ...movementHistory, data: [] }} />);
+    });
+    const nodes = tree.root.findAllByType('ThemedText' as any);
+    const text = nodes.map(node => node.props.children);
+    const labels = [
+      dictionary.timeline.awaitingVisitor,
+      dictionary.timeline.visitorCheckedIn,
+      dictionary.timeline.visitorCheckedOut,
+      dictionary.timeline.visitCompleted,
+    ];
+    expect(labels.map(label => text.indexOf(label))).toEqual([...labels.map(label => text.indexOf(label))].sort((a, b) => a - b));
+    for (const label of labels.slice(1)) {
+      const node = nodes.find(item => item.props.children === label)!;
+      expect(node.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    }
+    expect(text).not.toContain(dictionary.movementHistory.noHistory);
+  });
+
+  it('keeps checkout pending when a real check-in is recorded, and keeps completion pending after checkout', () => {
+    const dictionary = rtl ? ar : en;
+    const data: TimelineData = { createdAt: '2026-09-30T07:00:00Z', status: 'checked_in' };
+    act(() => {
+      tree = create(<ScheduledTimeline data={data} history={{ ...movementHistory, data: [movementHistory.data[0]] }} />);
+    });
+    let nodes = tree.root.findAllByType('ThemedText' as any);
+    expect(nodes.find(node => node.props.children === dictionary.movementHistory.checkIn)!.props.style)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
+    expect(nodes.find(node => node.props.children === dictionary.timeline.visitorCheckedOut)!.props.style)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    act(() => tree.update(<ScheduledTimeline
+      data={{ ...data, status: 'checked_out' }}
+      history={{ ...movementHistory, data: movementHistory.data.slice(0, 2) }}
+    />));
+    nodes = tree.root.findAllByType('ThemedText' as any);
+    expect(nodes.find(node => node.props.children === dictionary.movementHistory.checkOut)!.props.style)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
+    expect(nodes.find(node => node.props.children === dictionary.timeline.visitCompleted)!.props.style)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+  });
+
+  it('keeps planned checkout in legacy responses and only makes completion green for server-completed visits', () => {
+    const dictionary = rtl ? ar : en;
+    const data: TimelineData = { createdAt: '2026-09-30T07:00:00Z', status: 'visitor_pending' };
+    act(() => { tree = create(<ScheduledTimeline data={data} />); });
+    let text = tree.root.findAllByType('ThemedText' as any).map(node => node.props.children);
+    expect(text).toContain(dictionary.timeline.visitorCheckedIn);
+    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
+    act(() => tree.update(<ScheduledTimeline
+      data={{ ...data, status: 'completed' }}
+      history={{ ...movementHistory, data: movementHistory.data.slice(0, 2) }}
+    />));
+    const nodes = tree.root.findAllByType('ThemedText' as any);
+    text = nodes.map(node => node.props.children);
+    expect(text).not.toContain(dictionary.timeline.visitorCheckedIn);
+    expect(text).not.toContain(dictionary.timeline.visitorCheckedOut);
+    expect(nodes.find(node => node.props.children === dictionary.timeline.visitCompleted)!.props.style)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
   });
 });

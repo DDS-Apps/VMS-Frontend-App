@@ -768,7 +768,39 @@ function buildStandardTimeline(
     });
   }
 
-  // ============ Step 5: Visit Completed ============
+  // ============ Step 5: Visitor Checked Out ============
+  if (data.checkedOutAt || data.status === 'checked_out') {
+    steps.push({
+      id: 'checked_out',
+      label: t('timeline.visitorCheckedOut'),
+      timestamp: data.timeline?.checkedOutAt || data.checkedOutAt,
+      status: 'completed',
+      icon: 'log-out',
+    });
+  } else if (!reachedTerminalOrCurrent && showActions && data.checkedInAt && (role === 'receptionist' || role === 'security') && actions?.onCheckOut) {
+    steps.push({
+      id: 'checked_out',
+      label: t('timeline.visitorCheckedOut'),
+      status: 'current',
+      icon: 'log-out',
+      actions: [{
+        type: 'check_out',
+        label: t('actions.checkOut'),
+        onPress: actions.onCheckOut,
+        isLoading: actions.isCheckOutLoading,
+      }],
+    });
+    reachedTerminalOrCurrent = true;
+  } else {
+    steps.push({
+      id: 'checked_out',
+      label: t('timeline.visitorCheckedOut'),
+      status: 'pending',
+      icon: 'log-out',
+    });
+  }
+
+  // ============ Step 6: Visit Completed ============
   // Show completed step as pending if manager already rejected
   if (isRejected) {
     steps.push({
@@ -785,20 +817,6 @@ function buildStandardTimeline(
       status: 'completed',
       icon: 'check-circle',
     });
-  } else if (!reachedTerminalOrCurrent && showActions && data.checkedInAt && (role === 'receptionist' || role === 'security') && actions?.onCheckOut) {
-    const completeStep: TimelineStep = {
-      id: 'completed',
-      label: t('timeline.visitCompleted'),
-      status: 'current',
-      icon: 'check-circle',
-      actions: [{
-        type: 'check_out',
-        label: t('actions.checkOut'),
-        onPress: actions.onCheckOut,
-        isLoading: actions.isCheckOutLoading,
-      }],
-    };
-    steps.push(completeStep);
   } else {
     steps.push({
       id: 'completed',

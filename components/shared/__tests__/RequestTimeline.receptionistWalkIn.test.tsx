@@ -57,14 +57,18 @@ describe.each([
     expect(approval.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
   };
 
-  it('renders an approved walk-in with empty movement history as approved, without inventing entry or exit', () => {
+  it('renders an approved walk-in with empty history and pending movements, without inventing completed entry or exit', () => {
     render(approvedWalkIn);
     const text = labels();
     expect(text).toContain(dictionary.timeline.managerApproved);
     expect(text).toContain(dictionary.timeline.visitorAccepted);
     expect(text).not.toContain(dictionary.timeline.awaitingVisitor);
-    expect(text).not.toContain(dictionary.movementHistory.checkIn);
-    expect(text).not.toContain(dictionary.movementHistory.checkOut);
+    expect(text).toContain(dictionary.timeline.visitorCheckedIn);
+    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
+    for (const label of [dictionary.timeline.visitorCheckedIn, dictionary.timeline.visitorCheckedOut]) {
+      const step = tree!.root.findAllByType('ThemedText' as any).find(node => node.props.children === label)!;
+      expect(step.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    }
     expect(text).not.toContain(dictionary.movementHistory.noHistory);
     expect(text).toContain(dictionary.timeline.visitCompleted);
     const completion = tree!.root.findAllByType('ThemedText' as any)
@@ -127,7 +131,7 @@ describe.each([
     }
   });
 
-  it('retains movement event ordering and timestamp without adding checkout for a single check-in', () => {
+  it('retains movement event ordering and timestamp, with a pending checkout after a single check-in', () => {
     const history: VisitMovementHistory = {
       ...emptyHistory,
       data: [{
@@ -140,7 +144,9 @@ describe.each([
     const text = labels();
     expect(text.indexOf(dictionary.timeline.visitorAccepted)).toBeLessThan(text.indexOf(dictionary.movementHistory.checkIn));
     expect(text.indexOf(dictionary.movementHistory.checkIn)).toBeLessThan(text.indexOf(dictionary.timeline.visitCompleted));
-    expect(text).not.toContain(dictionary.movementHistory.checkOut);
+    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
+    const checkout = tree!.root.findAllByType('ThemedText' as any).find(node => node.props.children === dictionary.timeline.visitorCheckedOut)!;
+    expect(checkout.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
     expect(text).not.toContain(dictionary.movementHistory.legacyRecordedTime);
     expect(text).toContain(rtl ? '١١:٠٠ ص' : '11:00 AM');
   });

@@ -24,7 +24,7 @@ export function mergeVisitMovementTimeline(
   );
 
   const seen = new Set<string>();
-  const movements = [...history.data]
+  const events = [...history.data]
     .filter((event) => {
       if (seen.has(event.id)) return false;
       seen.add(event.id);
@@ -34,8 +34,8 @@ export function mergeVisitMovementTimeline(
       const aTime = Date.parse(a.occurredAt);
       const bTime = Date.parse(b.occurredAt);
       return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime);
-    })
-    .map((event): TimelineStep => ({
+    });
+  const movements = events.map((event): TimelineStep => ({
       id: `movement-${event.id}`,
       label: t(
         event.eventType === 'checked_in' ? 'movementHistory.checkIn'
@@ -53,11 +53,36 @@ export function mergeVisitMovementTimeline(
       ],
     }));
 
+  // These are planned milestones, not fabricated movement events. The feed
+  // determines which physical movements actually happened, including repeats.
+  const checkInActionStep = steps.find(step => ['checked_in', 'verified'].includes(step.id) && step.actions?.length);
+  const checkOutActionStep = steps.find(step => ['checked_out', 'exit'].includes(step.id) && step.actions?.length);
+  const pendingCheckIn: TimelineStep[] = (completion.length || checkInActionStep) && !events.some(event => event.eventType === 'checked_in')
+    ? [{
+        id: 'pending-check-in',
+        label: completion.length ? t('timeline.visitorCheckedIn') : checkInActionStep!.label,
+        status: 'pending',
+        icon: 'log-in',
+        ...(checkInActionStep?.actions ? { actions: checkInActionStep.actions } : {}),
+      }]
+    : [];
+  const pendingCheckOut: TimelineStep[] = (completion.length || checkOutActionStep) && !events.some(event => event.eventType === 'checked_out')
+    ? [{
+        id: 'pending-check-out',
+        label: completion.length ? t('timeline.visitorCheckedOut') : checkOutActionStep!.label,
+        status: 'pending',
+        icon: 'log-out',
+        ...(checkOutActionStep?.actions ? { actions: checkOutActionStep.actions } : {}),
+      }]
+    : [];
+
   // A recorded physical departure (or an administrative closure) does not
   // itself confirm the visit's lifecycle completion.
   return [
     ...preceding,
+    ...pendingCheckIn,
     ...movements,
+    ...pendingCheckOut,
     ...completion.map((step): TimelineStep =>
       visitStatus === 'completed' || step.status !== 'completed' ? step : {
         ...step,
