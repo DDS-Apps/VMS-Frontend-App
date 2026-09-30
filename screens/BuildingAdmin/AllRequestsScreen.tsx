@@ -602,6 +602,7 @@ export default function AllRequestsScreen() {
     fetchNextPage,
     isStatusCountsLoading,
     isStatusCountsError,
+    isStatusCountsUnavailable,
   } = useAllRequestsQuery(filters, { includeValet: false });
   
   const valetDateParams = useMemo(() => getAdminDateQueryRange(dateRange), [dateRange]);
@@ -1258,6 +1259,27 @@ export default function AllRequestsScreen() {
           <ThemedText style={{ color: theme.textSecondary }}>{t('common.loading')}</ThemedText>
         </View>
       ) : null}
+      {typeFilter === 'visitor' && isStatusCountsUnavailable ? (
+        <View style={styles.paddedContent}>
+          <ThemedText style={{ color: theme.textSecondary }}>
+            {t('common.statusCountsUnavailable')}
+          </ThemedText>
+        </View>
+      ) : null}
+      {typeFilter === 'visitor' && hasNextPage &&
+        (effectiveStatusFilter !== 'all' || Boolean(searchQuery.trim())) ? (
+        <View style={styles.paddedContent}>
+          <ThemedText style={{ color: theme.textSecondary }}>
+            {t('common.loadedVisitsFilterNotice')}
+          </ThemedText>
+          <Pressable accessibilityRole="button" disabled={isFetchingNextPage}
+            onPress={() => void fetchNextPage()}>
+            <ThemedText style={{ color: theme.primary }}>
+              {isFetchingNextPage ? t('common.loading') : t('common.loadMoreVisits')}
+            </ThemedText>
+          </Pressable>
+        </View>
+      ) : null}
 
       <Spacer height={Spacing.lg} />
 
@@ -1551,7 +1573,7 @@ export default function AllRequestsScreen() {
             </View>
           ) : (
             isVisitorClientFiltered &&
-            (hasNextPage || isFetchingNextPage || hasNextPageError) ? (
+            (isFetchingNextPage || hasNextPageError) ? (
               hasNextPageError ? (
                 <ThemedText style={[Typography.bodySmall, { color: theme.error }]}>
                   {t('errors.tryAgain')}
@@ -1565,7 +1587,9 @@ export default function AllRequestsScreen() {
               <EmptyState
                 icon="inbox"
                 title={t('common.noResults')}
-                message={t('requests.tryDifferentFilters')}
+                message={isVisitorClientFiltered && hasNextPage
+                  ? t('common.loadedVisitsFilterNotice')
+                  : t('requests.tryDifferentFilters')}
               />
             )
           )}

@@ -1425,6 +1425,11 @@ export interface VisitListItemDto {
 
 export interface VisitListResponse {
   data: VisitListItemDto[];
+  /** Optional backend extension: full date/building-scope totals, not page totals. */
+  statusCounts?: Record<
+    'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'auto_cancelled' | 'rejected',
+    number
+  >;
   pagination: {
     page: number;
     limit: number;

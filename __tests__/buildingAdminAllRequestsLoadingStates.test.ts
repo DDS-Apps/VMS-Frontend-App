@@ -142,12 +142,14 @@ describe("Building Admin All Requests loading states", () => {
     );
   });
 
-  it("updates retained tile totals when status counts resolve after the list", () => {
-    expect(querySource).toContain("visitCountsResult.dataUpdatedAt");
-    expect(querySource).toContain("visitCountsResult.data[statusToCount]");
+  it("derives tiles from the current list response with no separate counts query", () => {
+    expect(querySource).toContain("getAdminVisitStatusCounts(");
+    expect(querySource).toContain("visitCounts[statusToCount]");
     expect(screenSource).toContain("currentNonValetSnapshot?.stats");
     expect(screenSource).toContain("displayedNonValetSnapshot?.sourceKey === nonValetSourceKey");
     expect(screenSource).toContain("isStatusCountsLoading");
     expect(screenSource).toContain("isStatusCountsError");
+    expect(screenSource).toContain("isStatusCountsUnavailable");
+    expect(screenSource).not.toContain("(hasNextPage || isFetchingNextPage || hasNextPageError)");
   });
 });

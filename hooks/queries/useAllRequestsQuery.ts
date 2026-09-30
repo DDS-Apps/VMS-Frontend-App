@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { requestApiService } from '@/services/api/requestApiService';
 import { buffetApiService } from '@/services/api/buffetApiService';
@@ -14,14 +13,13 @@ import type {
 } from '@/types/api.types';
 import type { RequestStatus, UserRole } from '@/types/vms.types';
 import { compareRequestsNewestFirst } from '@/utils/allRequestsPresentation';
-import { fetchAdminVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
+import { getAdminVisitStatusCounts, normalizeVisitStatus } from '@/utils/adminVisitStatusCounts';
 import {
   extractAllRequestsArray,
   fetchValetTasksForDateRange,
   getBuffetSingleDateParams,
   getNextVisitPageParam,
   matchesAllRequestsStatus,
-  shouldAutoFetchAllVisitorPages,
 } from '@/utils/allRequestsQueryHelpers';
 
 const ROLES_WITH_BUFFET_ACCESS: UserRole[] = ['buffet_admin', 'building_admin'];
@@ -213,42 +211,10 @@ export function useAllRequestsQuery(
     retry: false,
   });
 
-  const visitTotal = visitsResult.data
-    ? Number(visitsResult.data.pages[0]?.pagination?.total)
-    : undefined;
-  const visitCountsResult = useQuery({
-    queryKey: ['all-requests', 'visit-status-counts', startDate, endDate, visitTotal],
-    queryFn: ({ signal }) => fetchAdminVisitStatusCounts({
-      startDate,
-      endDate,
-      expectedTotal: visitTotal!,
-      signal,
-    }),
-    enabled: shouldFetchVisits && visitTotal !== undefined && Number.isSafeInteger(visitTotal),
-    staleTime: 30 * 1000,
-    retry: false,
-  });
-
-  useEffect(() => {
-    if (shouldAutoFetchAllVisitorPages({
-      requestType: type,
-      status,
-      searchQuery: filters.searchQuery,
-      hasNextPage: Boolean(visitsResult.hasNextPage),
-      isFetchingNextPage: visitsResult.isFetchingNextPage,
-      hasNextPageError: visitsResult.isFetchNextPageError,
-    })) {
-      void visitsResult.fetchNextPage();
-    }
-  }, [
-    filters.searchQuery,
-    status,
-    type,
-    visitsResult.fetchNextPage,
-    visitsResult.hasNextPage,
-    visitsResult.isFetchNextPageError,
-    visitsResult.isFetchingNextPage,
-  ]);
+  const visitCounts = getAdminVisitStatusCounts(
+    visitsResult.data?.pages,
+    Boolean(visitsResult.hasNextPage),
+  );
 
   const buffetResult = useQuery({
     queryKey: ['all-requests', 'buffet-admin-tasks', type, startDate],
@@ -293,7 +259,6 @@ export function useAllRequestsQuery(
   const dataUpdatedAt = Math.max(
     0,
     ...enabledResults.map(result => result?.dataUpdatedAt ?? 0),
-    shouldFetchVisits ? visitCountsResult.dataUpdatedAt : 0,
   );
 
   const allRequests: UnifiedRequest[] = [];
@@ -345,10 +310,10 @@ export function useAllRequestsQuery(
   filteredRequests.sort(compareRequestsNewestFirst);
 
   const areStatusCountsComplete =
-    !shouldFetchVisits || Boolean(visitCountsResult.data) || (Boolean(visitsResult.data) && !visitsResult.hasNextPage);
+    !shouldFetchVisits || visitCounts !== null;
   const statusCount = (statusToCount: UnifiedStatus): number | null =>
-    shouldFetchVisits && visitCountsResult.data
-      ? visitCountsResult.data[statusToCount] + allRequests.filter(r => r.type !== 'visitor' && r.status === statusToCount).length
+    shouldFetchVisits && visitCounts
+      ? visitCounts[statusToCount] + allRequests.filter(r => r.type !== 'visitor' && r.status === statusToCount).length
       : areStatusCountsComplete
         ? allRequests.filter(r => r.status === statusToCount).length
         : null;
@@ -375,9 +340,6 @@ export function useAllRequestsQuery(
   const refetch = async () => {
     await Promise.all([
       ...enabledResults.map(r => r!.refetch()),
-      ...(shouldFetchVisits && visitTotal !== undefined && Number.isSafeInteger(visitTotal)
-        ? [visitCountsResult.refetch()]
-        : []),
     ]);
   };
 
@@ -389,8 +351,9 @@ export function useAllRequestsQuery(
     isFetching,
     isError,
     error,
-    isStatusCountsLoading: shouldFetchVisits && !areStatusCountsComplete && !visitCountsResult.isError,
-    isStatusCountsError: shouldFetchVisits && !areStatusCountsComplete && visitCountsResult.isError,
+    isStatusCountsLoading: shouldFetchVisits && !areStatusCountsComplete && visitsResult.isLoading,
+    isStatusCountsError: shouldFetchVisits && !areStatusCountsComplete && visitsResult.isError,
+    isStatusCountsUnavailable: shouldFetchVisits && !areStatusCountsComplete && Boolean(visitsResult.data),
     hasResolvedData,
     dataUpdatedAt,
     refetch,
