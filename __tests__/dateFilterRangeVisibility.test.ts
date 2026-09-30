@@ -39,7 +39,7 @@ describe("active date ranges on filtered screens", () => {
       "utf8",
     );
     expect(source).toContain("activeDateRange.endDate");
-    expect(source).toContain("onPress={clearDateFilter}");
+    expect(source).toContain("onClear={clearDateFilter}");
     expect(source).toContain("onPress={() => setShowDatePicker(true)}");
     expect(source).not.toContain("<ActiveDateRangeLabel");
   });

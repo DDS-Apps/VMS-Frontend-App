@@ -63,6 +63,22 @@ export function localCalendarDateToKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function getAdminDateQueryRange(
+  range: { startDate: Date | null; endDate: Date | null },
+): { startDate?: string; endDate?: string } {
+  const startDate = range.startDate
+    ? localCalendarDateToKey(range.startDate)
+    : undefined;
+  return {
+    startDate,
+    endDate: startDate
+      ? range.endDate
+        ? localCalendarDateToKey(range.endDate)
+        : startDate
+      : undefined,
+  };
+}
+
 export function enumerateInclusiveDateKeys(
   startDate: string,
   endDate: string,

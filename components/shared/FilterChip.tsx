@@ -41,14 +41,14 @@ export function FilterChip({
 }: FilterChipProps) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
-  const activeColor = color || theme.primary;
+  const activeColor = color || (compact ? theme.info : theme.primary);
   const contentColor = isSelected ? activeColor : theme.textSecondary;
   const chipStyle = [
     styles.chip,
     compact && styles.compactChip,
     { flexDirection: getFlexDirection(isRTL), gap: Spacing.xs },
     {
-      backgroundColor: isSelected ? applyOpacity(activeColor, '15') : theme.surface,
+      backgroundColor: isSelected ? applyOpacity(activeColor, compact ? '12' : '15') : (compact ? 'transparent' : theme.surface),
       borderColor: isSelected ? activeColor : theme.border,
     },
   ];

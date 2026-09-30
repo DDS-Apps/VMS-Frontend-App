@@ -1,6 +1,7 @@
 import {
   dateKeyToLocalNoon,
   enumerateInclusiveDateKeys,
+  getAdminDateQueryRange,
   getCurrentBusinessMonthRange,
   localCalendarDateToKey,
 } from "@/utils/adminAllRequestsDateRange";
@@ -42,5 +43,29 @@ describe("Admin All Requests date ranges", () => {
       "2026-09-01",
       "2026-09-02",
     ]);
+  });
+
+  it("omits both query dates after clearing a default or custom range", () => {
+    const month = getCurrentBusinessMonthRange(
+      new Date("2026-09-15T12:00:00.000Z"),
+      "Asia/Riyadh",
+    );
+    const defaultRange = {
+      startDate: dateKeyToLocalNoon(month.startDate),
+      endDate: dateKeyToLocalNoon(month.endDate),
+    };
+    expect(getAdminDateQueryRange(defaultRange)).toEqual(month);
+    expect(getAdminDateQueryRange({
+      startDate: dateKeyToLocalNoon("2026-09-12"),
+      endDate: dateKeyToLocalNoon("2026-09-16"),
+    })).toEqual({ startDate: "2026-09-12", endDate: "2026-09-16" });
+    expect(getAdminDateQueryRange({
+      startDate: dateKeyToLocalNoon("2026-09-12"),
+      endDate: null,
+    })).toEqual({ startDate: "2026-09-12", endDate: "2026-09-12" });
+    expect(getAdminDateQueryRange({ startDate: null, endDate: null }))
+      .toEqual({ startDate: undefined, endDate: undefined });
+    expect(getAdminDateQueryRange({ startDate: null, endDate: dateKeyToLocalNoon("2026-09-16") }))
+      .toEqual({ startDate: undefined, endDate: undefined });
   });
 });

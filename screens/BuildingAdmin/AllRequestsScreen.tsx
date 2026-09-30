@@ -51,6 +51,7 @@ import {
 } from '@/utils/allRequestsPresentation';
 import {
   dateKeyToLocalNoon,
+  getAdminDateQueryRange,
   getCurrentBusinessMonthRange,
   localCalendarDateToKey,
 } from '@/utils/adminAllRequestsDateRange';
@@ -70,6 +71,7 @@ import {
   resolveRetainedDisplay,
 } from '@/utils/allRequestsDisplayState';
 import { StatusDropdown } from '@/components/shared/RequestStatusDropdown';
+import { AdminDateFilterChip } from '@/components/shared/AdminDateFilterChip';
 import { REQUEST_STATUS_VALUES } from '@/constants/requestConstants';
 import type { RequestStatus } from '@/types/vms.types';
 
@@ -533,7 +535,7 @@ export default function AllRequestsScreen() {
       endDate: dateKeyToLocalNoon(currentMonth.endDate),
     };
   });
-  const [buffetDate, setBuffetDate] = useState<Date>(() =>
+  const [buffetDate, setBuffetDate] = useState<Date | null>(() =>
     dateKeyToLocalNoon(getBusinessDateKey()),
   );
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -565,16 +567,21 @@ export default function AllRequestsScreen() {
     [buffetDate, dateRange, typeFilter],
   );
   const hasDateFilter = activeDateRange.startDate !== null;
+  const dateChipLabel = activeDateRange.startDate
+    ? activeDateRange.endDate && activeDateRange.endDate.getTime() !== activeDateRange.startDate.getTime()
+      ? `${formatDate(localCalendarDateToKey(activeDateRange.startDate))} - ${formatDate(localCalendarDateToKey(activeDateRange.endDate))}`
+      : formatDate(localCalendarDateToKey(activeDateRange.startDate))
+    : '';
   const effectiveStatusFilter = preciseStatusFilter ?? statusFilter;
+  const activeDateParams = useMemo(() => getAdminDateQueryRange(activeDateRange), [activeDateRange]);
 
   const filters = useMemo(() => ({
     type: typeFilter,
     status: effectiveStatusFilter,
     exactStatus: preciseStatusFilter !== null,
     searchQuery,
-    startDate: activeDateRange.startDate ? localCalendarDateToKey(activeDateRange.startDate) : undefined,
-    endDate: activeDateRange.endDate ? localCalendarDateToKey(activeDateRange.endDate) : (activeDateRange.startDate ? localCalendarDateToKey(activeDateRange.startDate) : undefined),
-  }), [typeFilter, effectiveStatusFilter, preciseStatusFilter, searchQuery, activeDateRange]);
+    ...activeDateParams,
+  }), [typeFilter, effectiveStatusFilter, preciseStatusFilter, searchQuery, activeDateParams]);
 
   const {
     data: requests,
@@ -591,8 +598,9 @@ export default function AllRequestsScreen() {
     fetchNextPage,
   } = useAllRequestsQuery(filters, { includeValet: false });
   
-  const valetStartDate = dateRange.startDate ? localCalendarDateToKey(dateRange.startDate) : undefined;
-  const valetEndDate = dateRange.endDate ? localCalendarDateToKey(dateRange.endDate) : valetStartDate;
+  const valetDateParams = useMemo(() => getAdminDateQueryRange(dateRange), [dateRange]);
+  const valetStartDate = valetDateParams.startDate;
+  const valetEndDate = valetDateParams.endDate;
   const { 
     data: valetDashboardData, 
     isLoading: isValetLoading, 
@@ -1086,14 +1094,10 @@ export default function AllRequestsScreen() {
 
   const clearDateFilter = () => {
     if (typeFilter === 'buffet') {
-      setBuffetDate(dateKeyToLocalNoon(getBusinessDateKey()));
+      setBuffetDate(null);
       return;
     }
-    const currentMonth = getCurrentBusinessMonthRange();
-    setDateRange({
-      startDate: dateKeyToLocalNoon(currentMonth.startDate),
-      endDate: dateKeyToLocalNoon(currentMonth.endDate),
-    });
+    setDateRange({ startDate: null, endDate: null });
   };
 
   const handleScroll = useCallback(({ nativeEvent }: {
@@ -1251,22 +1255,6 @@ export default function AllRequestsScreen() {
           </Pressable>
         </DirectionalRow>
 
-        {hasDateFilter ? (
-          <DirectionalRow style={{ marginTop: Spacing.sm, gap: Spacing.sm }}>
-            <Pressable 
-              style={[styles.dateChip, { backgroundColor: applyOpacity(theme.primary, '12') }]}
-              onPress={clearDateFilter}
-            >
-              <DDIcon name="calendar" size={14} color={theme.primary} />
-              <ThemedText style={[styles.dateChipText, { color: theme.primary }]}>
-                {activeDateRange.endDate && activeDateRange.startDate && activeDateRange.endDate.getTime() !== activeDateRange.startDate.getTime()
-                  ? `${formatDate(localCalendarDateToKey(activeDateRange.startDate))} - ${formatDate(localCalendarDateToKey(activeDateRange.endDate))}`
-                  : formatDate(localCalendarDateToKey(activeDateRange.startDate!))}
-              </ThemedText>
-              <DDIcon name="x" size={14} color={theme.primary} />
-            </Pressable>
-          </DirectionalRow>
-        ) : null}
       </View>
 
       <Spacer height={Spacing.md} />
@@ -1305,6 +1293,16 @@ export default function AllRequestsScreen() {
             </ThemedText>
           </TouchableOpacity>
         ))}
+        {hasDateFilter ? (
+          <AdminDateFilterChip
+            label={dateChipLabel}
+            clearLabel={`${t('common.clear')} ${t('bulkActions.date')}: ${dateChipLabel}`}
+            color={theme.primary}
+            isRTL={isRTL}
+            onOpen={() => setShowDatePicker(true)}
+            onClear={clearDateFilter}
+          />
+        ) : null}
       </RTLHorizontalScrollView>
 
       {shouldShowAllRequestsStatusFilters(typeFilter) ? (
@@ -1316,16 +1314,6 @@ export default function AllRequestsScreen() {
             contentContainerStyle={styles.statusFiltersRow}
             nestedScrollEnabled={true}
           >
-            {typeFilter === 'visitor' ? (
-              <View style={styles.preciseStatusChip}>
-                <StatusDropdown
-                  compact
-                  value={preciseStatusFilter}
-                  onChange={handlePreciseStatusChange}
-                  statuses={REQUEST_STATUS_VALUES}
-                />
-              </View>
-            ) : null}
             {statusFilters.map(filter => (
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -1357,6 +1345,16 @@ export default function AllRequestsScreen() {
                 </ThemedText>
               </TouchableOpacity>
             ))}
+            {typeFilter === 'visitor' ? (
+              <View style={styles.preciseStatusChip}>
+                <StatusDropdown
+                  compact
+                  value={preciseStatusFilter}
+                  onChange={handlePreciseStatusChange}
+                  statuses={REQUEST_STATUS_VALUES}
+                />
+              </View>
+            ) : null}
           </RTLHorizontalScrollView>
         </>
       ) : null}
@@ -1766,19 +1764,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  dateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    gap: Spacing.xs,
-  },
-  dateChipText: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   filtersContainer: {
     marginHorizontal: -Spacing.xl,
