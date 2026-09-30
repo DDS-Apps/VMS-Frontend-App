@@ -72,7 +72,6 @@ import {
 import { StatusDropdown } from '@/components/shared/RequestStatusDropdown';
 import { REQUEST_STATUS_VALUES } from '@/constants/requestConstants';
 import type { RequestStatus } from '@/types/vms.types';
-import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -1266,10 +1265,6 @@ export default function AllRequestsScreen() {
               </ThemedText>
               <DDIcon name="x" size={14} color={theme.primary} />
             </Pressable>
-            <ActiveDateRangeLabel
-              startDate={activeDateRange.startDate}
-              endDate={activeDateRange.endDate ?? activeDateRange.startDate}
-            />
           </DirectionalRow>
         ) : null}
       </View>
@@ -1321,6 +1316,16 @@ export default function AllRequestsScreen() {
             contentContainerStyle={styles.statusFiltersRow}
             nestedScrollEnabled={true}
           >
+            {typeFilter === 'visitor' ? (
+              <View style={styles.preciseStatusChip}>
+                <StatusDropdown
+                  compact
+                  value={preciseStatusFilter}
+                  onChange={handlePreciseStatusChange}
+                  statuses={REQUEST_STATUS_VALUES}
+                />
+              </View>
+            ) : null}
             {statusFilters.map(filter => (
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -1353,18 +1358,6 @@ export default function AllRequestsScreen() {
               </TouchableOpacity>
             ))}
           </RTLHorizontalScrollView>
-          {typeFilter === 'visitor' ? (
-            <>
-              <Spacer height={Spacing.sm} />
-              <View style={styles.paddedContent}>
-                <StatusDropdown
-                  value={preciseStatusFilter}
-                  onChange={handlePreciseStatusChange}
-                  statuses={REQUEST_STATUS_VALUES}
-                />
-              </View>
-            </>
-          ) : null}
         </>
       ) : null}
 
@@ -1802,6 +1795,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.xl,
+  },
+  preciseStatusChip: {
+    alignSelf: 'center',
+    flexShrink: 0,
   },
   filterChip: {
     flexDirection: 'row',

@@ -30,6 +30,7 @@ interface StatusDropdownProps {
   statuses?: readonly string[];
   language?: string;
   accessibilityLabel?: string;
+  compact?: boolean;
 }
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
@@ -62,6 +63,7 @@ export function StatusDropdown({
   onChange,
   statuses = REQUEST_STATUS_VALUES,
   accessibilityLabel,
+  compact = false,
 }: StatusDropdownProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -80,6 +82,7 @@ export function StatusDropdown({
   return (
     <>
       <FilterChip
+        compact={compact}
         label={`${t("common.status")}: ${selectedLabel}`}
         isSelected={!!value}
         trailingIcon="chevron-down"

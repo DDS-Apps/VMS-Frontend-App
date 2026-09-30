@@ -4,7 +4,6 @@ import path from "path";
 const dateFilteredScreens = [
   "Employee/VisitorRequestsScreen",
   "Manager/ManagerAllRequestsScreen",
-  "BuildingAdmin/AllRequestsScreen",
   "Receptionist/AllVisitorsScreen",
   "Security/SecurityCheckInScreen",
   "Driver/DriverTasksScreen",
@@ -32,5 +31,16 @@ describe("active date ranges on filtered screens", () => {
     expect(source).toContain("if (!startDate) return null");
     expect(source).toContain('t("common.from")');
     expect(source).toContain('t("common.to")');
+  });
+
+  it("shows the Building Admin date range once in its removable chip", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../screens/BuildingAdmin/AllRequestsScreen.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("activeDateRange.endDate");
+    expect(source).toContain("onPress={clearDateFilter}");
+    expect(source).toContain("onPress={() => setShowDatePicker(true)}");
+    expect(source).not.toContain("<ActiveDateRangeLabel");
   });
 });

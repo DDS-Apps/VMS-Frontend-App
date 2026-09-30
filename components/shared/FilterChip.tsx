@@ -11,6 +11,7 @@ import { Spacing, BorderRadius } from '@/constants/theme';
 export interface FilterChipProps {
   label: string;
   isSelected: boolean;
+  compact?: boolean;
   color?: string;
   icon?: IconName;
   trailingIcon?: IconName;
@@ -26,6 +27,7 @@ export interface FilterChipProps {
 export function FilterChip({
   label,
   isSelected,
+  compact = false,
   color,
   icon,
   trailingIcon,
@@ -43,6 +45,7 @@ export function FilterChip({
   const contentColor = isSelected ? activeColor : theme.textSecondary;
   const chipStyle = [
     styles.chip,
+    compact && styles.compactChip,
     { flexDirection: getFlexDirection(isRTL), gap: Spacing.xs },
     {
       backgroundColor: isSelected ? applyOpacity(activeColor, '15') : theme.surface,
@@ -111,6 +114,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  compactChip: {
+    paddingVertical: Spacing.xs,
   },
   mainAction: {
     flexDirection: 'row',
