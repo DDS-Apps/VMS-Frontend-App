@@ -25,12 +25,17 @@ As checked on September 14, 2026:
 ## Running an iOS build
 
 ```sh
-# Production profile (the existing production command, with extra arguments forwarded)
-npm run build:ios -- --non-interactive
+# Production profile (allows Apple login/setup prompts when needed)
+npm run build:ios
 
 # Preview profile (the same Apple authentication workaround)
-npm run build:preview:ios -- --non-interactive
+npm run build:preview:ios
 ```
+
+Use these npm commands rather than a direct `eas build` invocation, which bypasses
+the public-key workaround. For automation with credentials already configured,
+append `-- --non-interactive`; that flag disables login/setup prompts.
+These commands start builds, not store submissions.
 
 The wrapper prints a redacted **public-key lookup succeeded** message, then
 hands control to EAS with interactive stdio unchanged. That message does **not**

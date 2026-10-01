@@ -18,6 +18,51 @@ const {
 const PUBLIC_KEY = "a".repeat(64);
 const OTHER_PUBLIC_KEY = "b".repeat(64);
 
+for (const [scriptName, profile, expectedArgs] of [
+  ["build:ios", "production", []],
+  ["build:preview:ios", "preview", ["--eas-profile", "preview"]],
+]) {
+  test(`${scriptName} uses the Apple helper with the ${profile} profile`, async () => {
+    const { scripts } = require("../package.json");
+    const command = scripts[scriptName];
+    assert.equal(
+      command,
+      ["node", "scripts/build-ios-with-apple-key.js", ...expectedArgs].join(" "),
+    );
+    const child = new EventEmitter();
+    let invocation;
+    // Exercise the actual script's arguments, with no network or EAS build.
+    const result = await runEasBuild({
+      argumentsList: [...command.split(" ").slice(2), "--non-interactive"],
+      environment: {},
+      lookup: async () => PUBLIC_KEY,
+      log: () => {},
+      spawnProcess: (executable, args) => {
+        invocation = args;
+        process.nextTick(() => child.emit("close", 0, null));
+        return child;
+      },
+    });
+    assert.deepEqual(invocation, [
+      "--yes",
+      EAS_CLI_PACKAGE,
+      "build",
+      "--platform",
+      "ios",
+      "--profile",
+      profile,
+      "--non-interactive",
+    ]);
+    assert.equal(result.code, 0);
+  });
+}
+
+test("release chain uses the named iOS command, not a URL script", () => {
+  const { scripts } = require("../package.json");
+  assert.equal(scripts["https://vms.dallah.com"], undefined);
+  assert.ok(scripts["publish:all"].split(" && ").includes("npm run build:ios"));
+});
+
 function routeTransport(routes) {
   return async (url) => {
     const route = routes[url];
