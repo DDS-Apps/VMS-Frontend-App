@@ -13,7 +13,7 @@
     "web": "npx expo start --web",
     "build:web": "node scripts/build-web.js --variant qa",
     "build:web:production": "node scripts/build-web.js --variant production",
-    "build:ios": "node scripts/build-ios-with-apple-key.js",
+    "https://vms.dallah.com": "node scripts/build-ios-with-apple-key.js",
     "build:android": "npx eas build --platform android --profile production",
     "build:preview:ios": "node scripts/build-ios-with-apple-key.js --eas-profile preview",
     "build:preview:android": "npx eas build --platform android --profile preview",
