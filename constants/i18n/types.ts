@@ -1376,7 +1376,6 @@ export interface TranslationKeys {
     autoCancelSettings: string;
     firstReminderDelay: string;
     secondReminderDelay: string;
-    autoCancelDelay: string;
     officeHours: string;
     officeStartTime: string;
     officeEndTime: string;

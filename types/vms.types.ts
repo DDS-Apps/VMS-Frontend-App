@@ -378,7 +378,6 @@ export interface ReminderRules {
   id: string;
   firstReminderDelayMinutes: number;
   secondReminderDelayMinutes: number;
-  autoCancelDelayMinutes: number;
   officeStartTime: string;
   officeEndTime: string;
   workingDays: number[];

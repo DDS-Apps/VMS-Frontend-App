@@ -106,7 +106,6 @@ export default function ReminderRulesScreen() {
       await updateMutation.mutateAsync({
         firstReminderDelayMinutes: localRules.firstReminderDelayMinutes,
         secondReminderDelayMinutes: localRules.secondReminderDelayMinutes,
-        autoCancelDelayMinutes: localRules.autoCancelDelayMinutes,
         officeStartTime: localRules.officeStartTime,
         officeEndTime: localRules.officeEndTime,
         workingDays: localRules.workingDays,
@@ -338,24 +337,6 @@ export default function ReminderRulesScreen() {
             </View>
           </View>
 
-          <View style={styles.ruleCard}>
-            <DirectionalRow style={styles.ruleHeader} gap={Spacing.sm}>
-              <View style={[styles.ruleBadge, { backgroundColor: theme.error + "20" }]}>
-                <DDIcon name="x-circle" size={14} color={theme.error} />
-              </View>
-              <ThemedText style={[Typography.body, { flex: 1 }]}>
-                {t("admin.autoCancelDelay")} ({t("admin.minutes")})
-              </ThemedText>
-            </DirectionalRow>
-            <View style={styles.ruleInput}>
-              <StyledInput
-                value={localRules.autoCancelDelayMinutes.toString()}
-                onChangeText={(text) => handleUpdate({ autoCancelDelayMinutes: parseInt(text) || 0 })}
-                keyboardType="number-pad"
-                placeholder="60"
-              />
-            </View>
-          </View>
         </View>
 
         <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>

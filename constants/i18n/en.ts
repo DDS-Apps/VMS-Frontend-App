@@ -1376,7 +1376,6 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     autoCancelSettings: 'Auto-Cancel Settings',
     firstReminderDelay: 'First Reminder Delay',
     secondReminderDelay: 'Second Reminder Delay',
-    autoCancelDelay: 'Auto-Cancel Delay',
     officeHours: 'Office Hours',
     officeStartTime: 'Office Start Time',
     officeEndTime: 'Office End Time',

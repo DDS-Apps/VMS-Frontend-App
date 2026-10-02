@@ -1376,7 +1376,6 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     autoCancelSettings: 'إعدادات الإلغاء التلقائي',
     firstReminderDelay: 'تأخير التذكير الأول',
     secondReminderDelay: 'تأخير التذكير الثاني',
-    autoCancelDelay: 'تأخير الإلغاء التلقائي',
     officeHours: 'ساعات العمل',
     officeStartTime: 'وقت بداية العمل',
     officeEndTime: 'وقت نهاية العمل',

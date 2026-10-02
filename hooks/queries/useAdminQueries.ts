@@ -6,7 +6,6 @@ import type { ReminderRules } from '@/types/vms.types';
 export interface UpdateReminderRulesPayload {
   firstReminderDelayMinutes?: number;
   secondReminderDelayMinutes?: number;
-  autoCancelDelayMinutes?: number;
   officeStartTime?: string;
   officeEndTime?: string;
   workingDays?: number[];
