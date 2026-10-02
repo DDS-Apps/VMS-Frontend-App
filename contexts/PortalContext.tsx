@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 interface PortalContextType {
@@ -28,8 +28,10 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const contextValue = useMemo(() => ({ mount, unmount }), [mount, unmount]);
+
   return (
-    <PortalContext.Provider value={{ mount, unmount }}>
+    <PortalContext.Provider value={contextValue}>
       {children}
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         {Array.from(portals.entries()).map(([key, element]) => (
@@ -45,20 +47,25 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
 export function Portal({ children }: { children: React.ReactNode }) {
   const context = useContext(PortalContext);
   const keyRef = useRef<string | null>(null);
+  const mount = context?.mount;
+  const unmount = context?.unmount;
 
   if (!keyRef.current) {
     keyRef.current = `portal-${Date.now()}-${Math.random()}`;
   }
 
   useEffect(() => {
-    const key = keyRef.current!;
-    context?.mount(key, children);
-    return () => {
-      context?.unmount(key);
-    };
-  }, [children, context]);
+    mount?.(keyRef.current!, children);
+  }, [children, mount]);
 
-  return null;
+  // Updates must replace portal content in place, not dismiss/remount native
+  // modals. Only unregister when the owner leaves the tree (or host changes).
+  useEffect(() => {
+    const key = keyRef.current!;
+    return () => unmount?.(key);
+  }, [unmount]);
+
+  return context ? null : <>{children}</>;
 }
 
 export function usePortal() {

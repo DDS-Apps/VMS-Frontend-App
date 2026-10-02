@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +16,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
 import type { RequestStatus } from "@/types/vms.types";
+import { Portal } from "@/contexts/PortalContext";
+
 
 export type RequestStatusDropdownValue = RequestStatus | undefined;
 
@@ -65,6 +68,9 @@ export function StatusDropdown({
   accessibilityLabel,
   compact = false,
 }: StatusDropdownProps) {
+  // iOS native modal hosts must stay outside scroll clipping / RTL transforms.
+  // Keep Android and Web presentation unchanged.
+  const StatusModalHost = Platform.OS === "ios" ? Portal : React.Fragment;
   const { theme } = useTheme();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -92,6 +98,7 @@ export function StatusDropdown({
         onPress={() => setIsOpen(true)}
       />
 
+      <StatusModalHost>
       <Modal
         visible={isOpen}
         transparent
@@ -179,6 +186,7 @@ export function StatusDropdown({
           </View>
         </View>
       </Modal>
+      </StatusModalHost>
     </>
   );
 
