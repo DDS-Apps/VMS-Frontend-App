@@ -68,7 +68,6 @@ const LAYOUT = {
 };
 
 type TabType = "all" | "pending" | "approved" | "rejected";
-const MANAGER_REQUEST_STATUSES = [...REQUEST_STATUS_VALUES, "expired"];
 
 type ScreenProps = NativeStackScreenProps<ManagerStackParamList, "AllRequests">;
 
@@ -277,7 +276,7 @@ const SectionHeaderWithTabs = ({
         <StatusDropdown
           value={selectedStatus}
           onChange={onStatusChange}
-          statuses={MANAGER_REQUEST_STATUSES}
+          statuses={REQUEST_STATUS_VALUES}
         />
       </RTLHorizontalScrollView>
     </>

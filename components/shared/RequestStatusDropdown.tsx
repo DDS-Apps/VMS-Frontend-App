@@ -78,7 +78,10 @@ export function StatusDropdown({
     ? getStatusLabel(value, t)
     : t("common.allStatuses");
   // Drafts are unfinished requests, not a useful filter for submitted visits.
-  const visibleStatuses = statuses.filter((status) => status !== "draft");
+  // Expiration remains a display/business rule, not a selectable status filter.
+  const visibleStatuses = statuses.filter(
+    (status) => status !== "draft" && status !== "expired",
+  );
 
   const selectValue = (nextValue: string | null) => {
     setIsOpen(false);

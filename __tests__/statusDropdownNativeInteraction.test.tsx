@@ -49,7 +49,7 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
         <RTLHorizontalScrollView testID="filters" keyboardShouldPersistTaps="handled">
           {show ? typed
             ? <RequestStatusDropdown value={value as any} onChange={onChange} />
-            : <StatusDropdown value={value} onChange={onChange} compact statuses={['draft', 'cancelled', 'auto_cancelled']} />
+            : <StatusDropdown value={value} onChange={onChange} compact statuses={['draft', 'expired', 'cancelled', 'auto_cancelled']} />
             : null}
         </RTLHorizontalScrollView>
       </PortalProvider>
@@ -85,6 +85,7 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
     const originalModal = modal();
     const labels = modal().findAllByType('ThemedText' as any).map(node => node.props.children);
     expect(labels).not.toContain(dictionary.status.draft);
+    expect(labels).not.toContain(dictionary.status.expired);
     expect(labels).not.toContain(dictionary.status.checkedIn);
     pressOption(dictionary.status.cancelled);
     expect(changes).toHaveBeenLastCalledWith('cancelled');
@@ -128,6 +129,10 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
   it('preserves the typed request picker undefined clear value', () => {
     act(() => tree.update(<Harness typed />));
     act(() => trigger().props.onPress());
+    const labels = modal().findAllByType('ThemedText' as any).map(node => node.props.children);
+    expect(labels).not.toContain((rtl ? ar : en).status.expired);
+    expect(labels).toContain((rtl ? ar : en).status.cancelled);
+    expect(labels).toContain((rtl ? ar : en).status.autoCancelled);
     pressOption((rtl ? ar : en).common.allStatuses);
     expect(changes).toHaveBeenLastCalledWith(undefined);
   });
