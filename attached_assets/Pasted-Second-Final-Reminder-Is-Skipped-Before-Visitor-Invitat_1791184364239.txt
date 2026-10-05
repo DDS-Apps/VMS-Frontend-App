@@ -1,0 +1,64 @@
+Second/Final Reminder Is Skipped Before Visitor Invitation Expires
+
+
+
+
+Key details
+Description
+
+I tested the visitor reminder and expiry flow using the following Admin configuration:
+
+First Reminder Delay: 30 minutes
+
+Second Reminder Delay: 60 minutes
+
+Office Hours: 8:00 AM – 9:00 PM
+
+The invitation was sent at 5:58 PM for a visit scheduled on Oct 02, 2026, from 8:45 PM to 8:55 PM.
+
+Test Timeline
+Invitation sent: 5:58 PM
+
+First Email Reminder: 6:38 PM
+
+First WhatsApp Reminder: approximately 6:41 PM
+
+Second / Final Reminder: Not received
+
+Scheduled Visit End Time: 8:55 PM
+
+Expiry Email: 8:58 PM
+
+Expiry WhatsApp Message: approximately 9:00 PM
+
+Issues Observed
+Second/Final Reminder was not sent
+After the first reminder, the configured second reminder should have been sent 60 minutes later, while still within office hours and before the scheduled visit ended. However, no second/final reminder was received on either Email or WhatsApp.
+
+Invitation expired without completing the two-reminder flow
+The invitation correctly remained active until the scheduled visit time had passed, but it expired without sending the configured second/final reminder.
+
+First reminder timing should be reviewed
+The invitation was sent at 5:58 PM. With a 30-minute delay, the first reminder was expected around 6:28 PM, but it was received at 6:38 PM. Please verify whether this delay is due to the scheduler/job execution interval.
+
+Email and WhatsApp expiry messages should be consistent
+Both expiry notifications are sent to the visitor, so the WhatsApp message should follow the same content and format as the Email expiry notification.
+
+The WhatsApp expiry message should include:
+
+Visitor-facing expiry message
+
+Date & Time
+
+Duration
+
+Host
+
+Purpose
+
+The same appropriate closing message shown in the Email
+
+Please refer to the attached Email screenshot for the expected content and format.
+
+Expected Flow
+Invitation → First Reminder → Second/Final Reminder → Scheduled Visit Ends → Invitation Expires only if the visitor has not responded and the scheduled visit time has passed.
