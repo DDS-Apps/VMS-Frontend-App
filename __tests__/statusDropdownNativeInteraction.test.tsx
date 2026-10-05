@@ -39,7 +39,7 @@ jest.mock('react-native', () => ({
 }));
 
 const cases = [
-  ['ios', false, false], ['ios', true, true], ['ios', true, false],
+  ['ios', false, false], ['ios', true, true], ['ios', true, false], ['ios', false, true],
   ['android', false, false], ['android', true, true],
   ['web', false, false], ['web', true, false],
 ] as const;
@@ -84,6 +84,38 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
     act(() => { tree = create(<Harness />); });
   });
   afterEach(() => { act(() => tree.unmount()); });
+
+  it('keeps wrapped siblings and modal ownership stable across language changes', () => {
+    act(() => tree.update(<Harness wrap />));
+    const button = (label: string) => tree.root.findAllByType('Pressable' as any)
+      .find(node => node.props.accessibilityLabel === label)!;
+    act(() => button('Date').props.onPress());
+    act(() => trigger().props.onPress());
+    const existingModal = modal();
+    act(() => {
+      // Native direction deliberately remains unchanged until the app restarts.
+      mockRTL = !rtl;
+      tree.update(<Harness wrap />);
+    });
+    expect(modal()).toBe(existingModal);
+    expect(modal().props.visible).toBe(true);
+    const dictionary = mockRTL ? ar : en;
+    expect(trigger().props.accessibilityLabel).toContain(dictionary.common.status);
+    if (platform === 'ios') {
+      const row = tree.root.findAllByType('View' as any).find(node => node.props.testID === 'filters')!;
+      expect(row.props.style.at(-1).direction).toBe(mockRTL ? 'rtl' : 'ltr');
+      expect(row.findAllByType('ScrollView' as any)).toHaveLength(0);
+      expect(row.findAllByType('Modal' as any)).toHaveLength(0);
+    }
+    act(() => modal().props.onRequestClose());
+    expect(button('Date').props.accessibilityState.selected).toBe(true);
+    act(() => button('Clear Date').props.onPress());
+    expect(button('Date').props.accessibilityState.selected).toBe(false);
+    act(() => button('Tab').props.onPress());
+    expect(button('Tab').props.accessibilityState.selected).toBe(true);
+    act(() => tree.update(<Harness wrap show={false} />));
+    expect(tree.root.findAllByType('Modal' as any)).toHaveLength(0);
+  });
 
   it('wraps opted-in iOS controls without a horizontal scroll responder and preserves sibling actions', () => {
     act(() => tree.update(<Harness wrap />));
