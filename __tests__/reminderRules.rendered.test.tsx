@@ -65,7 +65,9 @@ describe("Reminder Rules without the retired cancellation delay", () => {
     for (const label of [translations.admin.firstReminderDelay, translations.admin.secondReminderDelay, translations.admin.officeHours, translations.admin.workingDays, translations.admin.systemActive]) {
       expect(rendered).toContain(label);
     }
-    expect(rendered).not.toMatch(/Auto-Cancel Delay|تأخير الإلغاء التلقائي|admin\.autoCancelDelay/);
+    expect(rendered).toContain(locale === "ar" ? "إعدادات التذكير" : "Reminder Settings");
+    expect(rendered).toContain(locale === "ar" ? "تفعيل التذكيرات الآلية" : "Enable automated reminders");
+    expect(rendered).not.toMatch(/auto.?cancel|الإلغاء التلقائي/i);
   });
 
   it.each([false, true])("saves remaining settings without echoing legacy data (legacy=%s)", async (legacy) => {

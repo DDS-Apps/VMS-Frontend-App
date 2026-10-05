@@ -263,7 +263,7 @@ export default function ReminderRulesScreen() {
             {t("admin.reminderRules")}
           </ThemedText>
           <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 4 }]}>
-            {t("admin.autoCancelSettings")}
+            {t("admin.reminderSettings")}
           </ThemedText>
         </View>
 

@@ -1373,7 +1373,7 @@ export interface TranslationKeys {
     smsTemplate: string;
     whatsappTemplate: string;
     reminderRules: string;
-    autoCancelSettings: string;
+    reminderSettings: string;
     firstReminderDelay: string;
     secondReminderDelay: string;
     officeHours: string;

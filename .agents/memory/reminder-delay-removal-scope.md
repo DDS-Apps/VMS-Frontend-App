@@ -3,8 +3,8 @@ name: Reminder delay removal scope
 description: Removing the configurable cancellation delay does not authorize changing cancellation lifecycle behavior.
 ---
 
-The user requested removal of the Auto-Cancel Delay field and a backend handoff, not removal of all automatic cancellation.
+Reminder Rules should refer only to reminders. On 2026-10-05 the user explicitly requested removing remaining Auto-Cancel wording, stating that Auto-Cancel functionality had been removed per the client's requirement. This supersedes the earlier field-only copy scope, but does not independently verify deployed backend behavior.
 
-**Why:** Only this field was circled in the request; reminder delays, office hours, working days, and other settings must remain unchanged.
+**Why:** The client no longer wants cancellation settings or wording in Reminder Rules; reminder delays, office hours, working days, and other settings must remain unchanged.
 
-**How to apply:** Keep frontend saves free of the retired setting. Do not introduce a hidden replacement delay or disable cancellation rules to compensate for backend dependencies; have the backend team identify any business-rule decision needed.
+**How to apply:** Keep this screen reminder-only and frontend saves free of the retired setting. Do not infer permission to alter lifecycle/status behavior elsewhere from settings-copy requests; verify backend expiry behavior separately.
