@@ -34,3 +34,4 @@
 - [Visit movements vs completion](visit-movements-vs-completion.md) — physical exits are separate from lifecycle completion; only the backend can finalize a visit after its scheduled window.
 - [Admin count request budget](admin-count-request-budget.md) — no per-status probes or count-driven full downloads; missing backend aggregates must be explicit.
 - [Reminder delay removal scope](reminder-delay-removal-scope.md) — remove the configurable delay only; do not infer authorization to disable automatic cancellation.
+- [Native touch verification](native-touch-verification.md) — direct handler tests do not prove iPhone tap delivery; diagnose before changing RTL or modal behavior.
