@@ -606,6 +606,7 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
 
       {/* Existing quick status chips remain available alongside the precise selector. */}
       <RTLHorizontalScrollView
+        wrapOnIOS
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statusChipsContainer}
       >

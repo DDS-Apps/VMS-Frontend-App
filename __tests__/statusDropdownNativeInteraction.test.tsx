@@ -4,6 +4,8 @@ import { Platform, I18nManager } from 'react-native';
 import { StatusDropdown, RequestStatusDropdown } from '@/components/shared/RequestStatusDropdown';
 import { RTLHorizontalScrollView } from '@/components/shared/RTLHorizontalScrollView';
 import { PortalProvider } from '@/contexts/PortalContext';
+import { FilterChip } from '@/components/shared/FilterChip';
+import { ScreenFlatList } from '@/components/ScreenFlatList';
 import { en } from '@/constants/i18n/en';
 import { ar } from '@/constants/i18n/ar';
 
@@ -23,10 +25,14 @@ jest.mock('@/hooks/useTranslation', () => ({
 }));
 jest.mock('@/components/ThemedText', () => ({ ThemedText: 'ThemedText' }));
 jest.mock('@/components/DDIcon', () => ({ DDIcon: 'DDIcon' }));
+jest.mock('@/hooks/useScreenInsets', () => ({
+  useScreenInsets: () => ({ paddingTop: 0, paddingBottom: 0, scrollInsetBottom: 0 }),
+}));
 // Native primitives cannot perform UIKit gestures in Jest. The chip, scroll
 // wrapper, dropdown, and overlay provider remain REAL components.
 jest.mock('react-native', () => ({
   Modal: 'Modal', Pressable: 'Pressable', ScrollView: 'ScrollView', View: 'View',
+  FlatList: ({ ListHeaderComponent }: any) => ListHeaderComponent,
   Platform: { OS: 'ios', select: (options: any) => options.ios ?? options.default },
   I18nManager: { isRTL: false },
   StyleSheet: { create: (styles: object) => styles, absoluteFill: {}, absoluteFillObject: {}, hairlineWidth: 1 },
@@ -41,17 +47,24 @@ const cases = [
 describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) => {
   let tree: ReactTestRenderer;
   const changes = jest.fn();
-  function Harness({ show = true, typed = false }) {
+  function Harness({ show = true, typed = false, wrap = false }) {
     const [value, setValue] = useState<string | null>(null);
+    const [date, setDate] = useState(false);
+    const [tab, setTab] = useState(false);
     const onChange = (next: any) => { changes(next); setValue(next); };
     return (
       <PortalProvider>
-        <RTLHorizontalScrollView testID="filters" keyboardShouldPersistTaps="handled">
+        <ScreenFlatList data={[]} renderItem={() => null} ListHeaderComponent={
+        <RTLHorizontalScrollView wrapOnIOS={wrap} testID="filters" keyboardShouldPersistTaps="handled">
+          <FilterChip label="Tab" isSelected={tab} onPress={() => setTab(!tab)} />
+          <FilterChip label="Date" isSelected={date} onPress={() => setDate(true)}
+            onClear={() => setDate(false)} clearAccessibilityLabel="Clear Date" />
           {show ? typed
             ? <RequestStatusDropdown value={value as any} onChange={onChange} />
             : <StatusDropdown value={value} onChange={onChange} compact statuses={['draft', 'expired', 'cancelled', 'auto_cancelled']} />
             : null}
         </RTLHorizontalScrollView>
+        } />
       </PortalProvider>
     );
   }
@@ -71,6 +84,35 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
     act(() => { tree = create(<Harness />); });
   });
   afterEach(() => { act(() => tree.unmount()); });
+
+  it('wraps opted-in iOS controls without a horizontal scroll responder and preserves sibling actions', () => {
+    act(() => tree.update(<Harness wrap />));
+    const rowType = platform === 'ios' ? 'View' : 'ScrollView';
+    const row = tree.root.findAllByType(rowType as any).find(node => node.props.testID === 'filters')!;
+    expect(row).toBeDefined();
+    if (platform === 'ios') {
+      expect(row.findAllByType('ScrollView' as any)).toHaveLength(0);
+      expect(row.props.style.at(-1)).toEqual({
+        direction: rtl ? 'rtl' : 'ltr', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',
+      });
+    } else {
+      expect(row.props.horizontal).toBe(true);
+    }
+    const button = (label: string) => row.findAllByType('Pressable' as any)
+      .find(node => node.props.accessibilityLabel === label)!;
+    act(() => button('Tab').props.onPress());
+    expect(button('Tab').props.accessibilityState.selected).toBe(true);
+    act(() => button('Date').props.onPress());
+    expect(button('Date').props.accessibilityState.selected).toBe(true);
+    act(() => button('Clear Date').props.onPress());
+    expect(button('Date').props.accessibilityState.selected).toBe(false);
+    act(() => trigger().props.onPress());
+    expect(modal().props.visible).toBe(true);
+    act(() => modal().props.onRequestClose());
+    expect(modal().props.visible).toBe(false);
+    act(() => button('Tab').props.onPress());
+    expect(button('Tab').props.accessibilityState.selected).toBe(false);
+  });
 
   it('opens from the real chip, selects distinct statuses, clears, dismisses and reopens', () => {
     const dictionary = rtl ? ar : en;

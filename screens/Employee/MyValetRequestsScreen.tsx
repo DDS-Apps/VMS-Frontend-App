@@ -302,6 +302,7 @@ export default function MyValetRequestsScreen({ navigation }: MyValetRequestsScr
         <Spacer height={Spacing.md} />
 
         <RTLHorizontalScrollView
+          wrapOnIOS
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8, paddingBottom: 2 }}
           nestedScrollEnabled={true}

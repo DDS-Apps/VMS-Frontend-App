@@ -13,11 +13,34 @@ const needsRTLFix = (isRTL: boolean) =>
 
 interface RTLHorizontalScrollViewProps extends ScrollViewProps {
   children: React.ReactNode;
+  /** Filter controls can wrap on iOS instead of nesting a horizontal gesture
+   * recognizer inside a vertical list header. Other scroll rows are unchanged. */
+  wrapOnIOS?: boolean;
 }
 
-export function RTLHorizontalScrollView({ children, contentContainerStyle, style, ...props }: RTLHorizontalScrollViewProps) {
+export function RTLHorizontalScrollView({ children, contentContainerStyle, style, wrapOnIOS = false, ...props }: RTLHorizontalScrollViewProps) {
   const { isRTL } = useLanguage();
   const applyFix = needsRTLFix(isRTL);
+
+  if (wrapOnIOS && Platform.OS === 'ios') {
+    return (
+      <View
+        testID={props.testID}
+        style={[
+          style,
+          contentContainerStyle,
+          {
+            direction: isRTL ? 'rtl' : 'ltr',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        {children}
+      </View>
+    );
+  }
 
   return (
     <ExtendedScrollView

@@ -624,6 +624,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
       <Spacer height={Spacing.sm} />
 
       <RTLHorizontalScrollView
+        wrapOnIOS
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
         nestedScrollEnabled={true}

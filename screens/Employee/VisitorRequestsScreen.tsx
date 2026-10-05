@@ -421,6 +421,7 @@ const SectionHeader = ({
       <Spacer height={LAYOUT.contentGap} />
 
       <RTLHorizontalScrollView
+        wrapOnIOS
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabsContainer}
         nestedScrollEnabled={true}

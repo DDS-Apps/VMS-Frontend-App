@@ -446,6 +446,7 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       <Spacer height={Spacing.sm} />
 
       <RTLHorizontalScrollView
+        wrapOnIOS
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterScrollContent}
         nestedScrollEnabled={true}
