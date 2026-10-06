@@ -35,3 +35,4 @@
 - [Admin count request budget](admin-count-request-budget.md) — no per-status probes or count-driven full downloads; missing backend aggregates must be explicit.
 - [Reminder delay removal scope](reminder-delay-removal-scope.md) — remove the configurable delay only; do not infer authorization to disable automatic cancellation.
 - [Native touch verification](native-touch-verification.md) — direct handler tests do not prove iPhone tap delivery; diagnose before changing RTL or modal behavior.
+- [Git provider authentication](git-provider-auth-boundaries.md) — connected API access and push permission do not prove Git HTTPS authentication; verify with a non-mutating dry-run.
