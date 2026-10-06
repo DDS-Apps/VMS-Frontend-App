@@ -606,6 +606,7 @@ export default function DriverTasksScreen({ onNavigateToDetail }: DriverTasksScr
         <Spacer height={Spacing.lg} />
 
         <RTLHorizontalScrollView
+          wrapOnIOS
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}

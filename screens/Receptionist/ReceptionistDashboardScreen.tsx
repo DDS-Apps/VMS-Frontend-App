@@ -714,6 +714,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <Spacer height={Spacing.sm} />
 
         <RTLHorizontalScrollView
+          wrapOnIOS
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
           nestedScrollEnabled={true}

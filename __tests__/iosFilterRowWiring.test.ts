@@ -10,6 +10,11 @@ const affectedScreens = [
   'screens/Receptionist/AllVisitorsScreen.tsx',
   'screens/Receptionist/AllVisitorsTodayScreen.tsx',
   'screens/Receptionist/WalkInVisitorsScreen.tsx',
+  'screens/Dashboard/OverviewScreen.tsx',
+  'screens/Receptionist/ReceptionistDashboardScreen.tsx',
+  'screens/Security/SecurityCheckInScreen.tsx',
+  'screens/Driver/DriverTasksScreen.tsx',
+  'screens/Buffet/BuffetBoardScreen.tsx',
 ];
 
 describe('iOS list filter integration', () => {
@@ -27,7 +32,23 @@ describe('iOS list filter integration', () => {
   it.each([
     'screens/Dashboard/OverviewScreen.tsx',
     'screens/Receptionist/ReceptionistDashboardScreen.tsx',
-  ])('leaves the working dashboard %s on its existing layout', (file) => {
-    expect(fs.readFileSync(path.join(process.cwd(), file), 'utf8')).not.toContain('wrapOnIOS');
+    'screens/BuildingAdmin/BuildingAdminDashboardScreen.tsx',
+  ])('keeps card carousels scrolling in %s', (file) => {
+    const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    const rows = source.match(/<RTLHorizontalScrollView\b[\s\S]*?<\/RTLHorizontalScrollView>/g) ?? [];
+    const carousels = rows.filter(row => !row.includes('<FilterChip'));
+    expect(carousels.length).toBeGreaterThan(0);
+    for (const row of carousels) expect(row).not.toContain('wrapOnIOS');
+  });
+
+  it('wraps the Building Admin module/date and status controls, not the KPI carousel', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'screens/BuildingAdmin/AllRequestsScreen.tsx'), 'utf8');
+    const rows = source.match(/<RTLHorizontalScrollView\b[\s\S]*?<\/RTLHorizontalScrollView>/g)!;
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).not.toContain('wrapOnIOS');
+    expect(rows[1]).toContain('wrapOnIOS');
+    expect(rows[1]).toContain('<AdminDateFilterChip');
+    expect(rows[2]).toContain('wrapOnIOS');
+    expect(rows[2]).toContain('<StatusDropdown');
   });
 });

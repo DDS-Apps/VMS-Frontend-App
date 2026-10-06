@@ -629,6 +629,7 @@ export default function BuffetBoardScreen() {
         <Spacer height={Spacing.lg} />
 
         <RTLHorizontalScrollView
+          wrapOnIOS
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           nestedScrollEnabled={true}

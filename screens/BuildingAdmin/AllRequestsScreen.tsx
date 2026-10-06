@@ -1314,6 +1314,7 @@ export default function AllRequestsScreen() {
       <Spacer height={Spacing.md} />
 
       <RTLHorizontalScrollView
+        wrapOnIOS
         showsHorizontalScrollIndicator={false}
         style={styles.filtersContainer}
         contentContainerStyle={styles.filtersRow}
@@ -1363,6 +1364,7 @@ export default function AllRequestsScreen() {
         <>
           <Spacer height={Spacing.sm} />
           <RTLHorizontalScrollView
+            wrapOnIOS
             showsHorizontalScrollIndicator={false}
             style={styles.statusFiltersContainer}
             contentContainerStyle={styles.statusFiltersRow}

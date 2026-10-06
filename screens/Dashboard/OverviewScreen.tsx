@@ -488,6 +488,7 @@ export default function OverviewScreen({
               {/* Status filter chips */}
               <DirectionalRow style={styles.upcomingFilterRow}>
                 <RTLHorizontalScrollView
+                  wrapOnIOS
                   style={styles.upcomingFilterScroller}
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
@@ -1473,9 +1474,12 @@ const styles = StyleSheet.create({
   upcomingFilterRow: {
     alignItems: "center",
     gap: Spacing.md,
+    // Give iPhone filters the full row; View All flows below, not over them.
+    flexWrap: Platform.OS === "ios" ? "wrap" : "nowrap",
   },
   upcomingFilterScroller: {
-    flex: 1,
+    flex: Platform.OS === "ios" ? 0 : 1,
+    ...(Platform.OS === "ios" ? { flexBasis: "100%" as const, width: "100%" as const } : {}),
   },
   container: {
     padding: Spacing.lg,

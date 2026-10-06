@@ -9,7 +9,7 @@ Do not claim an iPhone touch regression is fixed from tests that invoke press ha
 
 **How to apply:** Preserve the full list/header/filter-row hierarchy in reproduction. Compare a controlled modal-isolation case and record actual app/native RTL state. When native execution is unavailable, state that limitation and leave restoration unverified rather than describing a speculative patch as a confirmed fix.
 
-For the affected non-dashboard iOS filter controls, prefer an explicitly directed, wrapping layout over restoring nested horizontal scrolling. Keep other platforms out of that change. Do not assume dashboards are a working control: on 2026-10-06 the user reported that some chips respond and others do not across all dashboards, superseding the earlier report that dashboards worked.
+For affected iOS filter controls, including role home screens, prefer an explicitly directed, wrapping layout over restoring nested horizontal scrolling. Keep other platforms and card carousels out of that change. Do not assume dashboards are a working control: on 2026-10-06 the user reported that some chips respond and others do not across all dashboards, superseding the earlier report that dashboards worked.
 
 **Why:** This removes horizontal gesture competition and transformed touch ancestry rather than swapping touch components or undoing independent popup lifecycle corrections. It is an interaction-design mitigation, not evidence of the original runtime cause.
 

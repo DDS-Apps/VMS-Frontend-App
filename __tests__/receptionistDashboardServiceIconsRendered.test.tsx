@@ -161,9 +161,9 @@ jest.mock("@/components/shared", () => {
   return {
     RTLHorizontalScrollView: ({ children }: { children: React.ReactNode }) =>
       React.createElement(React.Fragment, null, children),
-    FilterChip: () => null,
+    FilterChip: jest.requireActual("@/components/shared/FilterChip").FilterChip,
     RequestStatusBadge: () => null,
-    VisitorMatrixTable: () => null,
+    VisitorMatrixTable: (props: object) => React.createElement("VisitorMatrixTable", props),
     VisitorRequestCard: () => null,
     SkeletonCard: () => null,
     SkeletonDashboard: () => null,
@@ -365,6 +365,34 @@ function renderDashboard(navigation: { navigate: jest.Mock }) {
     ),
   );
 }
+
+describe.each([false, true])("dashboard filter selection RTL=%s", (rtl) => {
+  it("changes the selected chip and the displayed results independently of touch delivery", () => {
+    mockIsRTL = rtl;
+    mockLocaleCode = rtl ? "ar-SA" : "en-US";
+    mockTodayResponse = mockTodayData;
+    mockWindowWidth = 320;
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    const findChip = (label: string) => renderer.root.findAllByType("Pressable" as any)
+      .find(node => node.props.accessibilityLabel === label)!;
+    for (const [label, count] of [
+      ["status.checkedIn", 0],
+      ["status.checkedOut", 0],
+      ["status.toBeChecked", 2],
+      ["common.all", 2],
+    ] as const) {
+      act(() => findChip(label).props.onPress());
+      expect(findChip(label).props.accessibilityState.selected).toBe(true);
+      if (count) {
+        expect(renderer.root.findByType("VisitorMatrixTable" as any).props.visitors).toHaveLength(count);
+      } else {
+        expect(renderer.root.findAllByType("VisitorMatrixTable" as any)).toHaveLength(0);
+      }
+    }
+    act(() => renderer.unmount());
+  });
+});
 
 function expectClocheIcon(node: RenderedNode) {
   const cloche = findIcon(node, "cloche");
