@@ -6,7 +6,6 @@ import { DDIcon, IconName } from '../DDIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Spacing, BorderRadius, Typography } from '@/constants/theme';
-import Spacer from '../Spacer';
 
 export interface KPICardProps {
   title: string;
@@ -45,7 +44,6 @@ export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
             styles.value,
             { color: theme.text },
           ]}
-          numberOfLines={1}
         >
           {value}
         </ThemedText>
@@ -55,14 +53,12 @@ export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
             styles.label,
             { color: color },
           ]}
-          numberOfLines={1}
         >
           {title}
         </ThemedText>
         {subtitle ? (
           <ThemedText
             style={[styles.subtitle, { color: theme.textSecondary }]}
-            numberOfLines={1}
           >
             {subtitle}
           </ThemedText>
@@ -77,27 +73,29 @@ export interface KPICardRowProps {
 }
 
 export function KPICardRow({ children }: KPICardRowProps) {
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, fontScale } = useWindowDimensions();
   const { isRTL } = useLanguage();
   const isMobile = windowWidth < 768;
-  const columnsPerRow = isMobile ? 2 : 4;
+  const columnsPerRow = isMobile ? (windowWidth < 480 || fontScale > 1.2 ? 1 : 2) : 4;
   
-  const childCount = React.Children.count(children);
+  const visibleChildren = React.Children.toArray(children);
+  const childCount = visibleChildren.length;
   if (childCount === 0) {
     return null;
   }
 
   const effectiveColumns = Math.min(columnsPerRow, childCount);
-  const flexBasisPercent = effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
+  const fullWidth = isMobile && effectiveColumns === 1;
+  const flexBasisPercent = fullWidth ? '100%' : effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
   
-  const childrenWithWidth = React.Children.map(children, (child) => {
+  const childrenWithWidth = React.Children.map(visibleChildren, (child) => {
     if (React.isValidElement(child)) {
       return (
         <View style={{ 
           flexBasis: flexBasisPercent,
           flexGrow: 1,
           flexShrink: 0,
-          maxWidth: effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
+          maxWidth: fullWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
           marginBottom: Spacing.md,
         }}>
           {child}
@@ -136,6 +134,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   iconContainer: {
+    flexShrink: 0,
     width: 36,
     height: 36,
     borderRadius: BorderRadius.sm,
@@ -144,6 +143,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    minWidth: 0,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },

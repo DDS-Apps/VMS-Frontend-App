@@ -16,3 +16,9 @@ For table Actual In/Actual Out columns, confirm the backend response contract an
 **Why:** The user specifically asked to check what the backend returns first because multiple check-in/checkout cycles are implemented. A singular summary can refer to the latest cycle rather than the first entry or final departure.
 
 **How to apply:** Obtain sanitized responses covering entry, exit, re-entry, and completion; confirm the intended table summary and null behavior. Do not derive a pair from arbitrary event-array positions or download detail/history for every table row without an explicit design decision.
+
+The product owner clarified that Actual In is the latest recorded physical check-in and Actual Out is the latest recorded physical checkout independently, even from an earlier cycle. After IN 09:00, OUT 10:00, IN 11:00, show 11:00 and 10:00. Administrative completion and QR expiry never supply checkout.
+
+**Why:** A latest-cycle checkout that clears on re-entry does not meet the required historical summary. An OUT earlier than IN is valid, not corrupt data.
+
+**How to apply:** Preserve existing current-presence field semantics unless an explicit contract change is agreed. Distinguish independent movement summaries from the current cycle. Investigations requested as report-only must not change application code or call live APIs.

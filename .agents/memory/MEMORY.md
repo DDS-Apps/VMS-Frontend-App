@@ -37,3 +37,4 @@
 - [Native touch verification](native-touch-verification.md) — direct handler tests do not prove iPhone tap delivery; diagnose before changing RTL or modal behavior.
 - [Git provider authentication](git-provider-auth-boundaries.md) — connected API access and push permission do not prove Git HTTPS authentication; verify with a non-mutating dry-run.
 - [Receptionist movement actions](receptionist-movement-action-scope.md) — Receptionist Visit Detail must not offer Check-In/Check-Out; preserve read-only history and Security workflows.
+- [Visit tile time isolation](visit-tile-time-isolation.md) — mixed Arabic host text must not separate AM/PM from its time; keep time before host metadata.

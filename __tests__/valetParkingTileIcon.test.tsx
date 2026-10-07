@@ -44,6 +44,26 @@ const baseVisitor: ValetParkingVisitorDto = {
 };
 
 describe.each([false, true])('Valet parking tile (RTL=%s)', isRTL => {
+  it.each(['12:30 PM', '9:00 AM', '١٢:٣٠ م'])('keeps %s before mixed Arabic host metadata', visitTime => {
+    let tree!: ReturnType<typeof create>;
+    const hostName = 'Renad';
+    const hostDepartment = 'إدارة الأتمتة والمشاريع الرقمية';
+    act(() => {
+      tree = create(<VisitorCard
+        visitor={{ ...baseVisitor, visitTime, hostName, hostDepartment }}
+        theme={theme} t={key => key} isRTL={isRTL}
+      />);
+    });
+    const texts = tree.root.findAllByType('ThemedText' as any);
+    const time = texts.find(node => node.props.testID === 'visit-time-text')!;
+    const host = texts.find(node => node.props.children === `${hostName} · ${hostDepartment}`)!;
+    expect(time.props.children).toBe(visitTime.replace(/ /g, '\u00a0'));
+    expect(texts.indexOf(time)).toBeLessThan(texts.indexOf(host));
+    expect(StyleSheet.flatten(time.props.style).flexShrink).toBe(0);
+    expect(host.props.numberOfLines).toBe(1);
+    act(() => tree.unmount());
+  });
+
   it('shows the approved parking icon only for parking-required visitors', () => {
     let tree: ReturnType<typeof create>;
     act(() => {

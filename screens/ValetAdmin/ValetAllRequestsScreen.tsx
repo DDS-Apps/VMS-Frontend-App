@@ -19,6 +19,7 @@ import type { ValetParkingVisitorDto } from "@/types/api.types";
 import type { Theme } from "@/types/theme.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
+import { VisitTimeText } from '@/components/shared/VisitTimeText';
 import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 import { DashboardKpiSection, VisitorMatrixTable, WalkInBadge } from '@/components/shared';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
@@ -185,9 +186,10 @@ export const VisitorCard = React.memo(({
         <View style={{ height: Spacing.xs }} />
 
         <DirectionalRow style={styles.compactDetailsRow} alignItems="center">
+          <VisitTimeText value={visitor.visitTime} style={{ fontSize: 12, color: theme.textSecondary }} />
           <DDIcon name="user" size={12} variant="muted" />
           <ThemedText style={[styles.compactDetailText, { color: theme.textSecondary }]} numberOfLines={1}>
-            {[visitor.hostName, visitor.hostDepartment, visitor.visitTime].filter(Boolean).join(' · ')}
+            {[visitor.hostName, visitor.hostDepartment].filter(Boolean).join(' · ')}
           </ThemedText>
           {visitor.isWalkIn ? <WalkInBadge size="sm" /> : null}
         </DirectionalRow>
@@ -684,10 +686,12 @@ const styles = StyleSheet.create({
   },
   compactDetailsRow: {
     gap: 4,
+    flexWrap: 'wrap',
   },
   compactDetailText: {
     fontSize: 12,
     flex: 1,
+    minWidth: 80,
   },
   parkingBadge: {
     width: 32,

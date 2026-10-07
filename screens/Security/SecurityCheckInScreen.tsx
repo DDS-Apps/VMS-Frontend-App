@@ -35,6 +35,7 @@ import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { mapSecurityVisitorToMatrixItem } from "@/utils/securityVisitorTable";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
+import { VisitTimeText } from "@/components/shared/VisitTimeText";
 import { isOperationalVisitVisible } from "@/utils/operationalVisitVisibility";
 
 const LAYOUT = {
@@ -585,9 +586,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
               <DirectionalRow style={styles.dateTimeItem}>
                 <DDIcon name="clock" size={13} variant="muted" />
-                <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
-                  {formatTimeFromString(visitor.visitTime)}
-                </ThemedText>
+                <VisitTimeText value={formatTimeFromString(visitor.visitTime)} style={[styles.dateTimeText, { color: theme.textSecondary }]} />
               </DirectionalRow>
               <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>
               <ThemedText style={[styles.dateTimeText, { color: theme.textSecondary }]}>
@@ -1035,6 +1034,7 @@ const styles = StyleSheet.create({
   dateTimeItem: {
     alignItems: 'center',
     gap: 4,
+    flexShrink: 0,
   },
   dateTimeText: {
     fontSize: 13,
