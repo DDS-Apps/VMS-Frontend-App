@@ -1,17 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const webFirebaseConfig = require('./public/firebase-web-config');
 const {
   APP_LINK_PATH_PREFIXES,
   PRODUCTION_VARIANT,
   assertProductionConfig,
+  normalizeVariant,
   resolveEnvironment,
 } = require('./config/app-environments');
 
 // APP_VARIANT selects the environment: `production` builds target
-// https://vms.dallah.com, anything else (default `staging`) targets QA.
+// https://vms.dallah.com by default. QA requires explicit `qa`/`staging`.
 // eas.json sets it per build profile; scripts/build-web.js sets it for web.
-const APP_VARIANT = process.env.APP_VARIANT || 'staging';
+const APP_VARIANT = normalizeVariant(process.env.APP_VARIANT);
 const IS_PRODUCTION = APP_VARIANT === PRODUCTION_VARIANT;
 
 // Optional, git-ignored local overrides. The file is parsed explicitly instead
@@ -45,24 +47,17 @@ if (environment.ignored.length > 0) {
 const envValue = (key, fallback) =>
   process.env[`EXPO_PUBLIC_${key}`] || fileEnv[key] || fileEnv[`EXPO_PUBLIC_${key}`] || fallback;
 
-// QA and production backends share the same Firebase project. Keep the native
-// Firebase files aligned with the public Firebase configuration below so FCM
-// tokens are always issued by dallah-albaraka-vms (sender 913604772710).
+// Both web variants use the supplied dallah-vms client configuration, also
+// loaded by the service worker. Stale process/file values cannot select another
+// web project. Native files intentionally remain unchanged pending migration.
 const FIREBASE_CONFIG_PATH = 'qa';
 
-const FIREBASE_API_KEY = envValue('FIREBASE_API_KEY', 'AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo');
-const FIREBASE_AUTH_DOMAIN = envValue('FIREBASE_AUTH_DOMAIN', 'dallah-albaraka-vms.firebaseapp.com');
-const FIREBASE_PROJECT_ID = envValue('FIREBASE_PROJECT_ID', 'dallah-albaraka-vms');
-const FIREBASE_STORAGE_BUCKET = envValue('FIREBASE_STORAGE_BUCKET', 'dallah-albaraka-vms.firebasestorage.app');
-const FIREBASE_MESSAGING_SENDER_ID = envValue('FIREBASE_MESSAGING_SENDER_ID', '913604772710');
-const FIREBASE_MEASUREMENT_ID = envValue('FIREBASE_MEASUREMENT_ID', 'G-Y5G46SXSQB');
-const FIREBASE_APP_ID_WEB = envValue('FIREBASE_APP_ID_WEB', '1:913604772710:web:46c93bf8fbcd061362bea7');
+const FIREBASE_MEASUREMENT_ID = envValue('FIREBASE_MEASUREMENT_ID', '');
 const FIREBASE_APP_ID_ANDROID = envValue('FIREBASE_APP_ID_ANDROID', '1:913604772710:android:a9320215a876705e62bea7');
 const FIREBASE_APP_ID_IOS = envValue('FIREBASE_APP_ID_IOS', '1:913604772710:ios:ea764c22ce480dec62bea7');
-const FIREBASE_VAPID_KEY = envValue(
-  'FIREBASE_VAPID_KEY',
-  'BKXyeihYX0n_rNHIEIP26eNGnbVZL_rCsiLnA7jv0ZuIThHmbV0FJqENbmt-QnikL4uqKbh3lYqp0sqAQImDass',
-);
+// A project-specific web-push key must be configured, never inherited from the
+// old project's hardcoded default. Existing configured values are preserved.
+const FIREBASE_VAPID_KEY = envValue('FIREBASE_VAPID_KEY', '');
 
 // Universal Links / App Links follow the environment's public web domain, so a
 // production build claims vms.dallah.com while QA builds claim the Replit host.
@@ -101,13 +96,13 @@ module.exports = ({ config }) => ({
     appDomain: environment.appDomain,
     legalPagesUrl: environment.legalPagesUrl,
     firebase: {
-      apiKey: FIREBASE_API_KEY,
-      authDomain: FIREBASE_AUTH_DOMAIN,
-      projectId: FIREBASE_PROJECT_ID,
-      storageBucket: FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+      apiKey: webFirebaseConfig.apiKey,
+      authDomain: webFirebaseConfig.authDomain,
+      projectId: webFirebaseConfig.projectId,
+      storageBucket: webFirebaseConfig.storageBucket,
+      messagingSenderId: webFirebaseConfig.messagingSenderId,
       measurementId: FIREBASE_MEASUREMENT_ID,
-      appIdWeb: FIREBASE_APP_ID_WEB,
+      appIdWeb: webFirebaseConfig.appId,
       appIdAndroid: FIREBASE_APP_ID_ANDROID,
       appIdIos: FIREBASE_APP_ID_IOS,
       vapidKey: FIREBASE_VAPID_KEY,

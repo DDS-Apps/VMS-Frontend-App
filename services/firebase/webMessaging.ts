@@ -238,6 +238,10 @@ export async function getWebFcmToken(): Promise<string | null> {
     console.log('[FCM] getToken: Skipped - not web or no messaging');
     return null;
   }
+  if (!VAPID_KEY) {
+    console.warn('[FCM] Web push unavailable: configure EXPO_PUBLIC_FIREBASE_VAPID_KEY for dallah-vms.');
+    return null;
+  }
 
   // Pre-flight checks
   if (!browserInfo.supportsWebPush) {

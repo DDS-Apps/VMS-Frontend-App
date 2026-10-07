@@ -1,14 +1,8 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+importScripts('/firebase-web-config.js');
 
-firebase.initializeApp({
-  apiKey: "AIzaSyDCXAFTLnvxbG8rH9LblvklbYH5t6pGYkA",
-  authDomain: "dallah-vms.firebaseapp.com",
-  projectId: "dallah-vms",
-  storageBucket: "dallah-vms.firebasestorage.app",
-  messagingSenderId: "858912458229",
-  appId: "1:858912458229:web:5116cd8e271071a736ccbc"
-});
+firebase.initializeApp(globalThis.firebaseWebConfig);
 
 const messaging = firebase.messaging();
 

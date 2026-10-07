@@ -1,3 +1,12 @@
+# Web project update — 2026-10-07
+
+The web app and messaging worker now use the supplied **dallah-vms** client
+configuration. The contract below describes the **previous shared project** and
+still applies to unchanged Android/iOS native files, not the new web client.
+Do not use the old web identifiers or VAPID fallback when configuring web builds.
+See `config/README.md` for current web configuration and remaining rollout gates.
+Backend Firebase Admin credentials were not changed or verified in this work.
+
 # Firebase Backend Alignment
 
 This document is the source of truth for aligning the VMS backend, Android,

@@ -17,7 +17,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.dallah.vms",
       "versionCode": 71,
-      "googleServicesFile": "./config/qa/google-services.json",
+      "googleServicesFile": "./config/prod/google-services.json",
       "permissions": ["android.permission.POST_NOTIFICATIONS"]
     },
     "ios": {
@@ -25,7 +25,7 @@
       "bundleIdentifier": "com.dallah.vms",
       "appleTeamId": "SNJM77V43A",
       "buildNumber": "110",
-      "googleServicesFile": "./config/qa/GoogleService-Info.plist",
+      "googleServicesFile": "./config/prod/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"],

@@ -38,3 +38,4 @@
 - [Git provider authentication](git-provider-auth-boundaries.md) — connected API access and push permission do not prove Git HTTPS authentication; verify with a non-mutating dry-run.
 - [Receptionist movement actions](receptionist-movement-action-scope.md) — Receptionist Visit Detail must not offer Check-In/Check-Out; preserve read-only history and Security workflows.
 - [Visit tile time isolation](visit-tile-time-isolation.md) — mixed Arabic host text must not separate AM/PM from its time; keep time before host metadata.
+- [Firebase platform boundaries](firebase-platform-boundaries.md) — web configuration changes do not authorize native or backend migration; validate delivery credentials per platform.

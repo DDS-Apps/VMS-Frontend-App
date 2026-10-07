@@ -19,6 +19,7 @@ const PLACEHOLDER = /%%([A-Z0-9_]+)%%/g;
 const REQUIRED_FILES = [
   'index.html',
   'firebase-messaging-sw.js',
+  'firebase-web-config.js',
   'privacy-policy.html',
   'terms-conditions.html',
   '.well-known/apple-app-site-association',

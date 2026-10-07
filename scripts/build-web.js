@@ -2,11 +2,11 @@
 /**
  * Builds the deployable web bundle for one environment.
  *
- *   npm run build:web                  QA bundle for the Replit deployment
+ *   npm run build:web                  production bundle for Replit publishing
  *   npm run build:web:production       production bundle for IIS at vms.dallah.com
  *
  * Options (also settable through the environment):
- *   --variant <production|qa>   APP_VARIANT            environment to build (default: qa)
+ *   --variant <production|qa>   APP_VARIANT            environment to build (default: production)
  *   --backend-origin <url>      VMS_BACKEND_ORIGIN     where IIS forwards /api and /auth/microsoft
  *                                                      (production only, e.g. http://localhost:3000)
  *   --no-web-config                                    production: do not write dist/web.config

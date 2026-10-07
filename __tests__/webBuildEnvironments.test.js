@@ -30,12 +30,12 @@ const QA_SHARED_ENV = {
 };
 
 describe("Replit publishing build", () => {
-  it("builds the QA variant without the IIS-only web.config", () => {
+  it("builds production by default without the IIS-only web.config", () => {
     const script = fs.readFileSync(path.join(ROOT, "scripts", "build-and-verify.sh"), "utf8");
 
-    expect(script).toContain("--variant qa");
+    expect(script).toContain("--variant production");
     expect(script).toContain("--no-web-config");
-    expect(script).not.toContain("--variant production");
+    expect(script).not.toContain("--variant qa");
   });
 });
 
@@ -53,8 +53,8 @@ describe("resolveEnvironment", () => {
     expect(() => assertProductionConfig(resolved)).not.toThrow();
   });
 
-  it("defaults QA to the Replit hosts and treats any other variant as QA", () => {
-    for (const appVariant of ["staging", "qa", undefined, "preview"]) {
+  it("requires explicit QA or staging to select the QA hosts", () => {
+    for (const appVariant of ["staging", "qa"]) {
       const resolved = resolveEnvironment({ appVariant, env: {} });
       expect(resolved.variant).toBe("qa");
       expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
@@ -190,7 +190,7 @@ describe("app.config.js", () => {
       appDomain: "vms.dallah.com",
       legalPagesUrl: "https://vms.dallah.com",
     });
-    expect(config.extra.firebase.projectId).toBe("dallah-albaraka-vms");
+    expect(config.extra.firebase.projectId).toBe("dallah-vms");
     expect(config.scheme).toBe("dallahvms");
   });
 

@@ -8,3 +8,9 @@ Do not take screenshots for each issue unless the user specifically asks. Do not
 **Why:** The user explicitly requested this cadence while reviewing multiple issues.
 
 **How to apply:** For each individual fix, verify narrowly without creating snapshots; reserve the full regression run for the end of the issue list.
+
+For Firebase and build-target configuration changes, do not run unit tests.
+
+**Why:** The user explicitly requested this narrower verification scope for these configuration updates.
+
+**How to apply:** Inspect resolved configurations and verify exports/host checks instead; do not invoke Jest or other unit-test runners for this scope.

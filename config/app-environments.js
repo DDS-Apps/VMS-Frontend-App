@@ -84,9 +84,8 @@ const ENV_KEYS = {
 };
 
 function normalizeVariant(appVariant) {
-  return String(appVariant || '').trim().toLowerCase() === PRODUCTION_VARIANT
-    ? PRODUCTION_VARIANT
-    : QA_VARIANT;
+  const value = String(appVariant || '').trim().toLowerCase();
+  return value === QA_VARIANT || value === 'staging' ? QA_VARIANT : PRODUCTION_VARIANT;
 }
 
 function isDevHost(value) {
@@ -118,7 +117,7 @@ function firstDefined(...values) {
  * Resolves the public configuration for a variant.
  *
  * @param {object} [options]
- * @param {string} [options.appVariant]  APP_VARIANT value ('production' | anything else = QA).
+ * @param {string} [options.appVariant]  Defaults to production; only explicit qa/staging selects QA.
  * @param {object} [options.env]         Process environment (defaults to process.env).
  * @param {object} [options.fileEnv]     Parsed key/value pairs from the variant .env file.
  * @param {boolean} [options.ignoreProcessEnv]  Skip step 1 (used for production builds so
@@ -128,12 +127,13 @@ function firstDefined(...values) {
 function resolveEnvironment(options = {}) {
   const variant = normalizeVariant(options.appVariant);
   const processEnv = options.env || process.env;
-  const env = options.ignoreProcessEnv ? {} : processEnv;
+  const ignoreProcessEnv = variant === PRODUCTION_VARIANT || options.ignoreProcessEnv;
+  const env = ignoreProcessEnv ? {} : processEnv;
   const fileEnv = options.fileEnv || {};
   const defaults = ENVIRONMENTS[variant];
   const sources = {};
   // EXPO_PUBLIC_* URL variables present in the process but not applied.
-  const ignored = options.ignoreProcessEnv
+  const ignored = ignoreProcessEnv
     ? Object.values(ENV_KEYS)
         .map((envKey) => `EXPO_PUBLIC_${envKey}`)
         .filter((publicKey) => firstDefined(processEnv[publicKey]) !== undefined)
@@ -192,7 +192,9 @@ function assertProductionConfig(resolved) {
   const offenders = [];
   for (const key of ['apiBaseUrl', 'microsoftAuthUrl', 'appDomain', 'legalPagesUrl']) {
     const host = hostnameOf(resolved[key]);
-    if (QA_HOSTS.includes(host) || isDevHost(resolved[key]) || host.endsWith('.replit.app') || host.endsWith('.replit.dev')) {
+    const expectedHost = hostnameOf(ENVIRONMENTS[PRODUCTION_VARIANT][key]);
+    const insecure = key !== 'appDomain' && !String(resolved[key]).startsWith('https://');
+    if (host !== expectedHost || insecure || QA_HOSTS.includes(host) || isDevHost(resolved[key]) || host.endsWith('.replit.app') || host.endsWith('.replit.dev')) {
       offenders.push(`${key}=${resolved[key]} (from ${resolved.sources[key]})`);
     }
   }

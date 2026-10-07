@@ -37,15 +37,15 @@ export interface EnvironmentConfig {
 }
 
 /**
- * Environment identifiers (safe to include - these are public project IDs)
+ * Web environment identifiers (public). Native Firebase files are separate.
  */
 export const ENVIRONMENT_IDENTIFIERS = {
   production: {
-    firebaseProjectId: 'dallah-albaraka-vms',
+    firebaseProjectId: 'dallah-vms',
     description: 'Production environment - Live users',
   },
   qa: {
-    firebaseProjectId: 'dallah-albaraka-vms',
+    firebaseProjectId: 'dallah-vms',
     description: 'QA/Testing environment',
   },
 } as const;
@@ -89,10 +89,10 @@ export function getAllEnvVarKeys(): string[] {
 /**
  * Helper to detect the backend environment from the EAS build variant.
  * Firebase cannot distinguish the environments because both intentionally
- * use the same dallah-albaraka-vms project.
+ * use the same dallah-vms web project.
  */
 export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
-  const appVariant = process.env.APP_VARIANT;
+  const appVariant = (process.env.APP_VARIANT || 'production').trim().toLowerCase();
 
   if (appVariant === 'production') {
     return 'production';
@@ -100,7 +100,7 @@ export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
   if (appVariant === 'staging' || appVariant === 'qa') {
     return 'qa';
   }
-  return 'unknown';
+  return 'production';
 }
 
 /**
@@ -124,7 +124,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     firebase: {
       apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
       authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || '',
+      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || identifier.firebaseProjectId || 'dallah-vms',
       storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
       messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
       measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || '',

@@ -11,7 +11,7 @@
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
     "web": "npx expo start --web",
-    "build:web": "node scripts/build-web.js --variant qa",
+    "build:web": "node scripts/build-web.js --variant production --no-web-config --precompress",
     "build:web:production": "node scripts/build-web.js --variant production",
     "build:ios": "node scripts/build-ios-with-apple-key.js",
     "build:android": "npx eas build --platform android --profile production",

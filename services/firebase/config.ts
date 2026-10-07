@@ -2,11 +2,22 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const firebaseExtra = Constants.expoConfig?.extra?.firebase;
+const webFirebaseConfig = require('../../public/firebase-web-config') as {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+};
 
-export const firebaseConfig = {
+// The web SDK and worker must use identical supplied identifiers, even if
+// Metro inlines stale EXPO_PUBLIC_* values from another build environment.
+// Native SDKs continue to initialize from their unchanged native files.
+export const firebaseConfig = Platform.OS === 'web' ? webFirebaseConfig : {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || firebaseExtra?.apiKey,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || firebaseExtra?.authDomain,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || firebaseExtra?.projectId,
+  projectId: firebaseExtra?.projectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || firebaseExtra?.storageBucket,
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || firebaseExtra?.messagingSenderId,
   appId: Platform.select({
@@ -18,4 +29,4 @@ export const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || firebaseExtra?.measurementId,
 };
 
-export const VAPID_KEY = process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY || firebaseExtra?.vapidKey;
+export const VAPID_KEY = firebaseExtra?.vapidKey ?? process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY;

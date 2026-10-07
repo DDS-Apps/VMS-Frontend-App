@@ -6,7 +6,7 @@
   "build": {
     "development": {
       "env": {
-        "APP_VARIANT": "staging"
+        "APP_VARIANT": "production"
       },
       "developmentClient": true,
       "distribution": "internal",
@@ -19,7 +19,7 @@
     },
     "development-device": {
       "env": {
-        "APP_VARIANT": "staging"
+        "APP_VARIANT": "production"
       },
       "developmentClient": true,
       "distribution": "internal",
@@ -32,7 +32,7 @@
     },
     "preview": {
       "env": {
-        "APP_VARIANT": "staging"
+        "APP_VARIANT": "production"
       },
       "distribution": "internal",
       "autoIncrement": true,
