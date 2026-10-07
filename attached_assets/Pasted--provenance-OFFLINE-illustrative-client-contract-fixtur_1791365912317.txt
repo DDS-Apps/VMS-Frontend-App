@@ -1,0 +1,1448 @@
+{
+  "provenance": "OFFLINE illustrative client contract fixtures. Not authorization/filter/database/device evidence.",
+  "states": [
+    {
+      "name": "no-movement",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": null,
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "visitor_accepted",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": null,
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "visitor_accepted",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": null,
+                "latestCheckOutAt": null
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": null,
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "visitor_accepted",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": null,
+                  "latestCheckOutAt": null
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "visitor_accepted",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": null,
+            "latestCheckOutAt": null
+          },
+          "timeline": {
+            "checkedInAt": null,
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "name": "first-in",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T06:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "checked_in",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                  "latestCheckOutAt": null
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "checked_in",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+            "latestCheckOutAt": null
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T06:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "first-out",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T06:00:00.000Z",
+        "checkedOutAt": "2026-10-07T07:00:00.000Z"
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "completed",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "completed",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T06:00:00.000Z",
+            "checkedOutAt": "2026-10-07T07:00:00.000Z"
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "second-in",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T08:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "checked_in",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "checked_in",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T07:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T08:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-3",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T08:00:00.000Z",
+                "recordedAt": "2026-10-07T08:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "second-out",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T08:00:00.000Z",
+        "checkedOutAt": "2026-10-07T09:00:00.000Z"
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "completed",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "completed",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T08:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T08:00:00.000Z",
+            "checkedOutAt": "2026-10-07T09:00:00.000Z"
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-3",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T08:00:00.000Z",
+                "recordedAt": "2026-10-07T08:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-4"
+              },
+              {
+                "id": "example-event-4",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T09:00:00.000Z",
+                "recordedAt": "2026-10-07T09:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "third-in",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T10:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "checked_in",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "checked_in",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T10:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-3",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T08:00:00.000Z",
+                "recordedAt": "2026-10-07T08:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-4"
+              },
+              {
+                "id": "example-event-4",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T09:00:00.000Z",
+                "recordedAt": "2026-10-07T09:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-5",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T10:00:00.000Z",
+                "recordedAt": "2026-10-07T10:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "administrative-completion-retains-earlier-out",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T10:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "completed",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "completed",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T10:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-3",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T08:00:00.000Z",
+                "recordedAt": "2026-10-07T08:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-4"
+              },
+              {
+                "id": "example-event-4",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T09:00:00.000Z",
+                "recordedAt": "2026-10-07T09:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-5",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T10:00:00.000Z",
+                "recordedAt": "2026-10-07T10:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              },
+              {
+                "id": "example-event-6",
+                "requestId": "example-request",
+                "eventType": "administrative_completion",
+                "occurredAt": "2026-10-07T18:00:00.000Z",
+                "recordedAt": "2026-10-07T18:00:00.000Z",
+                "source": "system",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "qr-expiry-does-not-add-a-physical-event",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T10:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "completed",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+                  "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "completed",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T10:00:00.000Z",
+            "latestCheckOutAt": "2026-10-07T09:00:00.000Z"
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T10:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-2"
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T07:00:00.000Z",
+                "recordedAt": "2026-10-07T07:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-3",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T08:00:00.000Z",
+                "recordedAt": "2026-10-07T08:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": "example-event-4"
+              },
+              {
+                "id": "example-event-4",
+                "requestId": "example-request",
+                "eventType": "checked_out",
+                "occurredAt": "2026-10-07T09:00:00.000Z",
+                "recordedAt": "2026-10-07T09:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              },
+              {
+                "id": "example-event-5",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T10:00:00.000Z",
+                "recordedAt": "2026-10-07T10:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              },
+              {
+                "id": "example-event-6",
+                "requestId": "example-request",
+                "eventType": "administrative_completion",
+                "occurredAt": "2026-10-07T18:00:00.000Z",
+                "recordedAt": "2026-10-07T18:00:00.000Z",
+                "source": "system",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "single-in",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T06:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "checked_in",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "checked_in",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                  "latestCheckOutAt": null
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "checked_in",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+            "latestCheckOutAt": null
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T06:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "administrative-completion-no-ever-out",
+      "provenance": "SUPPLIED IN-MEMORY STATE; reducer output, not deployed HTTP or writer execution",
+      "currentCycleFields": {
+        "checkedInAt": "2026-10-07T06:00:00.000Z",
+        "checkedOutAt": null
+      },
+      "envelopes": {
+        "paginated": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "receptionToday": {
+          "summary": {
+            "expected": 1
+          },
+          "data": [
+            {
+              "id": "example-request",
+              "status": "completed",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ]
+        },
+        "approvalHistory": {
+          "data": [
+            {
+              "id": "example-request",
+              "status": "approved",
+              "timezone": "Asia/Riyadh",
+              "movementSummary": {
+                "version": 1,
+                "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                "latestCheckOutAt": null
+              }
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        },
+        "valet": {
+          "success": true,
+          "message": "Illustrative envelope only; actual completed rows remain filtered out",
+          "data": {
+            "summary": {
+              "totalVisitors": 1
+            },
+            "data": [
+              {
+                "requestId": "example-request",
+                "status": "completed",
+                "timezone": "Asia/Riyadh",
+                "movementSummary": {
+                  "version": 1,
+                  "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+                  "latestCheckOutAt": null
+                }
+              }
+            ]
+          }
+        },
+        "detail": {
+          "id": "example-request",
+          "status": "completed",
+          "timezone": "Asia/Riyadh",
+          "movementSummary": {
+            "version": 1,
+            "latestCheckInAt": "2026-10-07T06:00:00.000Z",
+            "latestCheckOutAt": null
+          },
+          "timeline": {
+            "checkedInAt": "2026-10-07T06:00:00.000Z",
+            "checkedOutAt": null
+          },
+          "movementHistory": {
+            "requestId": "example-request",
+            "timezone": "Asia/Riyadh",
+            "data": [
+              {
+                "id": "example-event-1",
+                "requestId": "example-request",
+                "eventType": "checked_in",
+                "occurredAt": "2026-10-07T06:00:00.000Z",
+                "recordedAt": "2026-10-07T06:00:00.000Z",
+                "source": "reception",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null,
+                "departureEventId": null
+              },
+              {
+                "id": "example-event-2",
+                "requestId": "example-request",
+                "eventType": "administrative_completion",
+                "occurredAt": "2026-10-07T18:00:00.000Z",
+                "recordedAt": "2026-10-07T18:00:00.000Z",
+                "source": "system",
+                "timestampBasis": "occurred_at",
+                "actor": null,
+                "gate": null
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "availability": {
+    "olderResponse": {
+      "id": "example-request",
+      "status": "completed"
+    },
+    "restricted": {
+      "id": "example-request",
+      "movementSummaryAvailability": "restricted",
+      "timezone": "Asia/Riyadh"
+    },
+    "unavailableAfterSuccessfulMutation": {
+      "id": "example-request",
+      "status": "checked_in",
+      "movementSummaryAvailability": "unavailable",
+      "movementSummaryError": "Movement succeeded; refresh the visit to retrieve its summary."
+    }
+  }
+}
