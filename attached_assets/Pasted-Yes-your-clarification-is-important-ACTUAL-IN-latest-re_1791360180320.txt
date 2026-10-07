@@ -1,0 +1,87 @@
+Yes—your clarification is important:
+
+ACTUAL IN = latest recorded check-in.
+ACTUAL OUT = latest recorded checkout, even if it belongs to an earlier cycle.
+Completed status and QR expiry do not count as physical checkout.
+For example:
+
+Scenario	ACTUAL IN	ACTUAL OUT
+IN 09:00 → OUT 10:00	09:00	10:00
+Then IN 11:00	11:00	10:00
+Then OUT 12:00	11:00	12:00
+Then IN 13:00, completed at cutoff without checkout	13:00	12:00
+One check-in, never checked out, completed at cutoff	Recorded IN	—
+This differs from the existing checkedOutAt behavior, which clears on re-entry. We need the frontend’s actual bindings before deciding how to supply your required summary safely.
+
+The expanded prompt is attached. You can also copy this:
+
+Prompt for frontend and mobile teams
+Please investigate ACTUAL IN / ACTUAL OUT across every role and relevant screen. Report only—do not change code or make live API calls. Use source code, offline fixtures, and existing sanitized responses.
+
+Required meaning
+The product owner has clarified:
+
+ACTUAL IN means the latest recorded physical check-in for the request.
+ACTUAL OUT means the latest recorded physical checkout for the request, independently.
+These values can belong to different entry/exit cycles.
+completed status, scheduled end, administrative completion, and QR expiry/revocation are not physical checkout events.
+Check these scenarios:
+
+No entry: both values missing.
+IN 09:00: IN 09:00, OUT missing.
+OUT 10:00: IN 09:00, OUT 10:00.
+Re-entry 11:00: IN 11:00, OUT remains 10:00.
+OUT 12:00: IN 11:00, OUT 12:00.
+Re-entry 13:00, then administrative completion/QR expiry at the stated 9:00 cutoff without another checkout: IN 13:00, OUT remains 12:00.
+Administrative completion without any recorded checkout: preserve IN; OUT stays missing.
+Report any assumptions about whether the cutoff is AM/PM, its timezone, and whether it is hardcoded. Do not change the cutoff policy.
+
+Roles and screens
+Inspect web and each mobile codebase separately:
+
+Employee and Manager visit lists/dashboard tables.
+Manager approval, history, and waiting lists.
+Building Admin visitor tables.
+Receptionist Today, Search, All Visitors, and Walk-ins.
+Security visitor lists, search/lookup, and gate-related displays.
+Valet Admin parking dashboard.
+Visit details and movement history.
+Mark unavailable screens or codebases UNKNOWN, not verified.
+
+Identify the exact keys and logic
+For every screen, provide:
+
+Endpoint, HTTP method, query parameters, and filters.
+Response envelope and row path, before and after client-side unwrapping.
+Exact ACTUAL IN and ACTUAL OUT field paths, with the binding code.
+All fallback expressions, such as using completedAt, scheduled end, or history.
+Model/DTO mapping: are fields renamed, discarded, or converted?
+Handling of omitted fields, null, and empty strings.
+Exact status and QR-expiry keys, enum values, and conditional logic.
+Whether completed/expired rows or their timestamps are hidden.
+Whether OUT earlier than IN is cleared or considered invalid.
+Timezone conversion and date formatting.
+Refresh/cache behavior after entry, checkout, administrative completion, and mobile reconnect.
+What the current implementation would display for each scenario above.
+Important backend context
+Existing checkedOutAt is cleared on successful re-entry, so it does not necessarily contain the last historical checkout.
+
+Some list endpoints omit physical timestamps entirely. Detail uses timeline.checkedInAt and timeline.checkedOutAt. Approval-history status represents the approval action, not physical presence.
+
+Valet has a different response envelope and currently excludes completed visits. Do not assume all screens use the same endpoint or response shape.
+
+Required response
+Return this matrix:
+
+Platform/build | Role/screen | Endpoint | Row path | IN key/expression | OUT key/expression | Status/expiry logic | Refresh behavior | Source file/line | Backend-only fix possible?
+
+Then provide:
+
+Small, exact code snippets supporting each distinct mapping.
+The precise backend keys, types, nesting, and missing-value behavior existing clients require.
+A YES / NO / PARTIAL verdict on fixing each screen through backend changes alone.
+Any unavoidable frontend/mobile change and why.
+Separate proven findings from assumptions and missing evidence.
+Do not recommend one detail/history request per table row, fabricate checkout times, redefine existing fields silently, or widen role permissions.
+
+The purpose is to establish the current client contract so the backend diagnosis and fix can be accurate.

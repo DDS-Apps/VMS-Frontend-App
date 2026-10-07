@@ -123,6 +123,7 @@ jest.mock("@/components/ThemedView", () => ({
 jest.mock("@/components/DirectionalRow", () => ({
   DirectionalRow: mockHost("DirectionalRow"),
   getFlexDirection: () => "row",
+  getPhysicalToggleStyle: () => ({}),
 }));
 
 jest.mock("@/components/Spacer", () => ({
@@ -131,6 +132,7 @@ jest.mock("@/components/Spacer", () => ({
 }));
 
 jest.mock("@/components/shared/RequestTimeline", () => ({
+  ReceptionistVisitTimeline: () => null,
   RequestTimeline: () => null,
   useTimelineSteps: () => [],
 }));
@@ -321,6 +323,7 @@ jest.mock("@/utils/groupVisitsByDate", () => ({
 }));
 
 jest.mock("@/utils/formatters", () => ({
+  getInitials: () => "TV",
   capitalizeFirst: (value: string) => value,
   formatPhoneForDisplay: (value: string) => value,
   formatPhoneNumber: (value: string) => value,

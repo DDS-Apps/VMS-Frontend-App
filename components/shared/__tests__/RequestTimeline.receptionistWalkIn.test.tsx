@@ -148,6 +148,6 @@ describe.each([
     const checkout = tree!.root.findAllByType('ThemedText' as any).find(node => node.props.children === dictionary.timeline.visitorCheckedOut)!;
     expect(checkout.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
     expect(text).not.toContain(dictionary.movementHistory.legacyRecordedTime);
-    expect(text).toContain(rtl ? '١١:٠٠ ص' : '11:00 AM');
+    expect(text).toContain(rtl ? '١١:٠٠ ص · ٣٠ سبتمبر' : '11:00 AM · Sep 30');
   });
 });
