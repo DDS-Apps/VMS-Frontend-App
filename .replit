@@ -58,7 +58,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash scripts/build-and-verify.sh && node server.js"
+args = "CI=1 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN node node_modules/expo/bin/cli start --web --host lan --port 5000 --max-workers 2"
 waitForPort = 5000
 
 [[workflows.workflow]]

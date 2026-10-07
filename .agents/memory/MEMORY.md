@@ -39,3 +39,4 @@
 - [Receptionist movement actions](receptionist-movement-action-scope.md) — Receptionist Visit Detail must not offer Check-In/Check-Out; preserve read-only history and Security workflows.
 - [Visit tile time isolation](visit-tile-time-isolation.md) — mixed Arabic host text must not separate AM/PM from its time; keep time before host metadata.
 - [Firebase platform boundaries](firebase-platform-boundaries.md) — web configuration changes do not authorize native or backend migration; validate delivery credentials per platform.
+- [Preview startup budget](preview-startup-budget.md) — cold production exports can exceed the startup deadline; separate preview startup and verify bundle readiness.
