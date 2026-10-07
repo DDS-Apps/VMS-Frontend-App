@@ -437,6 +437,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     plannedOutTime: v.endTime ?? v.scheduledEndTime ?? undefined,
     status: v.status,
     movementSummary: v.movementSummary,
+    movementSummaryAvailability: v.movementSummaryAvailability,
+    movementSummaryError: v.movementSummaryError,
     timezone: v.timezone,
     actualInTime: v.checkedInAt ?? undefined,
     actualOutTime: v.checkedOutAt ?? undefined,
@@ -488,6 +490,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
 
   const toVisitorRequest = (visitor: TodayVisitorDto) => mapVisitListItemToVisitorRequest({
     movementSummary: visitor.movementSummary,
+    movementSummaryAvailability: visitor.movementSummaryAvailability,
+    movementSummaryError: visitor.movementSummaryError,
     id: visitor.id,
     employeeName: visitor.hostName,
     visitor: visitor.visitor,

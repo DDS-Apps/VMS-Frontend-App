@@ -108,6 +108,8 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
 
   return {
     movementSummary: visit.movementSummary,
+    movementSummaryAvailability: visit.movementSummaryAvailability,
+    movementSummaryError: visit.movementSummaryError,
     id: visit.id,
     employeeId: visit.employeeId,
     employeeName: visit.employeeName || 'Unknown',
@@ -217,6 +219,8 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
   });
   return {
     movementSummary: visit.movementSummary,
+    movementSummaryAvailability: visit.movementSummaryAvailability,
+    movementSummaryError: visit.movementSummaryError,
     id: visit.id,
     employeeId: '',
     employeeName: visit.employeeName || 'Unknown Host',
@@ -276,6 +280,8 @@ export const mapAwaitingVisitorToVisitorRequest = (awaiting: AwaitingVisitorDto)
   });
   return {
     movementSummary: awaiting.movementSummary,
+    movementSummaryAvailability: awaiting.movementSummaryAvailability,
+    movementSummaryError: awaiting.movementSummaryError,
     timezone: awaiting.timezone,
     id: awaiting.id,
     employeeId: '',
@@ -320,6 +326,8 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
   });
   return {
     movementSummary: item.movementSummary,
+    movementSummaryAvailability: item.movementSummaryAvailability,
+    movementSummaryError: item.movementSummaryError,
     id: item.id,
     employeeId: '',
     employeeName: item.employeeName || 'Unknown Host',
@@ -365,6 +373,8 @@ export const mapPendingApprovalToVisitorRequest = (item: PendingApprovalDto): Vi
 export const mapPendingHostWalkInToVisitorRequest = (item: PendingHostWalkInDto): VisitorRequest => {
   return {
     movementSummary: item.movementSummary,
+    movementSummaryAvailability: item.movementSummaryAvailability,
+    movementSummaryError: item.movementSummaryError,
     id: item.id,
     employeeId: (item as any).employeeId || '',
     employeeName: (item as any).employeeName || 'Unknown Host',

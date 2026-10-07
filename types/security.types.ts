@@ -15,6 +15,8 @@ export type GateResult = 'success' | 'failed' | 'blocked' | 'allowed' | 'denied'
 
 export interface SecurityVisitorDto {
   movementSummary?: import('./movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   id: string;
   visitorName: string;
   visitorEmail: string;

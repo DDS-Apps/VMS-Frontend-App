@@ -750,6 +750,8 @@ export default function VisitorRequestsScreen({
         plannedOutTime: request.endTime,
         status: request.status,
         movementSummary: request.movementSummary,
+        movementSummaryAvailability: request.movementSummaryAvailability,
+        movementSummaryError: request.movementSummaryError,
         timezone: request.timezone,
         actualInTime: request.checkedInAt,
         actualOutTime: request.checkedOutAt,

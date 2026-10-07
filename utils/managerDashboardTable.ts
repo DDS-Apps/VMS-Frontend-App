@@ -10,6 +10,8 @@ export function mapManagerRequestToMatrixItem(
 ): VisitorMatrixItem {
   return {
     movementSummary: request.movementSummary,
+    movementSummaryAvailability: request.movementSummaryAvailability,
+    movementSummaryError: request.movementSummaryError,
     timezone: request.timezone,
     id: request.id,
     visitorName: capitalizeFirst(request.visitor.fullName),

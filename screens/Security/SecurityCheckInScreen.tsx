@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { ActualMovementSummary } from "@/components/shared/ActualMovementSummary";
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { getInitials } from "@/utils/formatters";
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
@@ -90,6 +91,8 @@ type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'comple
 
 interface SecurityVisitor {
   movementSummary?: import('@/types/movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   timezone?: string;
   id: string;
   name: string;
@@ -159,6 +162,8 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     status: mapStatus(dto.status),
     originalStatus: dto.status,
     movementSummary: dto.movementSummary,
+    movementSummaryAvailability: dto.movementSummaryAvailability,
+    movementSummaryError: dto.movementSummaryError,
     timezone: dto.timezone,
     checkInTime: dto.checkInTime,
     checkOutTime: dto.checkOutTime,
@@ -600,6 +605,7 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
 
             <Spacer height={Spacing.sm} />
 
+            <ActualMovementSummary source={visitor} />
             <DirectionalRow style={styles.servicesStatusRow}>
               <DirectionalRow style={styles.servicesContainer}>
                 {hasParking ? (

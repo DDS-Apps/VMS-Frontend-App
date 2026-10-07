@@ -5,16 +5,16 @@ jest.mock('@/constants/movementSummary', () => ({ get MOVEMENT_SUMMARY_ENABLED()
 it('does not change request behavior while rollout is disabled', () => {
   mockEnabled = false;
   const invalidateQueries = jest.fn();
-  invalidateMovementSummaries({ invalidateQueries } as any);
+  invalidateMovementSummaries({ invalidateQueries, getQueryCache: () => ({ findAll: () => [] }) } as any);
   expect(invalidateQueries).not.toHaveBeenCalled();
 });
 
 it('invalidates existing visit-summary caches, not role configuration or unrelated modules', () => {
   mockEnabled = true;
   const invalidateQueries = jest.fn();
-  invalidateMovementSummaries({ invalidateQueries } as any);
+  invalidateMovementSummaries({ invalidateQueries, getQueryCache: () => ({ findAll: () => [] }) } as any);
   const options = invalidateQueries.mock.calls[0][0];
-  expect(options.refetchType).toBe('active');
+  expect(options.refetchType).toBe('none');
   for (const key of [
     ['requests', 'visits'], ['requests', 'reception-requests'], ['security', 'visitors'],
     ['reception', 'today'], ['reception', 'search'], ['all-requests', 'visits'],

@@ -1,4 +1,5 @@
 import type { VisitStatus, AlertPriority, SortOrder, BaseListParams } from './common.types';
+import type { MovementSummarySource } from '@/utils/movementSummary';
 
 export type ReceptionAlertType =
   | 'visitor_arrival'
@@ -49,6 +50,8 @@ export interface ParkingSlotInfo {
 
 export interface TodayVisitorDto {
   movementSummary?: import('./movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   id: string;
   visitor: VisitorInfo;
   hostName: string;
@@ -183,7 +186,7 @@ export interface CheckInDto {
   idNumber?: string;
 }
 
-export interface CheckInResponseDto {
+export interface CheckInResponseDto extends MovementSummarySource {
   id: string;
   status: 'checked_in';
   checkedInAt: string;
@@ -200,7 +203,7 @@ export interface CheckOutDto {
   feedback?: string;
 }
 
-export interface CheckOutResponseDto {
+export interface CheckOutResponseDto extends MovementSummarySource {
   id: string;
   status: 'completed';
   completedAt: string;

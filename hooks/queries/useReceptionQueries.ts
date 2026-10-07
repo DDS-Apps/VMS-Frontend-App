@@ -19,6 +19,7 @@ import type {
 import { ApiError } from '@/api/errors';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 import { invalidateMovementSummaries } from './invalidateMovementSummaries';
+import { applyMovementResult, beginMovement, type MovementWrite } from './applyMovementResult';
 
 export const receptionKeys = {
   all: ['reception'] as const,
@@ -131,10 +132,12 @@ export function useSendCommunicationOverrideMutation() {
 export function useReceptionCheckInMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<CheckInResponseDto, ApiError, { visitId: string; data?: CheckInDto }>({
+  return useMutation<CheckInResponseDto, ApiError, { visitId: string; data?: CheckInDto }, MovementWrite>({
+    onMutate: variables => beginMovement(queryClient, variables.visitId),
+    retry: false,
     mutationFn: ({ visitId, data }) => receptionApiService.checkInVisitor(visitId, data),
-    onSuccess: (_data, variables) => {
-      void invalidateMovementSummaries(queryClient);
+    onSuccess: (_data, variables, write) => {
+      applyMovementResult(queryClient, _data, write);
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'reception' &&
@@ -144,6 +147,7 @@ export function useReceptionCheckInMutation() {
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
       invalidateDashboardKpis(queryClient);
+      void invalidateMovementSummaries(queryClient);
     },
   });
 }
@@ -151,10 +155,12 @@ export function useReceptionCheckInMutation() {
 export function useReceptionCheckOutMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<CheckOutResponseDto, ApiError, { visitId: string; data?: CheckOutDto }>({
+  return useMutation<CheckOutResponseDto, ApiError, { visitId: string; data?: CheckOutDto }, MovementWrite>({
+    onMutate: variables => beginMovement(queryClient, variables.visitId),
+    retry: false,
     mutationFn: ({ visitId, data }) => receptionApiService.checkOutVisitor(visitId, data),
-    onSuccess: (_data, variables) => {
-      void invalidateMovementSummaries(queryClient);
+    onSuccess: (_data, variables, write) => {
+      applyMovementResult(queryClient, _data, write);
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'reception' && query.queryKey[1] === 'today',
@@ -163,6 +169,7 @@ export function useReceptionCheckOutMutation() {
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
       invalidateDashboardKpis(queryClient);
+      void invalidateMovementSummaries(queryClient);
     },
   });
 }

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { invalidateMovementSummaries } from './invalidateMovementSummaries';
+import { applyMovementResult, beginMovement, type MovementWrite } from './applyMovementResult';
 import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/api/securityApiService';
 import type {
   SecurityVisitorDto,
@@ -166,18 +167,21 @@ export function useScanQRCodeMutation() {
 export function useGateCheckInMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<SecurityVisitorDto, ApiError, GateCheckInDto>({
+  return useMutation<SecurityVisitorDto, ApiError, GateCheckInDto, MovementWrite>({
+    onMutate: variables => beginMovement(queryClient, variables.visitId),
+    retry: false,
     mutationFn: (data) => securityApiService.gateCheckIn(data),
-    onSuccess: (data) => {
-      void invalidateMovementSummaries(queryClient);
+    onSuccess: (data, variables, write) => {
+      applyMovementResult(queryClient, data, write);
       // Mutation responses are not necessarily the complete detail payload.
       // Re-read the canonical visit, including every recorded movement.
-      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
-      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.id] });
+      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(variables.visitId) });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', variables.visitId] });
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
       invalidateDashboardKpis(queryClient);
+      void invalidateMovementSummaries(queryClient);
     },
   });
 }
@@ -185,16 +189,19 @@ export function useGateCheckInMutation() {
 export function useGateCheckOutMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<SecurityVisitorDto, ApiError, GateCheckOutDto>({
+  return useMutation<SecurityVisitorDto, ApiError, GateCheckOutDto, MovementWrite>({
+    onMutate: variables => beginMovement(queryClient, variables.visitId),
+    retry: false,
     mutationFn: (data) => securityApiService.gateCheckOut(data),
-    onSuccess: (data) => {
-      void invalidateMovementSummaries(queryClient);
-      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
-      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.id] });
+    onSuccess: (data, variables, write) => {
+      applyMovementResult(queryClient, data, write);
+      queryClient.invalidateQueries({ queryKey: securityKeys.visitor(variables.visitId) });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', variables.visitId] });
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
       invalidateDashboardKpis(queryClient);
+      void invalidateMovementSummaries(queryClient);
     },
   });
 }

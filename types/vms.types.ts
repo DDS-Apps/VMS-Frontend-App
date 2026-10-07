@@ -94,6 +94,8 @@ export interface ReminderSchedule {
 
 export interface VisitorRequest {
   movementSummary?: import('./movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   id: string;
   employeeId: string;
   employeeName: string;

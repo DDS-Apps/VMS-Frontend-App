@@ -3,6 +3,8 @@ import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 export interface SecurityVisitorTableSource {
   movementSummary?: import('@/types/movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   timezone?: string;
   id: string;
   name: string;
@@ -42,6 +44,8 @@ export function mapSecurityVisitorToMatrixItem(
     plannedInTime: visitor.visitTime,
     plannedOutTime: visitor.endTime,
     movementSummary: visitor.movementSummary,
+    movementSummaryAvailability: visitor.movementSummaryAvailability,
+    movementSummaryError: visitor.movementSummaryError,
     timezone: visitor.timezone,
     actualInTime: visitor.checkInTime,
     actualOutTime: visitor.checkOutTime,

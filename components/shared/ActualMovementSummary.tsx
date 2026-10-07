@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { formatActualMovement, readMovementSummary, type MovementSummarySource } from '@/utils/movementSummary';
+import { formatActualMovement, readMovementDisplay, reportMovementDisplayIssue, type MovementSummarySource } from '@/utils/movementSummary';
 import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
 
 /** Read-only historical values. Never feeds action guards or lifecycle timelines. */
@@ -13,12 +13,16 @@ export function ActualMovementValue({ source, kind, legacy }: {
   legacy?: React.ReactNode;
 }) {
   const { isRTL } = useLanguage();
+  const result = readMovementDisplay(source);
+  useEffect(() => {
+    if (MOVEMENT_SUMMARY_ENABLED) reportMovementDisplayIssue(result.state);
+  }, [result.state]);
   if (!MOVEMENT_SUMMARY_ENABLED) return <>{legacy ?? null}</>;
-  const result = readMovementSummary(source.movementSummary);
   const timestamp = result.state === 'supported'
     ? result.summary[kind === 'in' ? 'latestCheckInAt' : 'latestCheckOutAt'] : null;
   const unavailable = isRTL ? 'غير متاح' : 'Unavailable';
-  const label = result.state !== 'supported' ? unavailable
+  const label = result.state === 'restricted' ? (isRTL ? 'مقيّد' : 'Restricted')
+    : result.state !== 'supported' ? unavailable
     : formatActualMovement(timestamp, source.timezone, isRTL, true);
   return <ThemedText accessibilityLabel={label} style={{ fontSize: 12 }} testID={`actual-${kind}-summary`}>
     {label}

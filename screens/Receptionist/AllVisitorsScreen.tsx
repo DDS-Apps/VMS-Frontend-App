@@ -324,6 +324,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       // from the separately-rendered expired notice.
       status: v.status,
       movementSummary: v.movementSummary,
+      movementSummaryAvailability: v.movementSummaryAvailability,
+      movementSummaryError: v.movementSummaryError,
       timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,

@@ -36,6 +36,8 @@ import { ActualMovementValue } from './ActualMovementSummary';
 
 export interface VisitorMatrixItem {
   movementSummary?: import('@/types/movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   timezone?: string;
   id: string;
   visitorName: string;

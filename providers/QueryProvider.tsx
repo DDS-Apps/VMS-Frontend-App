@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
-import { Platform } from 'react-native';
+import { Platform, AppState } from 'react-native';
+import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
+import { subscribeMovementRefresh } from './movementRefreshLifecycle';
 import { isUnauthorizedError, isApiError } from '@/api/errors';
 import { showLocalizedError } from '@/utils/globalToast';
 
@@ -53,6 +55,17 @@ interface QueryProviderProps {
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
+  useEffect(() => {
+    if (!MOVEMENT_SUMMARY_ENABLED || Platform.OS === 'web') return;
+    // Defer native-module evaluation until rollout; activating requires a new native build.
+    const Network = require('expo-network') as typeof import('expo-network');
+    return subscribeMovementRefresh(queryClient, {
+      currentState: AppState.currentState,
+      onAppState: listener => AppState.addEventListener('change', listener),
+      onNetwork: Network.addNetworkStateListener,
+      getNetwork: Network.getNetworkStateAsync,
+    });
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       {children}

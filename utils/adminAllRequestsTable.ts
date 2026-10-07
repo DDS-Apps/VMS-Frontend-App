@@ -65,6 +65,8 @@ export function mapAdminRequestToMatrixItem(
   ).parkingDecision;
   return {
     movementSummary: request.movementSummary,
+    movementSummaryAvailability: request.movementSummaryAvailability,
+    movementSummaryError: request.movementSummaryError,
     timezone: request.timezone,
     ...baseItem,
     hasParking:

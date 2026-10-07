@@ -28,3 +28,15 @@ Historical-summary rollout must wait for backend contract confirmation and authe
 **Why:** Backend implementation and frontend preparation can proceed concurrently, but source-only fixtures cannot prove deployed endpoint readiness. Enabling new semantics against mixed endpoint versions could label incomplete current-cycle values as historical summaries.
 
 **How to apply:** Keep the display rollout disabled until integration verification. Once enabled, missing or invalid versioned summaries are unavailable, never a reason to fabricate values or fall back to completion/current-cycle checkout.
+
+Availability restrictions override contradictory historical values. A successful movement followed by an unavailable summary is still a successful action: retry only the read.
+
+**Why:** The backend handoff permits existing cross-host list rows while withholding their historical summaries, and separates committed movement outcomes from subsequent projection failures. Retrying writes can create unintended movement transitions.
+
+**How to apply:** Keep list identity/scope intact, do not seek restricted data via per-row history requests, and never translate a missing projection into a failed check-in/out.
+
+After a movement or reconnect, joining an already-running read alone is insufficient: schedule a canonical read after that request settles.
+
+**Why:** React Query can reuse a pre-action response and clear invalidation. Query cancellation alone is also insufficient for services that share transport GETs without consuming its AbortSignal.
+
+**How to apply:** Coalesce post-settlement reads per existing query, preserve inactive/removed-query boundaries, and ensure an action arriving during the canonical read queues a further read rather than replaying a write.

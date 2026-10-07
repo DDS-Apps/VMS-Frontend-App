@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { ActualMovementSummary } from "@/components/shared/ActualMovementSummary";
 import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, LayoutChangeEvent } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -184,6 +185,7 @@ export const VisitorCard = React.memo(({
         </DirectionalRow>
 
         <View style={{ height: Spacing.xs }} />
+        <ActualMovementSummary source={visitor} />
 
         <DirectionalRow style={styles.compactDetailsRow} alignItems="center">
           <VisitTimeText value={visitor.visitTime} style={{ fontSize: 12, color: theme.textSecondary }} />

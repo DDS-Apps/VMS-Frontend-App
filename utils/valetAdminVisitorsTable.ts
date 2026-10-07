@@ -62,6 +62,8 @@ export function mapValetVisitorToMatrixItem(
 ): VisitorMatrixItem {
   return {
     movementSummary: visitor.movementSummary,
+    movementSummaryAvailability: visitor.movementSummaryAvailability,
+    movementSummaryError: visitor.movementSummaryError,
     timezone: visitor.timezone,
     id: visitor.requestId,
     visitorName: visitor.visitorName,

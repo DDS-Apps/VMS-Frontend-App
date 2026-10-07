@@ -446,6 +446,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       // Preserve Pending Host Approval and render expiration separately.
       status: v.status,
       movementSummary: v.movementSummary,
+      movementSummaryAvailability: v.movementSummaryAvailability,
+      movementSummaryError: v.movementSummaryError,
       timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,

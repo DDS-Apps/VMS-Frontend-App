@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ActualMovementSummary } from "./ActualMovementSummary";
+import { MOVEMENT_SUMMARY_ENABLED } from "@/constants/movementSummary";
 import { View, StyleSheet, ViewStyle, Platform } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { capitalizeFirst, getInitials } from "@/utils/formatters";
@@ -285,15 +287,16 @@ export function VisitorRequestCard({
   const renderActualTimes = () => {
     const checkedOutAt = request.checkedOutAt || request.timeline?.checkedOutAt;
     const hasScheduledTime = !!request.visitTime && !!request.endTime;
-    const hasActualIn  = !!request.checkedInAt;
-    const hasActualOut = !!checkedOutAt;
+    const hasActualIn  = !MOVEMENT_SUMMARY_ENABLED && !!request.checkedInAt;
+    const hasActualOut = !MOVEMENT_SUMMARY_ENABLED && !!checkedOutAt;
 
-    if (!hasScheduledTime && !hasActualIn && !hasActualOut) return null;
+    if (!hasScheduledTime && !hasActualIn && !hasActualOut && !MOVEMENT_SUMMARY_ENABLED) return null;
 
     return (
       <>
         <Spacer height={Spacing.xs} />
         <View style={[styles.timingRow, { borderTopColor: theme.border }]}>
+          <ActualMovementSummary source={request} />
           {hasScheduledTime ? (
             <View style={styles.timingCell}>
               <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>

@@ -30,6 +30,8 @@ export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed'
 
 export interface UnifiedRequest {
   movementSummary?: import('@/types/movementSummary').MovementSummary;
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
   timezone?: string;
   id: string;
   type: UnifiedRequestType;
@@ -87,6 +89,8 @@ function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
   const normalizedStatus = normalizeVisitStatus(visit.status);
   return {
     movementSummary: visit.movementSummary,
+    movementSummaryAvailability: visit.movementSummaryAvailability,
+    movementSummaryError: visit.movementSummaryError,
     timezone: visit.timezone,
     id: visit.id,
     type: 'visitor',

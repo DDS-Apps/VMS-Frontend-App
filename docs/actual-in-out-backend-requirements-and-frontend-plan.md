@@ -1,7 +1,7 @@
 # Actual In / Actual Out: backend requirements and frontend implementation plan
 
 Date: 2026-10-07  
-Status: proposed contract and implementation plan; no application changes authorized or made by this document.
+Status: frontend support implemented behind a disabled rollout switch; backend handoff supersedes earlier proposed endpoint/availability assumptions. See section 9 for current evidence and release blockers.
 
 ## 1. Goal and safety boundaries
 
@@ -31,7 +31,7 @@ The current Valet frontend allows operational completed visits with parking requ
 
 ### 3.1 Add a separate, additive summary contract
 
-Proposed field names below require agreement before implementation. Do not rename or redefine existing fields.
+The supplied backend handoff confirms the field names below in backend source. Deployment readiness remains unverified. Do not rename or redefine existing fields.
 
 Add this object to each authorized visit row and visit detail:
 
@@ -72,8 +72,8 @@ The UTC values represent 11:00 and 10:00 in Riyadh, respectively.
 ### 3.2 Summary computation
 
 - Compute IN and OUT independently from genuine recorded physical movement events.
-- Proposed interpretation: select the latest physical event by `occurredAt`, not by array position or most recent database insertion.
-- Backend owners must explicitly confirm treatment of backdated/corrected events and legacy records before implementation. If the product meaning differs, document it before coding.
+- The backend handoff confirms selection by accepted physical-event occurrence time, not array position or database insertion time.
+- Future, synthetic, voided/invalidated and untrustworthy legacy evidence is excluded by the backend. Audit-write timestamps are not occurrence-time evidence; no client-side correction/backfill or offset guess is permitted.
 - Administrative-completion events must never contribute to either physical summary.
 - Re-entry updates IN without clearing historical OUT.
 - Completion/expiry without another checkout leaves both physical summaries unchanged.
@@ -111,11 +111,15 @@ Add the same summary object wherever an authorized visit row is returned. Preser
 | GET `/api/v1/approvals/awaiting-visitor` | Each request row; preserve waiting-list scope |
 | GET `/api/v1/approvals/pending-host` | Each request row; preserve host-approval permissions |
 | GET `/api/v1/approvals/history` | Each visit-backed history row; approval-action status must not become physical-presence status |
-| GET `/api/v1/valet-admin/parking-dashboard` | Each visit in `data[]`; preserve separate dashboard `summary` and role/parking scope |
+| GET `/api/v1/valet-admin/parking-dashboard` | HTTP `body.data.data[]`, identified by `requestId`; existing transport unwraps the outer success envelope |
 | GET `/api/v1/reception/search` | Confirm active consumers; if a supported visit-summary endpoint, add the object without changing its existing envelope |
-| POST `/api/v1/security/gate/scan` | Confirm whether it returns visit information; if it does, use the same additive summary. Do not change scan authorization/results |
+| GET `/api/v1/security/lookup` | Bare HTTP body; do not introduce a new lookup consumer solely for display |
+| POST `/api/v1/visits/:id/check-in` and `/check-out` | Bare HTTP body, including summary availability after a successful movement |
+| POST `/api/v1/security/gate/check-in` and `/check-out` | Bare HTTP body; summary-read failure must never replay the movement |
 
 Gate logs remain an event feed. Do not replace event timestamps with visit-level summaries.
+
+The backend handoff confirms there is no POST security gate scan route. The separate HTML scan can activate devices and must never be used to obtain display data.
 
 Do not introduce one detail/history request per displayed table row. Compute summaries in the backend's normal list query or a batched aggregation, with appropriate indexing and query-budget checks.
 
@@ -302,7 +306,7 @@ The required pair is correct for all scoped roles/screens, independent across cy
 
 No implementation should be marked complete solely because a DTO or backend endpoint was updated: all required screen bindings and verification must be delivered.
 
-## 8. Frontend preparation status
+## 8. Initial frontend preparation status (historical)
 
 Frontend contract support is implemented, but rollout is deliberately disabled in `constants/movementSummary.ts`.
 
@@ -334,3 +338,29 @@ Still required before activation:
 6. Approve rollout, enable the switch, and verify actual deployed old/new-client compatibility.
 
 Do not enable the switch solely because a backend deployment has finished. Confirm the agreed responses first.
+
+## 9. Backend handoff alignment and release checklist
+
+Source of truth: the supplied `latest-movement-frontend-handoff` attachment. Offline JSON is retained in `__tests__/fixtures/latest-movement-offline.json` with its provenance labels. The ten scenarios and five envelopes are illustrative; completed Valet examples do not authorize changing its active-only backend scope.
+
+The adapter now distinguishes supported nulls, restricted, temporarily unavailable, unsupported endpoints, unsupported versions and malformed values. Availability markers take precedence over contradictory summaries. Restricted rows stay visible; arbitrary error strings are not rendered or logged. Diagnostic output is bounded to state codes only.
+
+The additive availability properties are `movementSummaryAvailability?: "restricted" | "unavailable"` and `movementSummaryError?: string`. Never treat restricted/null/unsupported as proof the visitor never moved. The error string is retained as contract metadata but never displayed or logged verbatim.
+
+Availability metadata is preserved through visit/approval/Receptionist/Security/Valet/Building Admin mappings. Shared cards and Security/Valet tiles show the gated pair; the operational fields still drive presence, permissions and QR behavior. Only request detail retains the full event sequence.
+
+Successful mutation summaries patch existing idle detail caches only, without replacing status, current-cycle fields or history. Newer mutations and reads take precedence. Existing authorized active lists/details are invalidated; failed subsequent reads cannot repeat a successful action. Mutations explicitly disable automatic retry.
+
+If a read is already pending, refresh waits for it to settle, then requests canonical data. Joining the pending read alone is insufficient because it may have started before the action. Per-query queues coalesce signals and schedule another read if a further action occurs during refresh; removed queries are not recreated and inactive queries are only marked stale. This also avoids accidentally rejoining a pre-action transport GET through services that do not consume the query AbortSignal. Deferred-response tests exercise all four real mutation hooks, initially empty lists and overlapping refresh requests.
+
+Native foreground/reconnect refresh now uses AppState and `expo-network`, with coalescing, subscription cleanup, active scoped queries only and no polling. Browser focus retains the existing React Query behavior. **Activation requires a rebuilt native binary containing expo-network; an OTA-only rollout to an older binary is not sufficient.** The disabled switch avoids loading that native module.
+
+Remaining release gates (not established by these offline checks):
+
+- Confirm deployed backend endpoint coverage, accepted occurrence-time semantics and old-client compatibility.
+- Approve conservative cross-host restricted-summary behavior without expanding access.
+- Backend team validates performance, locking/concurrency and clock behavior on an explicitly approved isolated database.
+- Verify signed-in role screens, read failure recovery, Arabic/date layout and focus/reconnect on web and real iOS/Android devices or emulators.
+- Enable only after all gates pass; preserve the reversible switch and all physical event records.
+
+Frontend verification during alignment: TypeScript passed; 59 focused tests passed across eight suites, including deferred-response refresh coverage. The full suite reported 113 passing suites and the same 93 failing tests in ten suites as the earlier clean baseline (failure headings compared). Web rebuilt and served the sign-in page; iOS/Android exports succeeded. These exports do not prove native binary installation or signed-in UI behavior. Focused tests exited cleanly after test timer cleanup.

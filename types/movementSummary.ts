@@ -4,3 +4,8 @@ export interface MovementSummary {
   latestCheckInAt: string | null;
   latestCheckOutAt: string | null;
 }
+
+export interface MovementSummaryMetadata {
+  movementSummaryAvailability?: 'restricted' | 'unavailable';
+  movementSummaryError?: string;
+}

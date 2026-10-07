@@ -113,6 +113,8 @@ const mapStatusToVisitorRequestStatus = (status: string): string => {
 
 const mapHistoryToVisitorRequest = (item: ApprovalHistoryItemDto): VisitorRequest => ({
   movementSummary: item.movementSummary,
+  movementSummaryAvailability: item.movementSummaryAvailability,
+  movementSummaryError: item.movementSummaryError,
   id: item.id,
   employeeId: "",
   employeeName: item.employeeName,
@@ -652,6 +654,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       company: request.visitor.company || undefined,
       visitDate: request.visitDate,
       movementSummary: item.movementSummary,
+      movementSummaryAvailability: item.movementSummaryAvailability,
+      movementSummaryError: item.movementSummaryError,
       timezone: request.timezone,
       plannedInTime: request.visitTime,
       plannedOutTime: request.endTime,
