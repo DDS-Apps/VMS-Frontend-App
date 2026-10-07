@@ -19,6 +19,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { applyOpacity } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { useTodayVisitorsQuery } from "@/hooks/queries/useReceptionQueries";
+import { ActualMovementValue } from '@/components/shared/ActualMovementSummary';
 import { formatAbsoluteTimestamp } from "@/utils/dateTimeUtils";
 import type { TodayVisitorDto, ListReceptionTodayParams } from "@/types";
 import { KPICard, KPICardRow } from "@/components/shared/KPICard";
@@ -198,9 +199,9 @@ const TodayVisitorTableRow = React.memo(({ item, onPress }: { item: TodayVisitor
               {t('visitor.actualIn').toUpperCase()}
             </ThemedText>
             <Spacer height={8} />
-            <ThemedText style={[tableStyles.colValue, item.checkedInAt ? { color: theme.success, fontWeight: '700' } : {}]}>
+            <ActualMovementValue source={item} kind="in" legacy={<ThemedText style={[tableStyles.colValue, item.checkedInAt ? { color: theme.success, fontWeight: '700' } : {}]}>
               {fmtTime(item.checkedInAt)}
-            </ThemedText>
+            </ThemedText>} />
           </View>
 
           {/* Actual Out */}
@@ -209,7 +210,7 @@ const TodayVisitorTableRow = React.memo(({ item, onPress }: { item: TodayVisitor
               {t('visitor.actualOut').toUpperCase()}
             </ThemedText>
             <Spacer height={8} />
-            <ThemedText style={tableStyles.colValue}>{fmtTime(item.checkedOutAt)}</ThemedText>
+            <ActualMovementValue source={item} kind="out" legacy={<ThemedText style={tableStyles.colValue}>{fmtTime(item.checkedOutAt)}</ThemedText>} />
           </View>
         </ScrollView>
       </View>
@@ -435,6 +436,8 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
     plannedInTime: v.visitTime,
     plannedOutTime: v.endTime ?? v.scheduledEndTime ?? undefined,
     status: v.status,
+    movementSummary: v.movementSummary,
+    timezone: v.timezone,
     actualInTime: v.checkedInAt ?? undefined,
     actualOutTime: v.checkedOutAt ?? undefined,
     hasParking: resolveParkingDisplayDecision({
@@ -484,6 +487,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
   };
 
   const toVisitorRequest = (visitor: TodayVisitorDto) => mapVisitListItemToVisitorRequest({
+    movementSummary: visitor.movementSummary,
     id: visitor.id,
     employeeName: visitor.hostName,
     visitor: visitor.visitor,

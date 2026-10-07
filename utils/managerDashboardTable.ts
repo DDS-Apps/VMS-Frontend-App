@@ -9,6 +9,8 @@ export function mapManagerRequestToMatrixItem(
   isExpired: boolean,
 ): VisitorMatrixItem {
   return {
+    movementSummary: request.movementSummary,
+    timezone: request.timezone,
     id: request.id,
     visitorName: capitalizeFirst(request.visitor.fullName),
     company: request.visitor.company || undefined,

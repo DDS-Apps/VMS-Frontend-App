@@ -29,6 +29,8 @@ export type UnifiedRequestType = 'visitor' | 'buffet' | 'valet';
 export type UnifiedStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'auto_cancelled' | 'rejected';
 
 export interface UnifiedRequest {
+  movementSummary?: import('@/types/movementSummary').MovementSummary;
+  timezone?: string;
   id: string;
   type: UnifiedRequestType;
   visitorName: string;
@@ -84,6 +86,8 @@ function normalizeValetStatus(status?: string): UnifiedStatus {
 function mapVisitToUnified(visit: VisitListItemDto): UnifiedRequest {
   const normalizedStatus = normalizeVisitStatus(visit.status);
   return {
+    movementSummary: visit.movementSummary,
+    timezone: visit.timezone,
     id: visit.id,
     type: 'visitor',
     visitorName: visit.visitor?.fullName || 'Unknown Visitor',

@@ -301,3 +301,36 @@ Stop release if:
 The required pair is correct for all scoped roles/screens, independent across cycles, timezone-consistent, and fresh after supported refresh triggers. Historical movement events remain intact. Existing lifecycle, approvals, permissions, QR rules, filters, pagination, and old-client contracts are proven unchanged by tests.
 
 No implementation should be marked complete solely because a DTO or backend endpoint was updated: all required screen bindings and verification must be delivered.
+
+## 8. Frontend preparation status
+
+Frontend contract support is implemented, but rollout is deliberately disabled in `constants/movementSummary.ts`.
+
+Implemented:
+
+- Version-1 summary types and validation; explicit nulls are preserved.
+- Propagation through visit, approval, overview, Receptionist, Building Admin, Security, and Valet table mappings.
+- Read-only summaries on Employee, Manager, Receptionist, and Security details, separate from lifecycle/history/action logic.
+- Visit-timezone formatting with full dates so earlier-cycle/cross-date OUT is distinguishable.
+- Existing timestamp display retained while rollout is disabled.
+- Missing/malformed/unsupported summaries display “Unavailable” when rollout is enabled, rather than using current-cycle or completion timestamps.
+- Active summary-list invalidation after Security/Receptionist movement mutations, gated with rollout.
+- Legacy Receptionist timeline no longer treats `completed` alone as physical entry/exit evidence.
+
+Verification:
+
+- TypeScript check passed.
+- Focused contract, display, mapping, refresh, and Receptionist detail tests: 357 passed.
+- Web workflow rebuilt successfully; iOS and Android exports succeeded.
+- Full suite exposed 93 failures in 10 suites; all 93 reproduced on the unchanged starting revision. Those unrelated failures have not been repaired in this work.
+
+Still required before activation:
+
+1. Backend confirmation of field names, version, latest-event semantics, and complete endpoint coverage.
+2. Sanitized old/new response fixtures and end-to-end QA for every scenario in section 5.
+3. Authenticated table/detail inspection across scoped roles; source tests do not prove the signed-in UI.
+4. Native reconnect/foreground behavior verification and any necessary connectivity bridge. No new native connectivity dependency was added in this preparation phase.
+5. Real-device/emulator checks for Arabic, cross-date values, row sizing and movement actions.
+6. Approve rollout, enable the switch, and verify actual deployed old/new-client compatibility.
+
+Do not enable the switch solely because a backend deployment has finished. Confirm the agreed responses first.

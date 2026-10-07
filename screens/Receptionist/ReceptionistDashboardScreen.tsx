@@ -445,6 +445,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       plannedOutTime: v.endTime ?? (isTodayVisitor ? v.scheduledEndTime : undefined) ?? undefined,
       // Preserve Pending Host Approval and render expiration separately.
       status: v.status,
+      movementSummary: v.movementSummary,
+      timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,
       hasParking: resolveParkingDisplayDecision({

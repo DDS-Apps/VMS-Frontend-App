@@ -64,6 +64,8 @@ export function mapAdminRequestToMatrixItem(
     valet as ValetParkingVisitorDto & { parkingDecision?: unknown }
   ).parkingDecision;
   return {
+    movementSummary: request.movementSummary,
+    timezone: request.timezone,
     ...baseItem,
     hasParking:
       resolveParkingDisplayDecision({

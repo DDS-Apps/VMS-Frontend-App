@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import {
   View,
   StyleSheet,
@@ -2017,6 +2018,7 @@ export default function ManagerApprovalDetailScreen({
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
+        <ActualMovementSummary source={visitData} />
         <RequestTimeline
           steps={timelineSteps}
           movementHistory={visitData?.movementHistory}

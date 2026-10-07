@@ -14,6 +14,7 @@ export type GateAction = 'scan' | 'check_in' | 'check_out' | 'denied' | 'access_
 export type GateResult = 'success' | 'failed' | 'blocked' | 'allowed' | 'denied';
 
 export interface SecurityVisitorDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   visitorName: string;
   visitorEmail: string;

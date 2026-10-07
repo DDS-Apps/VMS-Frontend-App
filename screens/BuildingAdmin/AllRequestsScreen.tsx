@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
+import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
 import { View, StyleSheet, Pressable, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, Keyboard, KeyboardAvoidingView, useWindowDimensions } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -354,6 +356,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
             </>
           ) : null}
 
+          {request.type === 'visitor' ? <ActualMovementSummary source={request} /> : null}
           {request.type === 'visitor' && (request.time || request.endTime || request.checkedInAt || request.checkedOutAt) ? (
             <>
               <Spacer height={Spacing.xs} />
@@ -368,7 +371,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                     </ThemedText>
                   </View>
                 ) : null}
-                {request.checkedInAt ? (
+                {request.checkedInAt && !MOVEMENT_SUMMARY_ENABLED ? (
                   <View style={styles.timingCell}>
                     <ThemedText style={[styles.timingLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                       {t('visitor.actualIn')}
@@ -378,7 +381,7 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                     </ThemedText>
                   </View>
                 ) : null}
-                {request.checkedOutAt ? (
+                {request.checkedOutAt && !MOVEMENT_SUMMARY_ENABLED ? (
                   <View style={styles.timingCell}>
                     <ThemedText style={[styles.timingLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                       {t('visitor.actualOut')}

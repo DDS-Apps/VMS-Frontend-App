@@ -7,6 +7,8 @@ export function mapOverviewRequestToMatrixItem(
   isExpired: boolean,
 ): VisitorMatrixItem {
   return {
+    movementSummary: request.movementSummary,
+    timezone: request.timezone,
     id: request.id,
     visitorName: request.visitor.fullName,
     company: request.visitor.company || undefined,

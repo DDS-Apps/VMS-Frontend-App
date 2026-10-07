@@ -1,4 +1,5 @@
 import React from "react";
+import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import { View, StyleSheet, ActivityIndicator, Pressable, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -688,6 +689,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
+      <ActualMovementSummary source={visitorData} />
       <RequestTimeline
         steps={visitorData.movementHistory ? lifecycleSteps : timelineSteps}
         movementHistory={visitorData.movementHistory}

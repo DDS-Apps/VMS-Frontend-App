@@ -48,6 +48,7 @@ export interface ParkingSlotInfo {
 }
 
 export interface TodayVisitorDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   visitor: VisitorInfo;
   hostName: string;

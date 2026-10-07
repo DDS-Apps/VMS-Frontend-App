@@ -22,3 +22,9 @@ The product owner clarified that Actual In is the latest recorded physical check
 **Why:** A latest-cycle checkout that clears on re-entry does not meet the required historical summary. An OUT earlier than IN is valid, not corrupt data.
 
 **How to apply:** Preserve existing current-presence field semantics unless an explicit contract change is agreed. Distinguish independent movement summaries from the current cycle. Investigations requested as report-only must not change application code or call live APIs.
+
+Historical-summary rollout must wait for backend contract confirmation and authenticated QA. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
+
+**Why:** Backend implementation and frontend preparation can proceed concurrently, but source-only fixtures cannot prove deployed endpoint readiness. Enabling new semantics against mixed endpoint versions could label incomplete current-cycle values as historical summaries.
+
+**How to apply:** Keep the display rollout disabled until integration verification. Once enabled, missing or invalid versioned summaries are unavailable, never a reason to fabricate values or fall back to completion/current-cycle checkout.

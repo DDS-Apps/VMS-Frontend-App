@@ -749,6 +749,8 @@ export default function VisitorRequestsScreen({
         plannedInTime: request.visitTime,
         plannedOutTime: request.endTime,
         status: request.status,
+        movementSummary: request.movementSummary,
+        timezone: request.timezone,
         actualInTime: request.checkedInAt,
         actualOutTime: request.checkedOutAt,
         hasParking:

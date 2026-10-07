@@ -220,6 +220,8 @@ export default function UpcomingVisitorsListScreen() {
       // Keep Pending Approval as the raw status; expiration is a separate
       // display/action signal.
       status: v.status,
+      movementSummary: v.movementSummary,
+      timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,
       hasParking: resolveParkingDisplayDecision({

@@ -93,6 +93,7 @@ export interface ReminderSchedule {
 }
 
 export interface VisitorRequest {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   employeeId: string;
   employeeName: string;

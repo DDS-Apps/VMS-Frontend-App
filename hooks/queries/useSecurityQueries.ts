@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { invalidateMovementSummaries } from './invalidateMovementSummaries';
 import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/api/securityApiService';
 import type {
   SecurityVisitorDto,
@@ -168,6 +169,7 @@ export function useGateCheckInMutation() {
   return useMutation<SecurityVisitorDto, ApiError, GateCheckInDto>({
     mutationFn: (data) => securityApiService.gateCheckIn(data),
     onSuccess: (data) => {
+      void invalidateMovementSummaries(queryClient);
       // Mutation responses are not necessarily the complete detail payload.
       // Re-read the canonical visit, including every recorded movement.
       queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
@@ -186,6 +188,7 @@ export function useGateCheckOutMutation() {
   return useMutation<SecurityVisitorDto, ApiError, GateCheckOutDto>({
     mutationFn: (data) => securityApiService.gateCheckOut(data),
     onSuccess: (data) => {
+      void invalidateMovementSummaries(queryClient);
       queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.id) });
       queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.id] });
       queryClient.invalidateQueries({ queryKey: securityKeys.today() });

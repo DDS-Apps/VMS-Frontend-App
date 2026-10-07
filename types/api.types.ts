@@ -1186,6 +1186,7 @@ export interface PendingApprovalVisitorDto {
 }
 
 export interface PendingApprovalDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   employeeName: string;
   employeeDepartment: string;
@@ -1292,6 +1293,8 @@ export interface BulkApprovalResponse {
 }
 
 export interface AwaitingVisitorDto {
+  timezone?: string;
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   employeeName: string;
   visitor: {
@@ -1343,6 +1346,8 @@ export interface PendingHostWalkInVisitorDto {
 }
 
 export interface PendingHostWalkInDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
+  timezone?: string;
   id: string;
   visitor: PendingHostWalkInVisitorDto;
   visitDate: string;
@@ -1383,6 +1388,7 @@ export interface VisitListParams {
 }
 
 export interface VisitListItemDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   employeeName: string;
   visitor: {
@@ -1622,6 +1628,7 @@ export interface VisitMovementHistory {
 }
 
 export interface VisitDetailsDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   employeeId: string;
   employeeName: string;
@@ -1904,6 +1911,8 @@ export interface ValetParkingDashboardSummary {
 }
 
 export interface ValetParkingVisitorDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
+  timezone?: string;
   requestId: string;
   visitorName: string;
   visitorCompany?: string;
@@ -1955,6 +1964,7 @@ export interface ApprovalHistoryVisitorDto {
 }
 
 export interface ApprovalHistoryItemDto {
+  movementSummary?: import('./movementSummary').MovementSummary;
   id: string;
   status: string;
   employeeName: string;

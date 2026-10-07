@@ -2,6 +2,8 @@ import type { VisitorMatrixItem } from "@/components/shared";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 
 export interface SecurityVisitorTableSource {
+  movementSummary?: import('@/types/movementSummary').MovementSummary;
+  timezone?: string;
   id: string;
   name: string;
   company: string;
@@ -39,6 +41,8 @@ export function mapSecurityVisitorToMatrixItem(
     visitDate: visitor.visitDate,
     plannedInTime: visitor.visitTime,
     plannedOutTime: visitor.endTime,
+    movementSummary: visitor.movementSummary,
+    timezone: visitor.timezone,
     actualInTime: visitor.checkInTime,
     actualOutTime: visitor.checkOutTime,
     status: visitor.originalStatus,

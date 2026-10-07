@@ -41,6 +41,8 @@ function buildQueryString(params: Record<string, unknown>): string {
 
 function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto {
   return {
+    movementSummary: visit.movementSummary,
+    timezone: visit.timezone,
     id: visit.id,
     visitorName: visit.visitor.fullName,
     visitorEmail: visit.visitor.email || '',
@@ -67,6 +69,7 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
 
 function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisitorDto {
   return {
+    movementSummary: visit.movementSummary,
     id: visit.id,
     visitorName: visit.visitor?.fullName || '',
     visitorEmail: visit.visitor?.email || '',

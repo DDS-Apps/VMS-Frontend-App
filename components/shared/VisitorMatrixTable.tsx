@@ -32,8 +32,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getStatusConfig, applyOpacity } from "@/utils/statusStyles";
 import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 import { getPurposeLabel } from "@/constants/requestConstants";
+import { ActualMovementValue } from './ActualMovementSummary';
 
 export interface VisitorMatrixItem {
+  movementSummary?: import('@/types/movementSummary').MovementSummary;
+  timezone?: string;
   id: string;
   visitorName: string;
   company?: string;
@@ -858,15 +861,15 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ThemedText style={styles.matrixCellValue} numberOfLines={1}>
+            <ActualMovementValue source={item} kind="in" legacy={<ThemedText style={styles.matrixCellValue} numberOfLines={1}>
               {formatMatrixCellTime(item.actualInTime, formatTimeFromString)}
-            </ThemedText>
+            </ThemedText>} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ThemedText style={styles.matrixCellValue} numberOfLines={1}>
+            <ActualMovementValue source={item} kind="out" legacy={<ThemedText style={styles.matrixCellValue} numberOfLines={1}>
               {formatMatrixCellTime(item.actualOutTime, formatTimeFromString)}
-            </ThemedText>
+            </ThemedText>} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>

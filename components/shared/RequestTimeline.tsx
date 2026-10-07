@@ -896,9 +896,9 @@ function buildReceptionistTimeline(
   }
 
   // Check if visitor has checked in - either by timestamp or by status
-  const isCheckedIn = data.checkedInAt || data.status === 'checked_in' || data.status === 'completed';
+  const isCheckedIn = data.checkedInAt || data.status === 'checked_in';
   // Check if visitor has checked out / visit completed - either by timestamp or by status
-  const isCheckedOut = data.checkedOutAt || data.status === 'checked_out' || data.status === 'completed';
+  const isCheckedOut = data.checkedOutAt || data.status === 'checked_out';
 
   if (isCheckedIn) {
     steps.push({

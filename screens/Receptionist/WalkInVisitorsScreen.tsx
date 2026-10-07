@@ -116,6 +116,8 @@ export default function WalkInVisitorsScreen({ navigation }: WalkInVisitorsScree
       plannedOutTime: v.endTime ?? v.scheduledEndTime ?? undefined,
       // Keep the raw status and show expiration as a separate notice.
       status: v.status,
+      movementSummary: v.movementSummary,
+      timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,
       hasParking: resolveParkingDisplayDecision({

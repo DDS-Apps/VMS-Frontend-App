@@ -1,3 +1,4 @@
+import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import React, {
   useState,
   useMemo,
@@ -2283,6 +2284,7 @@ export default function RequestDetailsScreen({
         {/* Responsive 2-column layout for Timeline and QR Code on web */}
         <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
           <View style={isWebLayout ? { width: '48%' } : undefined}>
+            <ActualMovementSummary source={visitData} />
             <RequestTimeline
               steps={timelineSteps}
               movementHistory={visitData?.movementHistory}

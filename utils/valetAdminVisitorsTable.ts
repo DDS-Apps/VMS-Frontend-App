@@ -61,6 +61,8 @@ export function mapValetVisitorToMatrixItem(
   visitor: ValetParkingVisitorDto,
 ): VisitorMatrixItem {
   return {
+    movementSummary: visitor.movementSummary,
+    timezone: visitor.timezone,
     id: visitor.requestId,
     visitorName: visitor.visitorName,
     company: visitor.visitorCompany,

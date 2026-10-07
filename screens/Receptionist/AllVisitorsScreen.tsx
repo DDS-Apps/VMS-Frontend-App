@@ -323,6 +323,8 @@ export default function AllVisitorsScreen({ navigation, route }: AllVisitorsScre
       // Keep the raw status so Pending Host Approval remains distinguishable
       // from the separately-rendered expired notice.
       status: v.status,
+      movementSummary: v.movementSummary,
+      timezone: v.timezone,
       actualInTime: v.checkedInAt ?? undefined,
       actualOutTime: v.checkedOutAt ?? undefined,
       hasParking: resolveParkingDisplayDecision({

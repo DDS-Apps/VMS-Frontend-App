@@ -89,6 +89,8 @@ const VisitorAvatar = ({ name, theme, size = 44 }: { name: string; theme: Theme;
 type SecurityVisitorStatus = 'expected' | 'checked_in' | 'checked_out' | 'completed';
 
 interface SecurityVisitor {
+  movementSummary?: import('@/types/movementSummary').MovementSummary;
+  timezone?: string;
   id: string;
   name: string;
   company: string;
@@ -156,6 +158,8 @@ const mapApiToSecurityVisitor = (dto: SecurityVisitorDto): SecurityVisitor => {
     phone: dto.visitorPhone,
     status: mapStatus(dto.status),
     originalStatus: dto.status,
+    movementSummary: dto.movementSummary,
+    timezone: dto.timezone,
     checkInTime: dto.checkInTime,
     checkOutTime: dto.checkOutTime,
     parking: {
