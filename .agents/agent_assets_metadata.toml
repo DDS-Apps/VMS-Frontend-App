@@ -56,3 +56,17 @@ mtime_ms = 1789554662732
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/2e7e5b44-aa0a-456e-81dd-a6df4fc32fcf/ecb03c61-a2cd-4eaf-b991-a83c41cd5c8e"
 storage_version_token = "1789554673238927"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "VABBcPeS0C0nuZxIKCefk"
+uri = "file://docs/actual-in-out-backend-requirements-and-frontend-plan.md"
+type = "text"
+title = "Actual In / Actual Out — Backend Requirements & Frontend Plan"
+description = "Markdown handoff covering the additive backend contract, phased frontend changes, regression tests, rollout gates, and rollback safeguards."
+logical_id = "862a8bcf-6804-47ba-a412-75cb748b274e"
+content_hash = "sha256:36c52aecae07499179275acab9d8dcf7633c7a3bb238cc3cca720faed7266a27"
+size = 18519
+mtime_ms = 1791364260268
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/862a8bcf-6804-47ba-a412-75cb748b274e/387ff824-582c-498b-9914-de6dc79919a5"
+storage_version_token = "1791364269558895"
+content_type = "text/markdown"
