@@ -1,0 +1,61 @@
+# EAS uses this file instead of .gitignore. Preserve the existing exclusions.
+# Dependencies are installed by EAS.
+node_modules/
+
+# Expo output and local state
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native artifacts and signing material
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debug output
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS files
+.DS_Store
+*.pem
+
+# Local environment files (same policy as .gitignore)
+.env
+.env.local
+.env*.local
+.env.staging
+.env.production
+
+*.tsbuildinfo
+app-example
+
+# Preserve the existing generated-native-project policy.
+# EAS prebuild uses app.config.js, plugins/, and config/ Firebase files.
+/ios
+/android
+
+# Workspace-only files; not application source or assets.
+/.git/
+/.local/
+/.cache/
+/.config/
+/.pythonlibs/
+/.upm/
+/.agents/
+/.idea/
+/attached_assets/
+/screenshots/
+/exports/
+
+# Keep assets/, public/, config/, plugins/, scripts/, package manifests,
+# Expo configuration and all application source available to EAS.
