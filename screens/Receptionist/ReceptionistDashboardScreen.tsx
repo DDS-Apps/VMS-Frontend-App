@@ -688,23 +688,50 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <StatusDropdown
-              value={preciseVisitorStatus}
-              onChange={(status) => {
-                setPreciseVisitorStatus(status);
-                setVisitorFilter('all');
-              }}
-              statuses={RECEPTIONIST_STATUS_OPTIONS}
-              language={localeCode}
-            />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <RTLHorizontalScrollView
+              wrapOnIOS
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2, alignItems: 'center' }}
+              nestedScrollEnabled={true}
+            >
+              {(
+                [
+                  { key: 'all', label: t('common.all') },
+                  { key: 'to_be_checked', label: t('status.toBeChecked') },
+                  { key: 'checked_in', label: t('status.checkedIn') },
+                  { key: 'checked_out', label: t('status.checkedOut') },
+                ] as const
+              ).map((option) => (
+                <FilterChip
+                  key={option.key}
+                  label={option.label}
+                  isSelected={visitorFilter === option.key && !preciseVisitorStatus}
+                  onPress={() => {
+                    setVisitorFilter(option.key);
+                    setPreciseVisitorStatus(null);
+                  }}
+                />
+              ))}
+              <View style={{ flexShrink: 0, alignItems: 'flex-start' }}>
+                <StatusDropdown
+                  value={preciseVisitorStatus}
+                  onChange={(status) => {
+                    setPreciseVisitorStatus(status);
+                    setVisitorFilter('all');
+                  }}
+                  statuses={RECEPTIONIST_STATUS_OPTIONS}
+                  language={localeCode}
+                />
+              </View>
+            </RTLHorizontalScrollView>
           </View>
           {todaysVisitors.length > 0 ? (
             <Pressable
               onPress={() => navigation.navigate(ROUTES.ALL_VISITORS_TODAY as any)}
               style={({ pressed }) => [
                 styles.viewAllButton,
-                { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), marginStart: Spacing.sm }
+                { opacity: pressed ? 0.7 : 1, flexDirection: getFlexDirection(isRTL), marginStart: Spacing.sm, flexShrink: 0 }
               ]}
             >
               <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
@@ -714,34 +741,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
             </Pressable>
           ) : null}
         </DirectionalRow>
-
-        <Spacer height={Spacing.sm} />
-
-        <RTLHorizontalScrollView
-          wrapOnIOS
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 2 }}
-          nestedScrollEnabled={true}
-        >
-          {(
-            [
-              { key: 'all', label: t('common.all') },
-              { key: 'to_be_checked', label: t('status.toBeChecked') },
-              { key: 'checked_in', label: t('status.checkedIn') },
-              { key: 'checked_out', label: t('status.checkedOut') },
-            ] as const
-          ).map((option) => (
-            <FilterChip
-              key={option.key}
-              label={option.label}
-              isSelected={visitorFilter === option.key && !preciseVisitorStatus}
-              onPress={() => {
-                setVisitorFilter(option.key);
-                setPreciseVisitorStatus(null);
-              }}
-            />
-          ))}
-        </RTLHorizontalScrollView>
 
         <Spacer height={Spacing.md} />
 
