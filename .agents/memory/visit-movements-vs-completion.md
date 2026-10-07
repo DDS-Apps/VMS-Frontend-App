@@ -10,3 +10,9 @@ Keep planned Check-in and Check-out milestones visible in grey when their corres
 **Why:** Visitors may leave and re-enter multiple times. Singular summary timestamps cannot describe that history, and equating the first exit with completion prematurely closes an active visit. The user explicitly corrected the separate-box presentation: movements belong between approval and completion in one timeline. The user also wants the whole future lifecycle visible while awaiting a visitor response, not a jump straight from response to completion.
 
 **How to apply:** On visit detail screens consume the server's movement-history events for physical history; keep unrecorded movement milestones pending rather than inventing completed events. On status and action screens use the server's `completed` status for lifecycle completion. Avoid fabricating movement records from summary timestamps when the history is absent.
+
+For table Actual In/Actual Out columns, confirm the backend response contract and repeated-movement semantics before changing frontend mappings. Distinguish deployed authenticated responses from repository source and frontend type declarations.
+
+**Why:** The user specifically asked to check what the backend returns first because multiple check-in/checkout cycles are implemented. A singular summary can refer to the latest cycle rather than the first entry or final departure.
+
+**How to apply:** Obtain sanitized responses covering entry, exit, re-entry, and completion; confirm the intended table summary and null behavior. Do not derive a pair from arbitrary event-array positions or download detail/history for every table row without an explicit design decision.
