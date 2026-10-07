@@ -190,7 +190,7 @@ describe("app.config.js", () => {
       appDomain: "vms.dallah.com",
       legalPagesUrl: "https://vms.dallah.com",
     });
-    expect(config.extra.firebase.projectId).toBe("dallah-vms");
+    expect(config.extra.firebase.projectId).toBe("dallah-albaraka-vms");
     expect(config.scheme).toBe("dallahvms");
   });
 

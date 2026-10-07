@@ -14,27 +14,25 @@ switch a production build back to QA to bypass this requirement.
 
 ## Web Firebase project
 
-Web builds for both QA and production now use **dallah-vms**. The public
+Web builds for both QA and production use the original **dallah-albaraka-vms** project. The public
 `public/firebase-web-config.js` supplies the same six client identifiers to the
 app, Expo configuration and messaging worker. Old environment/file values cannot
 replace that identity. Deploy the new config script alongside the worker; the
 web build verifies both files are present.
 
 Configure `EXPO_PUBLIC_FIREBASE_VAPID_KEY` with the web-push public key belonging
-to **dallah-vms**. There is no hardcoded fallback from the previous project.
+to **dallah-albaraka-vms**. The original public-key fallback is restored from history.
 A configured key's presence is not proof of project ownership or push delivery.
 
-**Native migration is not included:** Android/iOS still use their existing
+**Native migration is not required:** Android/iOS keep their existing
 `google-services.json` / `GoogleService-Info.plist` and native app IDs for
-**dallah-albaraka-vms**. Do not assume web alignment migrates native tokens or
-backend Firebase Admin credentials. Obtain matching native files and separately
-verify backend credentials and authorized push delivery before a combined rollout.
+**dallah-albaraka-vms**, matching web. Native Crashlytics integration is unchanged.
+Backend Firebase Admin/APNs settings were not changed; client configuration alone
+does not verify backend credentials or actual push delivery.
 
-Verification of the web update: TypeScript and 41 relevant tests passed. Clean
-QA and production web exports passed their host checks. The running preview
-serves matching worker/config scripts with `no-cache`, and the login page loads.
-The workspace VAPID key is present but its ownership and real push delivery
-remain unverified; no live notification or device registration was performed.
+Restoration verification uses resolved configuration, type checking and a clean
+production web export, without running unit tests. No live notification,
+device registration, deliberate crash or remote native build is part of this work.
 
 The app has two environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
@@ -47,11 +45,11 @@ The app has two environments. Their public values are committed in
 | Microsoft SSO base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
 | Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
 | Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
-| Web Firebase project | `dallah-vms` | `dallah-vms` (shared) |
+| Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
 | `APP_VARIANT` | `qa` / `staging` (explicit only) | `production` (default) |
 
-Both web environments use the same supplied Firebase project. Unchanged native
-Firebase files in `config/qa/` remain separate, as described above.
+Web and native builds use the same original Firebase project. Native Firebase
+files in `config/qa/` remain unchanged.
 
 ## Files
 
@@ -98,7 +96,7 @@ resolved values are what the app uses at runtime.
 
 ## Firebase
 
-Web/shared Firebase identity defaults to the supplied `dallah-vms` configuration
+Web/shared Firebase identity defaults to the original `dallah-albaraka-vms` configuration
 in `public/firebase-web-config.js`, including when no environment variables are
 provided. Neither process nor variant-file overrides can change the web identity.
 VAPID, optional measurement ID and existing native app IDs can still be configured

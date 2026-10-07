@@ -30,7 +30,7 @@ it.each(['staging', 'production'])('uses supplied web identity despite stale pro
   expect(config.extra.firebase).toMatchObject({ ...identifiers, appIdWeb: appId });
 });
 
-it('ignores stale identity in the variant file and has no old-project VAPID default', () => {
+it('ignores stale identity in the variant file and restores the original project VAPID default', () => {
   const read = fs.readFileSync;
   jest.spyOn(fs, 'readFileSync').mockImplementation(((file: any, ...args: any[]) => {
     if (String(file) === path.join(root, '.env.staging')) {
@@ -39,9 +39,9 @@ it('ignores stale identity in the variant file and has no old-project VAPID defa
     return (read as any)(file, ...args);
   }) as any);
   const config = expoConfig('staging');
-  expect(config.extra.firebase.projectId).toBe('dallah-vms');
+  expect(config.extra.firebase.projectId).toBe('dallah-albaraka-vms');
   expect(config.extra.firebase.messagingSenderId).toBe(supplied.messagingSenderId);
-  expect(config.extra.firebase.vapidKey).toBe('');
+  expect(config.extra.firebase.vapidKey).toBe('BKXyeihYX0n_rNHIEIP26eNGnbVZL_rCsiLnA7jv0ZuIThHmbV0FJqENbmt-QnikL4uqKbh3lYqp0sqAQImDass');
 });
 
 it('preserves an explicitly configured VAPID key without logging its value', () => {
@@ -69,7 +69,7 @@ it('runs worker initialization with the same shared config as the web SDK', () =
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'public/firebase-messaging-sw.js'), 'utf8'), context);
   expect(initialized).toEqual(supplied);
-  expect(initialized.projectId).toBe('dallah-vms');
+  expect(initialized.projectId).toBe('dallah-albaraka-vms');
 });
 
 it('web runtime cannot be redirected by stale inlined env or Expo extra', () => {
@@ -85,7 +85,7 @@ it('web runtime cannot be redirected by stale inlined env or Expo extra', () => 
   });
 });
 
-it('leaves native files and app IDs on their existing project pending a separate migration', () => {
+it('keeps native files and app IDs on the original project shared with web', () => {
   const config = expoConfig('production');
   expect(config.android.googleServicesFile).toBe('./config/qa/google-services.json');
   expect(config.ios.googleServicesFile).toBe('./config/qa/GoogleService-Info.plist');

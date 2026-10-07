@@ -41,11 +41,11 @@ export interface EnvironmentConfig {
  */
 export const ENVIRONMENT_IDENTIFIERS = {
   production: {
-    firebaseProjectId: 'dallah-vms',
+    firebaseProjectId: 'dallah-albaraka-vms',
     description: 'Production environment - Live users',
   },
   qa: {
-    firebaseProjectId: 'dallah-vms',
+    firebaseProjectId: 'dallah-albaraka-vms',
     description: 'QA/Testing environment',
   },
 } as const;
@@ -89,7 +89,7 @@ export function getAllEnvVarKeys(): string[] {
 /**
  * Helper to detect the backend environment from the EAS build variant.
  * Firebase cannot distinguish the environments because both intentionally
- * use the same dallah-vms web project.
+ * use the same dallah-albaraka-vms Firebase project.
  */
 export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
   const appVariant = (process.env.APP_VARIANT || 'production').trim().toLowerCase();
@@ -124,7 +124,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     firebase: {
       apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
       authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || identifier.firebaseProjectId || 'dallah-vms',
+      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || identifier.firebaseProjectId || 'dallah-albaraka-vms',
       storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
       messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
       measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || '',

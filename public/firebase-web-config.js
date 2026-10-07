@@ -1,13 +1,13 @@
-// Public Firebase client identifiers supplied for dallah-vms. No private keys.
+// Original dallah-albaraka-vms public client identifiers. No private keys.
 // Shared by Expo/Metro, app.config.js and the messaging service worker.
 (function (root) {
   const config = Object.freeze({
-    apiKey: 'AIzaSyDCXAFTLnvxbG8rH9LblvklbYH5t6pGYkA',
-    authDomain: 'dallah-vms.firebaseapp.com',
-    projectId: 'dallah-vms',
-    storageBucket: 'dallah-vms.firebasestorage.app',
-    messagingSenderId: '858912458229',
-    appId: '1:858912458229:web:5116cd8e271071a736ccbc',
+    apiKey: 'AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo',
+    authDomain: 'dallah-albaraka-vms.firebaseapp.com',
+    projectId: 'dallah-albaraka-vms',
+    storageBucket: 'dallah-albaraka-vms.firebasestorage.app',
+    messagingSenderId: '913604772710',
+    appId: '1:913604772710:web:46c93bf8fbcd061362bea7',
   });
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = config;

@@ -239,7 +239,7 @@ export async function getWebFcmToken(): Promise<string | null> {
     return null;
   }
   if (!VAPID_KEY) {
-    console.warn('[FCM] Web push unavailable: configure EXPO_PUBLIC_FIREBASE_VAPID_KEY for dallah-vms.');
+    console.warn('[FCM] Web push unavailable: configure EXPO_PUBLIC_FIREBASE_VAPID_KEY for dallah-albaraka-vms.');
     return null;
   }
 

@@ -47,17 +47,18 @@ if (environment.ignored.length > 0) {
 const envValue = (key, fallback) =>
   process.env[`EXPO_PUBLIC_${key}`] || fileEnv[key] || fileEnv[`EXPO_PUBLIC_${key}`] || fallback;
 
-// Both web variants use the supplied dallah-vms client configuration, also
-// loaded by the service worker. Stale process/file values cannot select another
-// web project. Native files intentionally remain unchanged pending migration.
+// All builds retain the original dallah-albaraka-vms Firebase project.
+// Web and its worker share the same identity; native registration files stay unchanged.
 const FIREBASE_CONFIG_PATH = 'qa';
 
-const FIREBASE_MEASUREMENT_ID = envValue('FIREBASE_MEASUREMENT_ID', '');
+const FIREBASE_MEASUREMENT_ID = envValue('FIREBASE_MEASUREMENT_ID', 'G-Y5G46SXSQB');
 const FIREBASE_APP_ID_ANDROID = envValue('FIREBASE_APP_ID_ANDROID', '1:913604772710:android:a9320215a876705e62bea7');
 const FIREBASE_APP_ID_IOS = envValue('FIREBASE_APP_ID_IOS', '1:913604772710:ios:ea764c22ce480dec62bea7');
-// A project-specific web-push key must be configured, never inherited from the
-// old project's hardcoded default. Existing configured values are preserved.
-const FIREBASE_VAPID_KEY = envValue('FIREBASE_VAPID_KEY', '');
+// Restore the original project's public web-push key from the prior configuration.
+const FIREBASE_VAPID_KEY = envValue(
+  'FIREBASE_VAPID_KEY',
+  'BKXyeihYX0n_rNHIEIP26eNGnbVZL_rCsiLnA7jv0ZuIThHmbV0FJqENbmt-QnikL4uqKbh3lYqp0sqAQImDass',
+);
 
 // Universal Links / App Links follow the environment's public web domain, so a
 // production build claims vms.dallah.com while QA builds claim the Replit host.
