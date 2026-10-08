@@ -34,7 +34,20 @@ Restoration verification uses resolved configuration, type checking and a clean
 production web export, without running unit tests. No live notification,
 device registration, deliberate crash or remote native build is part of this work.
 
-The app has two environments. Their public values are committed in
+### Web-only backend override
+
+Web API requests and Microsoft sign-in use `config/web-backend.json`, currently
+`https://vms-backend-app-qa.replit.app`, through Metro's `backendUrls.web.ts`.
+This applies to web preview and published web builds, including production exports.
+Android and iOS continue to use the Expo-resolved environment described below.
+Firebase, app domains, legal pages and native links are not changed by this override.
+
+The web origin is embedded at build time: changing the shared API secret does not
+replace it. Change this public configuration and republish to update the web backend.
+The bundle verifier allows this exact HTTPS origin while retaining checks against
+other QA/development hosts and unexpected native Expo configuration.
+
+The app has two base environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
 `app.config.js`, `scripts/build-web.js` and the tests.
 

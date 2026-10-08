@@ -1,25 +1,4 @@
-import Constants from "expo-constants";
-
-// app.config.js resolves the environment (QA vs production, incl. any
-// EXPO_PUBLIC_* overrides) into Constants.expoConfig.extra, so that is the
-// authoritative value. process.env is only a fallback for tooling that
-// evaluates this module without an Expo config (e.g. plain Jest).
-const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
-  'https://vms.dallah.com';
-
-const MICROSOFT_AUTH_BASE_URL =
-  Constants.expoConfig?.extra?.microsoftAuthUrl ||
-  process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL ||
-  API_BASE_URL;
-
-// Do not log resolved URLs: local overrides can contain credentials.
-console.log(
-  `[API Config] Base URL configured from ${
-    Constants.expoConfig?.extra?.apiBaseUrl ? 'Expo config' : process.env.EXPO_PUBLIC_API_BASE_URL ? 'environment' : 'default'
-  }`,
-);
+import { API_BASE_URL, MICROSOFT_AUTH_BASE_URL } from './backendUrls';
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

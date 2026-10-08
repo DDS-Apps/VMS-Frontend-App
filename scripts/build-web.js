@@ -41,6 +41,7 @@ const {
   publicEnvFor,
 } = require('../config/app-environments');
 const { finalizeDist, verifyBundleHosts } = require('./lib/web-dist');
+const { origin: webBackendUrl } = require('../config/web-backend.json');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
@@ -123,8 +124,8 @@ function main() {
 
   banner(`VMS Frontend ${isProduction ? 'PRODUCTION' : 'QA'} web build`);
   console.log(`  variant:            ${environment.variant}`);
-  console.log(`  API / backend:      ${environment.apiBaseUrl} (${environment.sources.apiBaseUrl})`);
-  console.log(`  Microsoft SSO:      ${environment.microsoftAuthUrl} (${environment.sources.microsoftAuthUrl})`);
+  console.log(`  API / backend:      ${webBackendUrl} (web-only configuration)`);
+  console.log(`  Microsoft SSO:      ${webBackendUrl} (web-only configuration)`);
   console.log(`  app domain:         ${environment.appDomain} (${environment.sources.appDomain})`);
   console.log(`  legal pages:        ${environment.legalPagesUrl} (${environment.sources.legalPagesUrl})`);
   console.log(`  Outlook add-in id:  ${environment.outlookAddin.id}`);
@@ -183,7 +184,7 @@ function main() {
 
   console.log('');
   console.log('[BUILD] Verifying bundle hostnames ...');
-  const { errors, scannedFiles } = verifyBundleHosts({ distDir: DIST_DIR, environment });
+  const { errors, scannedFiles } = verifyBundleHosts({ distDir: DIST_DIR, environment, webBackendUrl });
   if (errors.length > 0) {
     banner(`[BUILD] FAILED: ${errors.length} problem(s) found in the ${environment.variant} bundle`);
     errors.forEach((error) => console.error(`  - ${error}`));
@@ -203,7 +204,7 @@ function main() {
 
   banner('[BUILD] SUCCESS: bundle ready in dist/');
   console.log(`  environment:  ${environment.variant}`);
-  console.log(`  backend:      ${environment.apiBaseUrl}`);
+  console.log(`  backend:      ${webBackendUrl}`);
   console.log(`  web origin:   https://${environment.appDomain}`);
   if (webConfig) {
     console.log(`  web.config:   forwards /api and /auth/microsoft to ${webConfig.backendOrigin}`);

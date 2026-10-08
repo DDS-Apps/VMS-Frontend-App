@@ -143,8 +143,15 @@ function snippet(content, index) {
  * Scans the bundle for hostnames that do not belong to the target environment.
  * Returns { errors: string[], requiredHostFound: boolean }.
  */
-function verifyBundleHosts({ distDir, environment }) {
+function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
   const errors = [];
+  if (webBackendUrl && (!webBackendUrl.startsWith('https://') || new URL(webBackendUrl).origin !== webBackendUrl)) {
+    throw new Error('Web backend must be an HTTPS origin without a path or credentials');
+  }
+  const allowedWebOrigin = webBackendUrl
+    ? new RegExp(webBackendUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=["\\x27\\\\/]|$)', 'g')
+    : null;
+  let webBackendFound = false;
   const requiredHost = hostnameOf(environment.apiBaseUrl);
   const isProduction = environment.variant === PRODUCTION_VARIANT;
   let requiredHostFound = false;
@@ -157,6 +164,7 @@ function verifyBundleHosts({ distDir, environment }) {
     // The API origin is inlined into the JS bundle; the add-in files always
     // name the web domain, so they must not satisfy this check.
     if (relative.startsWith('_expo/')) {
+      if (webBackendUrl && content.includes(webBackendUrl)) webBackendFound = true;
       if (content.includes(requiredHost)) requiredHostFound = true;
       // Whatever app.config.js resolved must match this build's environment,
       // in both directions (production URL in a QA bundle and vice versa).
@@ -184,19 +192,22 @@ function verifyBundleHosts({ distDir, environment }) {
 
     if (!isProduction) continue;
 
+    // Permit only the explicitly configured web origin, not other QA/dev hosts.
+    // Native Expo metadata is still checked against its original environment.
+    const hostContent = allowedWebOrigin ? content.replace(allowedWebOrigin, '') : content;
     for (const host of QA_HOSTS) {
-      const index = content.indexOf(host);
+      const index = hostContent.indexOf(host);
       if (index !== -1) {
-        errors.push(`${relative}: QA host "${host}" near "${snippet(content, index)}"`);
+        errors.push(`${relative}: QA host "${host}" near "${snippet(hostContent, index)}"`);
       }
     }
 
     const tokenPattern = /replit\.(dev|app)/g;
     let token;
-    while ((token = tokenPattern.exec(content)) !== null) {
-      const context = content.slice(Math.max(0, token.index - 16), token.index);
+    while ((token = tokenPattern.exec(hostContent)) !== null) {
+      const context = hostContent.slice(Math.max(0, token.index - 16), token.index);
       if (!ALLOWED_TOKEN_CONTEXT.test(context)) {
-        errors.push(`${relative}: Replit host token near "${snippet(content, token.index)}"`);
+        errors.push(`${relative}: Replit host token near "${snippet(hostContent, token.index)}"`);
       }
     }
   }
@@ -207,6 +218,9 @@ function verifyBundleHosts({ distDir, environment }) {
     );
   }
 
+  if (webBackendUrl && !webBackendFound) {
+    errors.push(`no JS bundle under _expo/ references the configured web backend "${webBackendUrl}"`);
+  }
   return { errors, requiredHostFound, scannedFiles: files.length };
 }
 
