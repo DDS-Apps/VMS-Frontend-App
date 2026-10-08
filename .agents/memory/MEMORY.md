@@ -40,3 +40,4 @@
 - [Visit tile time isolation](visit-tile-time-isolation.md) — mixed Arabic host text must not separate AM/PM from its time; keep time before host metadata.
 - [Firebase platform boundaries](firebase-platform-boundaries.md) — web configuration changes do not authorize native or backend migration; validate delivery credentials per platform.
 - [Preview startup budget](preview-startup-budget.md) — cold production exports can exceed the startup deadline; separate preview startup and verify bundle readiness.
+- [Mobile KPI columns](mobile-kpi-columns.md) — iPhone 14 and newer must show two KPI cards per row; clipping fixes must not silently switch phones to one column.
