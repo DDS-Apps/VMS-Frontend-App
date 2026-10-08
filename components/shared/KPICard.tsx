@@ -73,10 +73,11 @@ export interface KPICardRowProps {
 }
 
 export function KPICardRow({ children }: KPICardRowProps) {
-  const { width: windowWidth, fontScale } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const { isRTL } = useLanguage();
   const isMobile = windowWidth < 768;
-  const columnsPerRow = isMobile ? (windowWidth < 480 || fontScale > 1.2 ? 1 : 2) : 4;
+  // Keep phone grids two-column at every text scale; text wraps and cards grow vertically.
+  const columnsPerRow = isMobile ? 2 : 4;
   
   const visibleChildren = React.Children.toArray(children);
   const childCount = visibleChildren.length;
