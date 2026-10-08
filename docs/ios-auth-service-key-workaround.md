@@ -1,6 +1,6 @@
 # iOS Apple authentication workaround
 
-The `build:ios` and `build:preview:ios` npm scripts fetch the current **public**
+The `build:ios`, `build:preview:ios` and `submit:ios` npm scripts fetch the current **public**
 Apple login service key before starting the local EAS CLI. This works around the
 `iTunes service key is empty` failure reported in
 [eas-cli issue #4392](https://github.com/expo/eas-cli/issues/4392) while Apple’s
@@ -36,6 +36,32 @@ Use these npm commands rather than a direct `eas build` invocation, which bypass
 the public-key workaround. For automation with credentials already configured,
 append `-- --non-interactive`; that flag disables login/setup prompts.
 These commands start builds, not store submissions.
+
+## Submitting an existing iOS build
+
+```sh
+# Choose an existing build interactively (production submission profile)
+npm run submit:ios
+
+# Submit the latest existing iOS build
+npm run submit:ios -- --latest
+
+# Submit a particular EAS build
+npm run submit:ios -- --id YOUR_EAS_BUILD_ID
+```
+
+Use `submit:ios` rather than a direct `eas submit` command so submission receives
+the same Apple login workaround as building. The key is process-local: running
+the build wrapper does not apply the workaround to a later, separate CLI command.
+This command invokes `eas submit`, never `eas build`; it does not create a new
+binary. Select a store-distribution production build, not an internal preview.
+The wrapper defaults to the production submission profile; use
+`-- --eas-profile PROFILE_NAME` to choose another configured submission profile.
+Other arguments such as `--path` and `--non-interactive` are forwarded to EAS.
+
+EAS still performs Apple account authentication and artifact submission. A
+successful public lookup does not confirm either step. The Keychain prompt is
+handled by EAS; this wrapper never reads or changes stored Apple credentials.
 
 The wrapper prints a redacted **public-key lookup succeeded** message, then
 hands control to EAS with interactive stdio unchanged. That message does **not**

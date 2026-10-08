@@ -81,7 +81,8 @@ function waitForChild(child, { signalSource = process } = {}) {
   });
 }
 
-async function runEasBuild({
+async function runEasAppleCommand({
+  action = "build",
   argumentsList = process.argv.slice(2),
   environment = process.env,
   lookup = lookupAppleAuthServiceKey,
@@ -90,6 +91,9 @@ async function runEasBuild({
   signalSource = process,
   log = console.log,
 } = {}) {
+  if (action !== "build" && action !== "submit") {
+    throw new Error("Apple wrapper supports only build or submit.");
+  }
   const { profile, forwardedArgs } = parseArguments(argumentsList);
   let publicKey;
   try {
@@ -107,7 +111,7 @@ async function runEasBuild({
 
   log(
     "Apple public auth service key lookup succeeded (public config only); " +
-      "handing off to the local EAS CLI for Apple authentication and signing.",
+      `handing off to the local EAS CLI for Apple authentication and ${action === "submit" ? "submission" : "signing"}.`,
   );
 
   const childEnvironment = {
@@ -118,7 +122,7 @@ async function runEasBuild({
   const easArguments = [
     "--yes",
     EAS_CLI_PACKAGE,
-    "build",
+    action,
     "--platform",
     "ios",
     "--profile",
@@ -133,9 +137,13 @@ async function runEasBuild({
   return waitForChild(child, { signalSource });
 }
 
-async function main() {
+function runEasBuild(options = {}) {
+  return runEasAppleCommand({ ...options, action: "build" });
+}
+
+async function main({ action = "build" } = {}) {
   try {
-    const result = await runEasBuild();
+    const result = await runEasAppleCommand({ action });
     if (result.signal) {
       if (process.platform !== "win32") {
         process.kill(process.pid, result.signal);
@@ -147,7 +155,7 @@ async function main() {
     process.exitCode = typeof result.code === "number" ? result.code : 1;
   } catch (error) {
     console.error(
-      error instanceof Error ? error.message : "iOS build wrapper failed.",
+      error instanceof Error ? error.message : `iOS ${action} wrapper failed.`,
     );
     process.exitCode = 1;
   }
@@ -164,6 +172,7 @@ module.exports = {
   childNodeOptions,
   main,
   parseArguments,
+  runEasAppleCommand,
   runEasBuild,
   waitForChild,
 };
