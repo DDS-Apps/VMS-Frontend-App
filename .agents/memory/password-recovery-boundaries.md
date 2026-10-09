@@ -14,3 +14,9 @@ Recovery must not inherit a restored session's dashboard routing or authenticate
 **Why:** Someone can open an emailed recovery link while a different account is already signed in. Restoring secrets from durable storage or coupling reset errors to that session expands the risk beyond the account being recovered.
 
 **How to apply:** Keep reset intent public, use memory-only credentials and backend-authoritative affected-account revocation. After URL scrubbing, a full reload intentionally requires reopening the email or requesting a new link.
+
+The backend handoff requires an eight-character minimum, rejects blank-only passwords, preserves spaces, compares confirmation exactly, and caps new passwords at 72 UTF-8 bytes for recovery and signed-in Change Password.
+
+**Why:** The backend uses bcrypt, whose input limit is measured in bytes, not JavaScript character count. Older frontend six-character guidance is not the new-password contract.
+
+**How to apply:** Align new-password validation and English/Arabic guidance without trimming submissions or changing existing-account login eligibility. Backend source existence is not deployment evidence: migration, configuration, real-mail QA and revocation/race verification remain external release gates.

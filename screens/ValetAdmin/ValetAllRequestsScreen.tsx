@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { ActualMovementSummary } from "@/components/shared/ActualMovementSummary";
-import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, LayoutChangeEvent } from "react-native";
+import { View, StyleSheet, Pressable, ActivityIndicator, RefreshControl, LayoutChangeEvent, useWindowDimensions } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
@@ -25,7 +25,7 @@ import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 import { DashboardKpiSection, VisitorMatrixTable, WalkInBadge } from '@/components/shared';
 import { KPICard, KPICardRow } from '@/components/shared/KPICard';
 import { useRefreshDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
-import { SkeletonCard } from '@/components/shared/Skeleton';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
 import { getInitials } from "@/utils/formatters";
 import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
@@ -221,11 +221,15 @@ const EmptyState = ({ theme, t }: { theme: Theme; t: (key: string) => string }) 
   </ThemedView>
 );
 
-const LoadingState = () => (
-  <View style={styles.loadingContainer}>
-    <SkeletonCard showImage={false} lines={2} />
-    <SkeletonCard showImage={false} lines={2} />
-    <SkeletonCard showImage={false} lines={2} />
+const LoadingState = ({ message }: { message: string }) => (
+  <View
+    testID="valet-requests-loading"
+    style={styles.loadingContainer}
+    accessible
+    accessibilityLabel={message}
+    accessibilityLiveRegion="polite"
+  >
+    <LoadingSpinner message={message} />
   </View>
 );
 
@@ -259,6 +263,13 @@ export default function ValetAllRequestsScreen() {
   const [viewMode, setViewMode] = useState<ValetAdminVisitorsViewMode>(
     VALET_ADMIN_DEFAULT_VIEW_MODE,
   );
+  const { width: windowWidth } = useWindowDimensions();
+  const [sectionWidth, setSectionWidth] = useState(0);
+  const isNarrow = Math.min(windowWidth, sectionWidth || windowWidth) < 600;
+  const handleSectionLayout = (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    setSectionWidth((prev) => (Math.abs(prev - width) > 1 ? width : prev));
+  };
 
   // Measure the card grid's actual rendered width instead of guessing from screen width,
   // so the column count and card sizing always match the space really available. Widths
@@ -353,7 +364,7 @@ export default function ValetAllRequestsScreen() {
   }, [refetch, refreshDashboardKpis]);
 
   if (isLoading && !displayedData) {
-    return <LoadingState />;
+    return <LoadingState message={t('common.loading')} />;
   }
 
   if (isError && !displayedData) {
@@ -370,7 +381,7 @@ export default function ValetAllRequestsScreen() {
         />
       }
     >
-      <View style={styles.paddedContent}>
+      <View style={styles.paddedContent} onLayout={handleSectionLayout}>
         {isValetAdminHome ? (
           <DashboardKpiSection />
         ) : (
@@ -439,13 +450,25 @@ export default function ValetAllRequestsScreen() {
         <Spacer height={Spacing.md} />
 
         <DirectionalRow style={styles.sectionTitleRow}>
-          <ThemedText style={[Typography.subtitle, styles.sectionTitle]}>
+          <ThemedText style={[Typography.subtitle, styles.sectionTitle, isNarrow && styles.mobileSectionTitle]}>
             {getDisplayDate(displayedDate)} {t('valet.visitors')}
           </ThemedText>
-          <DirectionalRow
-            style={styles.sectionControls}
-            alignItems="center"
+          <View
+            testID="valet-requests-controls"
+            style={[
+              styles.sectionControls,
+              { direction: isNarrow ? 'ltr' : isRTL ? 'rtl' : 'ltr' },
+              isNarrow && styles.mobileSectionControls,
+            ]}
           >
+            <DirectionalRow
+              testID="valet-requests-date-controls"
+              style={[
+                styles.dateControls,
+                { direction: isRTL ? 'rtl' : 'ltr' },
+              ]}
+              alignItems="center"
+            >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('form.selectDate')}
@@ -456,9 +479,13 @@ export default function ValetAllRequestsScreen() {
               <DDIcon name="calendar" size={20} color={theme.primary} />
             </Pressable>
             <ActiveDateRangeLabel startDate={selectedDate} endDate={selectedDate} />
-            <DirectionalRow
+            </DirectionalRow>
+            <View
+              testID="valet-requests-view-toggle"
               style={[
                 styles.viewToggle,
+                { direction: isNarrow ? 'ltr' : isRTL ? 'rtl' : 'ltr' },
+                isNarrow && styles.physicalViewToggle,
                 {
                   backgroundColor: theme.surfaceSecondary,
                   borderColor: theme.border,
@@ -513,8 +540,8 @@ export default function ValetAllRequestsScreen() {
                   }
                 />
               </Pressable>
-            </DirectionalRow>
-          </DirectionalRow>
+            </View>
+          </View>
         </DirectionalRow>
       </View>
 
@@ -601,13 +628,33 @@ const styles = StyleSheet.create({
   sectionTitle: {
     flexShrink: 1,
   },
+  mobileSectionTitle: {
+    width: '100%',
+  },
   sectionControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flexShrink: 1,
     flexWrap: 'wrap',
     maxWidth: '100%',
     gap: Spacing.sm,
   },
+  mobileSectionControls: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+  },
+  dateControls: {
+    flexShrink: 1,
+    minWidth: 0,
+    gap: Spacing.sm,
+  },
+  physicalViewToggle: {
+    flexDirection: 'row',
+  },
   viewToggle: {
+    flexDirection: 'row',
     flexShrink: 0,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
