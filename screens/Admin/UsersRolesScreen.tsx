@@ -2044,9 +2044,10 @@ export default function UsersRolesScreen() {
                       direction: isRTL ? 'rtl' : 'ltr',
                     }}
                   >
-                    {(isSsoUser ? (["receptionist"] as UserRole[]) : CREATABLE_ROLES).map((role) => {
+                    {CREATABLE_ROLES.map((role) => {
                       const isDisabled =
-                        DISABLED_ROLES_IN_CREATE.includes(role);
+                        DISABLED_ROLES_IN_CREATE.includes(role) ||
+                        (isSsoUser && role !== "receptionist");
                       const isSelected = formData.role === role;
                       return (
                         <Pressable
