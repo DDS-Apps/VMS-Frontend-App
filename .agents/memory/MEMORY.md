@@ -28,7 +28,7 @@
 - [RTL table column order](rtl-table-column-order.md) — use the same View-based physical order for web headers and data; keep native RTL as a normal row.
 - [Dashboard toggle borders](dashboard-toggle-borders.md) — give grid/list buttons separate full borders; an outer clipped group loses visible edges in Arabic.
 - [Security navigation scope](security-navigation-scope.md) — Visitor Verification is a direct Security menu item; do not restore a redundant one-item Operations group.
-- [SSO role editing scope](sso-role-editing-scope.md) — Admins may change SSO users to Receptionist only; retain synced profile locks and Auto Approval editing.
+- [SSO role editing scope](sso-role-editing-scope.md) — Admins may assign SSO users any role offered in Manage Users; retain synced profile locks and Auto Approval editing.
 - [Visitor status filter aliases](visitor-status-filter-aliases.md) — canonical picker values must include legacy backend equivalents without conflating distinct terminal outcomes.
 - [Status dropdown source scope](status-dropdown-source-scope.md) — a status option must match its screen's source and filtering path, not just the global request lifecycle.
 - [Visit purpose choices](visit-purpose-choices.md) — restrict new/edit picker choices without discarding translations for historical purpose values.

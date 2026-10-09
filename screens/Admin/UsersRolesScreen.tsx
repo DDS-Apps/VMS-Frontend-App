@@ -460,9 +460,7 @@ export default function UsersRolesScreen() {
       if (editingUser) {
         const updateData: UpdateUserDto = {
           name: formData.name,
-          role: isEditingSsoUser && formData.role !== "receptionist"
-            ? editingUser.role
-            : formData.role,
+          role: formData.role,
           department: formData.department || undefined,
           phoneNumber: formData.phoneNumber
             ? formatPhoneNumber(formData.phoneNumber)
@@ -1927,7 +1925,7 @@ export default function UsersRolesScreen() {
       {renderBulkActionBar()}
       {renderSortMenu()}
 
-      {/* SSO users can edit Auto Approval and switch their role to Receptionist. */}
+      {/* SSO users can edit their role and Auto Approval; synced profile fields stay locked. */}
       {(() => {
         const isSsoUser = editingUser?.source === "microsoft_ad";
         return (
@@ -2046,8 +2044,7 @@ export default function UsersRolesScreen() {
                   >
                     {CREATABLE_ROLES.map((role) => {
                       const isDisabled =
-                        DISABLED_ROLES_IN_CREATE.includes(role) ||
-                        (isSsoUser && role !== "receptionist");
+                        !isSsoUser && DISABLED_ROLES_IN_CREATE.includes(role);
                       const isSelected = formData.role === role;
                       return (
                         <Pressable

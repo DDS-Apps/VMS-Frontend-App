@@ -1,12 +1,12 @@
 ---
 name: SSO role editing scope
-description: Admin overrides for SSO users are limited to Receptionist while synced profile fields remain protected.
+description: Admins may assign SSO users any role already offered by Manage Users while synced profile fields remain protected.
 ---
 
-Admin users may change an SSO user's role to Receptionist; do not enable other role choices for SSO users.
+Admin users may change an SSO user's role to any role already offered by the Manage Users edit form, including Employee and Manager.
 
-Keep all the existing role options visible in the SSO edit form, with every option except Receptionist disabled. Do not hide the other options.
+Keep the existing set of visible role options; enable them for SSO edits. Do not restore hidden roles or change local-user creation restrictions.
 
-**Why:** On 2026-10-09, the user requested enabling previously locked SSO role changes with "just a receptionist option," then clarified that other roles must remain visible but disabled. This is a narrow role override, not permission to edit SSO-synchronized profile fields or expand all role assignments.
+**Why:** On 2026-10-09, the user expanded the earlier Receptionist-only SSO override, requesting that other roles also be updatable. This supersedes the earlier Receptionist-only restriction, not the protection of SSO-synchronized profile fields.
 
-**How to apply:** Preserve the original role when no Receptionist change was selected, allow existing Auto Approval editing, and leave non-SSO user role behavior unchanged.
+**How to apply:** Save the role selected in the edit form, retain synced profile locks and Auto Approval editing, and leave non-SSO user role behavior unchanged.
