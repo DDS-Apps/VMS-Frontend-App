@@ -460,7 +460,9 @@ export default function UsersRolesScreen() {
       if (editingUser) {
         const updateData: UpdateUserDto = {
           name: formData.name,
-          role: formData.role,
+          role: isEditingSsoUser && formData.role !== "receptionist"
+            ? editingUser.role
+            : formData.role,
           department: formData.department || undefined,
           phoneNumber: formData.phoneNumber
             ? formatPhoneNumber(formData.phoneNumber)
@@ -1925,7 +1927,7 @@ export default function UsersRolesScreen() {
       {renderBulkActionBar()}
       {renderSortMenu()}
 
-      {/* Helper: SSO users can only edit Auto Approval */}
+      {/* SSO users can edit Auto Approval and switch their role to Receptionist. */}
       {(() => {
         const isSsoUser = editingUser?.source === "microsoft_ad";
         return (
@@ -1956,11 +1958,7 @@ export default function UsersRolesScreen() {
                   <ThemedText
                     style={[Typography.subtitle, { fontWeight: "600" }]}
                   >
-                    {editingUser
-                      ? isSsoUser
-                        ? t("common.editAutoApproval")
-                        : t("common.edit")
-                      : t("common.addUser")}
+                    {editingUser ? t("common.edit") : t("common.addUser")}
                   </ThemedText>
                   <Pressable onPress={() => setShowModal(false)}>
                     <DDIcon name="x" size={24} variant="muted" />
@@ -2046,7 +2044,7 @@ export default function UsersRolesScreen() {
                       direction: isRTL ? 'rtl' : 'ltr',
                     }}
                   >
-                    {CREATABLE_ROLES.map((role) => {
+                    {(isSsoUser ? (["receptionist"] as UserRole[]) : CREATABLE_ROLES).map((role) => {
                       const isDisabled =
                         DISABLED_ROLES_IN_CREATE.includes(role);
                       const isSelected = formData.role === role;
@@ -2071,10 +2069,9 @@ export default function UsersRolesScreen() {
                           ]}
                           onPress={() =>
                             !isDisabled &&
-                            !isSsoUser &&
                             setFormData({ ...formData, role })
                           }
-                          disabled={isDisabled || isSsoUser}
+                          disabled={isDisabled}
                         >
                           <ThemedText
                             variant="caption"
