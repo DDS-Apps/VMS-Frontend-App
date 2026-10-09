@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { TextInput } from 'react-native';
+import { TextInput, StyleSheet, Platform } from 'react-native';
 
 let mockLocale: 'en' | 'ar' = 'en';
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -49,7 +49,25 @@ describe('password recovery public states', () => {
     api.resetPassword.mockResolvedValue(undefined);
     api.validateResetPassword.mockResolvedValue({ valid: true, expiresAt: new Date(Date.now() + 900000).toISOString() });
   });
-  afterEach(() => { if (renderer) act(() => renderer.unmount()); jest.useRealTimers(); });
+  afterEach(() => { if (renderer) act(() => renderer.unmount()); jest.useRealTimers(); jest.restoreAllMocks(); });
+
+  it.each(['en', 'ar'] as const)('matches login field and action sizing with one web focus border in %s', async locale => {
+    mockLocale = locale;
+    jest.replaceProperty(Platform, 'OS', 'web');
+    await mount('request');
+    const email = input('form.emailAddress');
+    expect(StyleSheet.flatten(email.props.style)).toMatchObject({ fontSize: 17, outlineStyle: 'none' });
+    const label = renderer.root.findAll(node => node.props.children === tr('form.emailAddress').toUpperCase())[0];
+    expect(StyleSheet.flatten(label.props.style).fontSize).toBe(12);
+    expect(StyleSheet.flatten(action('passwordRecovery.sendLink').props.style).height).toBe(56);
+    expect(action('passwordRecovery.sendLink').props.size).toBe('large');
+    act(() => email.props.onFocus());
+    let container = input('form.emailAddress').parent!;
+    while (container.parent && StyleSheet.flatten(container.props.style)?.height !== 56) container = container.parent;
+    expect(StyleSheet.flatten(container.props.style)).toMatchObject({ height: 56, borderWidth: 2 });
+    act(() => input('form.emailAddress').props.onBlur());
+    expect(StyleSheet.flatten(container.props.style).borderWidth).toBe(1);
+  });
 
   it.each(['en', 'ar'] as const)('renders neutral confirmation and preserves resend cooldown when editing in %s', async locale => {
     mockLocale = locale;
@@ -100,13 +118,13 @@ describe('password recovery public states', () => {
     type('auth.confirmNewPassword', 'different');
     await press('passwordRecovery.resetPassword');
     expect(api.resetPassword).not.toHaveBeenCalled();
-    expect(text()).toContain(tr('auth.passwordMinLength'));
-    type('auth.newPassword', ' exact ');
-    type('auth.confirmNewPassword', ' exact ');
+    expect(text()).toContain(tr('auth.newPasswordMinLength'));
+    type('auth.newPassword', ' exact12 ');
+    type('auth.confirmNewPassword', ' exact12 ');
     await press('passwordRecovery.resetPassword');
     await press('passwordRecovery.resetPassword');
     expect(api.resetPassword).toHaveBeenCalledTimes(1);
-    expect(api.resetPassword).toHaveBeenCalledWith({ token: 'fixture-token', newPassword: ' exact ', confirmPassword: ' exact ' });
+    expect(api.resetPassword).toHaveBeenCalledWith({ token: 'fixture-token', newPassword: ' exact12 ', confirmPassword: ' exact12 ' });
     await act(async () => resolve());
     expect(onResetSuccess).toHaveBeenCalledTimes(1);
     expect(input('auth.newPassword').props.value).toBe('');
@@ -124,6 +142,30 @@ describe('password recovery public states', () => {
     expect(action('passwordRecovery.requestNewLink')).toBeDefined();
     expect(api.validateResetPassword).toHaveBeenCalledTimes(token ? 1 : 0);
     expect(api.resetPassword).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['1234567', 'auth.newPasswordMinLength'],
+    [' '.repeat(8), 'form.required'],
+    ['a'.repeat(73), 'auth.passwordMaxBytes'],
+    ['ع'.repeat(37), 'auth.passwordMaxBytes'],
+    ['🙂'.repeat(19), 'auth.passwordMaxBytes'],
+  ])('rejects invalid new-password input with %s', async (password, errorKey) => {
+    await mount('reset', 'fixture-token');
+    type('auth.newPassword', password);
+    type('auth.confirmNewPassword', password);
+    await press('passwordRecovery.resetPassword');
+    expect(api.resetPassword).not.toHaveBeenCalled();
+    expect(text()).toContain(tr(errorKey));
+    expect(text()).toContain(tr('auth.newPasswordGuidance'));
+  });
+
+  it.each(['12345678', 'a'.repeat(72), 'ع'.repeat(36), '🙂'.repeat(18)])('submits a boundary-valid password unchanged', async password => {
+    await mount('reset', 'fixture-token');
+    type('auth.newPassword', password);
+    type('auth.confirmNewPassword', password);
+    await press('passwordRecovery.resetPassword');
+    expect(api.resetPassword).toHaveBeenCalledWith({ token: 'fixture-token', newPassword: password, confirmPassword: password });
   });
 
   it('retries validation after network failure and stops submitting after expiry', async () => {

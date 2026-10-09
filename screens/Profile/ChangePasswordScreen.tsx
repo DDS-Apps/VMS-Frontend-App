@@ -14,6 +14,7 @@ import { DDIcon } from "@/components/DDIcon";
 import { useChangePasswordMutation } from "@/hooks/queries/useAuthQueries";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
+import { newPasswordPolicyError } from "@/utils/newPasswordPolicy";
 
 interface ChangePasswordScreenProps {
   onSuccess: () => void;
@@ -48,10 +49,9 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
       newErrors.currentPassword = t('form.required');
     }
     
-    if (!newPassword.trim()) {
-      newErrors.newPassword = t('form.required');
-    } else if (newPassword.length < 6) {
-      newErrors.newPassword = t('auth.passwordMinLength');
+    const passwordError = newPasswordPolicyError(newPassword);
+    if (passwordError) {
+      newErrors.newPassword = t(passwordError);
     } else if (newPassword === currentPassword) {
       newErrors.newPassword = t('auth.newPasswordMustBeDifferent');
     }
@@ -126,7 +126,8 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
     ];
   };
 
-  const isFormValid = currentPassword.length > 0 && newPassword.length >= 6 && newPassword === confirmPassword;
+  const isFormValid = !!currentPassword.trim() && !newPasswordPolicyError(newPassword) &&
+    newPassword !== currentPassword && newPassword === confirmPassword;
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -209,6 +210,9 @@ export default function ChangePasswordScreen({ onSuccess, onCancel }: ChangePass
               <DDIcon name={showNewPassword ? "eye" : "eye-off"} size={INPUT_ICON_SIZE} variant="muted" />
             </Pressable>
           </DirectionalRow>
+          <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.xs, textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('auth.newPasswordGuidance')}
+          </ThemedText>
           {errors.newPassword ? (
             <ThemedText style={[Typography.caption, { color: theme.error, marginTop: Spacing.xs }]}>
               {errors.newPassword}

@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AppState,
   Image,
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -20,6 +21,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { authService } from "@/services/api/authService";
 import { PasswordResetError, type PasswordResetErrorKind } from "@/services/api/passwordResetService";
+import { newPasswordPolicyError } from "@/utils/newPasswordPolicy";
 
 export interface PasswordRecoveryScreenProps {
   mode: "request" | "reset" | "success";
@@ -76,6 +78,7 @@ function RecoveryButton({
         variant={variant}
         size="large"
         fullWidth
+        style={styles.button}
         textStyle={styles.buttonText}
       >
         {label}
@@ -106,7 +109,7 @@ function RecoveryPage({
   mode, token, initialEmail = "", onRequestNewLink, onBackToLogin, onResetSuccess,
   cooldownDeadline,
 }: PasswordRecoveryScreenProps & { cooldownDeadline: React.MutableRefObject<number> }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { locale, isRTL, setLocale, isChangingLanguage } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -246,8 +249,8 @@ function RecoveryPage({
     }
     if (Date.now() < cooldownDeadline.current) return;
     const errors: FieldErrors = {};
-    if (!newPassword.trim()) errors.newPassword = "form.required";
-    else if (newPassword.length < 6) errors.newPassword = "auth.passwordMinLength";
+    const passwordError = newPasswordPolicyError(newPassword);
+    if (passwordError) errors.newPassword = passwordError;
     if (!confirmPassword.trim()) errors.confirmPassword = "form.required";
     else if (newPassword !== confirmPassword) errors.confirmPassword = "auth.passwordsDoNotMatch";
     setFieldErrors(errors);
@@ -293,7 +296,7 @@ function RecoveryPage({
     const label = t(isEmail ? "form.emailAddress" : isNew ? "auth.newPassword" : "auth.confirmNewPassword");
     return (
       <View style={styles.field}>
-        <ThemedText style={[Typography.label, aligned, styles.label, { color: theme.textSecondary }]}>{label}</ThemedText>
+        <ThemedText style={[Typography.label, aligned, styles.label, { color: theme.textSecondary }]}>{label.toUpperCase()}</ThemedText>
         <DirectionalRow style={[
           styles.inputContainer,
           { backgroundColor: theme.surface, borderColor: fieldErrors[field] ? theme.error : focused === field ? theme.primary : theme.border, borderWidth: focused === field ? 2 : 1 },
@@ -303,7 +306,13 @@ function RecoveryPage({
             ref={field === "confirmPassword" ? confirmInput : undefined}
             accessibilityLabel={label}
             accessibilityHint={fieldErrors[field] ? t(fieldErrors[field]!) : undefined}
-            style={[styles.input, aligned, { color: theme.text, fontFamily: getInputFontFamily(value, isRTL) }]}
+            style={[
+              styles.input,
+              aligned,
+              { color: theme.text, fontFamily: getInputFontFamily(value, isRTL) },
+              // The container retains the visible focus border for keyboard users.
+              Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {},
+            ]}
             placeholder={t(isEmail ? "auth.emailPlaceholder" : isNew ? "auth.enterNewPassword" : "auth.confirmNewPasswordPlaceholder")}
             placeholderTextColor={theme.textSecondary}
             value={value}
@@ -341,16 +350,17 @@ function RecoveryPage({
             </Pressable>
           ) : null}
         </DirectionalRow>
+        {isNew ? <ThemedText style={[Typography.caption, aligned, { color: theme.textSecondary, marginTop: Spacing.xs }]}>{t("auth.newPasswordGuidance")}</ThemedText> : null}
         {fieldErrors[field] ? <ThemedText accessibilityRole="alert" accessibilityLiveRegion="polite" style={[Typography.caption, aligned, { color: theme.error, marginTop: Spacing.xs }]}>{t(fieldErrors[field]!)}</ThemedText> : null}
       </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? theme.background : "#FFFFFF" }]}>
       <KeyboardAwareScrollView
-        style={{ backgroundColor: theme.background }}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + Spacing.lg, paddingBottom: insets.bottom + Spacing.xl }]}
+        style={{ flex: 1, backgroundColor: isDark ? theme.background : "#FFFFFF" }}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
@@ -371,7 +381,7 @@ function RecoveryPage({
             </Pressable>
           </View>
           <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" accessibilityLabel={t("common.brandName")} />
-          <ThemedText accessibilityRole="header" style={[Typography.title, styles.title]}>{t(`passwordRecovery.${title}`)}</ThemedText>
+          <ThemedText accessibilityRole="header" style={[Typography.display, styles.title]}>{t(`passwordRecovery.${title}`)}</ThemedText>
           <ThemedText style={[Typography.body, styles.subtitle, { color: theme.textSecondary }]}>{t(`passwordRecovery.${subtitle}`)}</ThemedText>
 
           {languageError ? <ThemedText accessibilityRole="alert" style={[Typography.bodySmall, aligned, { color: theme.error }]}>{t("passwordRecovery.languageError")}</ThemedText> : null}
@@ -448,21 +458,22 @@ function RecoveryPage({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: Spacing.lg },
-  content: { width: "100%", maxWidth: 440, alignSelf: "center" },
+  scrollContent: { flexGrow: 1, paddingHorizontal: Spacing.xl },
+  content: { width: "100%", maxWidth: 400, alignSelf: "center" },
   languageRow: { marginBottom: Spacing.lg },
   languageButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderWidth: 1, borderRadius: BorderRadius.sm },
-  logo: { width: "100%", maxWidth: 340, height: 100, alignSelf: "center" },
-  title: { textAlign: "center", marginTop: Spacing.xxl },
-  subtitle: { textAlign: "center", marginTop: Spacing.sm, marginBottom: Spacing.xxl },
-  field: { marginBottom: Spacing.md },
+  logo: { width: 340, height: 100, alignSelf: "center" },
+  title: { textAlign: "center", marginTop: Spacing.xxxl, lineHeight: 48 },
+  subtitle: { textAlign: "center", marginTop: Spacing.sm, marginBottom: Spacing.xxxl },
+  field: { marginBottom: Spacing.lg },
   label: { marginBottom: Spacing.xs },
-  inputContainer: { minHeight: 56, alignItems: "center", paddingStart: Spacing.md, paddingEnd: Spacing.xs, borderRadius: BorderRadius.sm, gap: Spacing.sm },
-  input: { flex: 1, minWidth: 0, minHeight: 54, paddingVertical: Spacing.sm, fontSize: 17 },
+  inputContainer: { height: 56, alignItems: "center", paddingHorizontal: Spacing.md, borderRadius: BorderRadius.sm, gap: Spacing.md },
+  input: { flex: 1, minWidth: 0, height: "100%", fontSize: 17 },
   eyeButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   hint: { marginBottom: Spacing.lg },
   notice: { padding: Spacing.md, borderRadius: BorderRadius.sm, borderWidth: 1, marginBottom: Spacing.lg },
   actions: { gap: Spacing.sm, marginTop: Spacing.sm },
+  button: { height: 56 },
   buttonText: { flexShrink: 1, textAlign: "center" },
   guidance: { borderTopWidth: 1, paddingTop: Spacing.lg, marginTop: Spacing.xl, marginBottom: Spacing.md },
   pending: { gap: Spacing.md, marginBottom: Spacing.lg },

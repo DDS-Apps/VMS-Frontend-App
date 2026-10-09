@@ -202,6 +202,9 @@ export interface TranslationKeys {
     resetPassword: string;
     passwordResetSuccess: string;
     passwordMinLength: string;
+    newPasswordMinLength: string;
+    passwordMaxBytes: string;
+    newPasswordGuidance: string;
     otpSent: string;
     otpResent: string;
     invalidOtp: string;
