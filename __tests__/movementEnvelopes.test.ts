@@ -32,8 +32,8 @@ it('keeps all four movement POST outcomes successful when summary read is unavai
   reply(body);
   expect(await receptionApiService.checkInVisitor('offline-example')).toEqual(body);
   expect(await receptionApiService.checkOutVisitor('offline-example')).toEqual(body);
-  expect(await securityApiService.gateCheckIn({ visitId: 'offline-example', gateId: 'offline-gate' })).toEqual(body);
-  expect(await securityApiService.gateCheckOut({ visitId: 'offline-example', gateId: 'offline-gate' })).toEqual(body);
+  expect(await securityApiService.gateCheckIn({ visitId: 'offline-example', gateId: 'main' })).toEqual(body);
+  expect(await securityApiService.gateCheckOut({ visitId: 'offline-example', gateId: 'main' })).toEqual(body);
   expect(adapter).toHaveBeenCalledTimes(4);
   expect(adapter.mock.calls.every(([config]) => config.method === 'post')).toBe(true);
 });

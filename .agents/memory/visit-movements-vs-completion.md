@@ -46,3 +46,9 @@ After a movement or reconnect, joining an already-running read alone is insuffic
 **Why:** React Query can reuse a pre-action response and clear invalidation. Query cancellation alone is also insufficient for services that share transport GETs without consuming its AbortSignal.
 
 **How to apply:** Coalesce post-settlement reads per existing query, preserve inactive/removed-query boundaries, and ensure an action arriving during the canonical read queues a further read rather than replaying a write.
+
+Keep operational record freshness separate from the historical-summary display rollout.
+
+**Why:** Disabling an experimental display must not leave other roles' existing status lists stale after a committed movement. Conversely, an operational refresh must not enable gated history requests or expose restricted summaries.
+
+**How to apply:** Refresh existing authorized records after successful actions even while summary presentation is disabled; keep summary-only background refresh and new history access behind their own readiness gates.

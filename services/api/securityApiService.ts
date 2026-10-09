@@ -2,6 +2,7 @@ import { get, post } from '@/api/httpClient';
 import { apiConfig } from '@/api/config';
 import { getBusinessDateKey } from '@/utils/dateTimeUtils';
 import { isOperationalVisitVisible } from '@/utils/operationalVisitVisibility';
+import { assertManualBuildingGate } from '@/utils/manualBuildingGates';
 import type {
   PaginatedResponse,
   SecurityVisitorDto,
@@ -208,11 +209,13 @@ export const securityApiService = {
     return post<QRScanResult, { qrCode: string }>(security.gate.scan, { qrCode });
   },
 
-  gateCheckIn: (data: GateCheckInDto): Promise<SecurityVisitorDto> => {
+  gateCheckIn: async (data: GateCheckInDto): Promise<SecurityVisitorDto> => {
+    assertManualBuildingGate('check_in', data.gateId);
     return post<SecurityVisitorDto, GateCheckInDto>(security.gate.checkIn, data);
   },
 
-  gateCheckOut: (data: GateCheckOutDto): Promise<SecurityVisitorDto> => {
+  gateCheckOut: async (data: GateCheckOutDto): Promise<SecurityVisitorDto> => {
+    assertManualBuildingGate('check_out', data.gateId);
     return post<SecurityVisitorDto, GateCheckOutDto>(security.gate.checkOut, data);
   },
 

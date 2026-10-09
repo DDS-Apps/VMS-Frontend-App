@@ -38,10 +38,29 @@ function ScheduledTimeline({ data, history }: { data: TimelineData; history?: Vi
   return <RequestTimeline steps={steps} movementHistory={history} visitStatus={data.status} />;
 }
 
+function SecurityTimeline({ data }: { data: TimelineData }) {
+  const steps = useTimelineSteps({ data, role: 'security', flowType: 'security_gate' });
+  return <RequestTimeline steps={steps} visitStatus={data.status} />;
+}
+
 describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
   let tree: ReactTestRenderer;
   beforeEach(() => { mockRTL = rtl; });
   afterEach(() => { if (tree) act(() => tree.unmount()); });
+
+  it('keeps administrative completion separate from an unrecorded physical exit in legacy Security', () => {
+    const dictionary = rtl ? ar : en;
+    act(() => {
+      tree = create(<SecurityTimeline data={{
+        status: 'completed', checkedInAt: '2026-10-09T09:00:00Z',
+        completedAt: '2026-10-09T09:20:00Z',
+      }} />);
+    });
+    const json = JSON.stringify(tree.toJSON());
+    expect(json).toContain(dictionary.timeline.visitCompleted);
+    const exit = tree.root.findAllByType('ThemedText' as any).find(node => node.props.children === dictionary.timeline.exitRecorded)!;
+    expect(exit.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+  });
 
   it('renders repeat entry and exit labels inside one request timeline without a history title', () => {
     act(() => {

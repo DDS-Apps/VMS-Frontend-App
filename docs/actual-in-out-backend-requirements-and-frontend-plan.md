@@ -3,6 +3,8 @@
 Date: 2026-10-07  
 Status: frontend support implemented behind a disabled rollout switch; backend handoff supersedes earlier proposed endpoint/availability assumptions. See section 9 for current evidence and release blockers.
 
+Reader-based update (2026-10-09): the supplied parking/building handoff supersedes any earlier scheduled-end completion assumptions. Building/reception OUT completes the visit according to backend status; parking has no OUT reader. See `docs/reader-based-movements-frontend-audit.md` for compatibility changes, API gaps and the unchanged rollout prerequisites.
+
 ## 1. Goal and safety boundaries
 
 Display the latest physical check-in and the latest physical checkout independently, across relevant web, iOS, and Android screens.

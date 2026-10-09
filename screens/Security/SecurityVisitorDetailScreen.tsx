@@ -105,8 +105,8 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
   const getTimelineSteps = (): TimelineStep[] => {
     const status = visitorData.status;
-    const isCheckedIn = status === 'checked_in';
     const timestamps = getSecurityTimelineTimestamps(visitorData);
+    const isCheckedIn = status === 'checked_in' || !!timestamps.checkedInAt;
     const isCheckedOut = status === 'checked_out' || !!timestamps.checkedOutAt;
     
     return [
@@ -130,7 +130,14 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
         icon: 'log-out' as IconName,
         status: isCheckedOut ? 'completed' : 'pending',
         timestamp: timestamps.checkedOutAt,
-      }
+      },
+      ...(status === 'completed' ? [{
+        id: 'completed',
+        label: t('timeline.visitCompleted'),
+        icon: 'check-circle' as IconName,
+        status: 'completed' as const,
+        timestamp: visitorData.timeline?.completedAt || visitorData.completedAt,
+      }] : []),
     ];
   };
 

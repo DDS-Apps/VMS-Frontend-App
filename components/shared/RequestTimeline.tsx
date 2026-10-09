@@ -1143,11 +1143,11 @@ function buildSecurityTimeline(
       icon: 'log-in',
     });
 
-    if (data.completedAt || data.checkedOutAt) {
+    if (data.checkedOutAt) {
       steps.push({
         id: 'exit',
         label: t('timeline.exitRecorded'),
-        timestamp: data.completedAt || data.checkedOutAt,
+        timestamp: data.checkedOutAt,
         status: 'completed',
         icon: 'log-out',
       });
@@ -1204,6 +1204,15 @@ function buildSecurityTimeline(
     });
   }
 
+  if (data.status === 'completed') {
+    steps.push({
+      id: 'completed',
+      label: t('timeline.visitCompleted'),
+      timestamp: data.timeline?.completedAt || data.completedAt,
+      status: 'completed',
+      icon: 'check-circle',
+    });
+  }
   return steps;
 }
 

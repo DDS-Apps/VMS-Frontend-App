@@ -26,6 +26,9 @@ export function useValetParkingDashboard(
     queryKey: valetAdminKeys.parkingDashboard(startDate, endDate),
     queryFn: () => valetAdminApiService.getParkingDashboard(startDate, endDate),
     staleTime: 1000 * 60 * 2,
+    // Hardware entry/exit is not a frontend mutation; refresh the existing
+    // nested dashboard rather than requesting movement history per visitor.
+    refetchInterval: 60_000,
     enabled,
     select: (data: ValetParkingDashboardResponse): ValetParkingDashboardResponse => ({
       ...data,

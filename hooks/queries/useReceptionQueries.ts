@@ -18,7 +18,7 @@ import type {
 } from '@/types';
 import { ApiError } from '@/api/errors';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
-import { invalidateMovementSummaries } from './invalidateMovementSummaries';
+import { refreshMovementRecords } from './invalidateMovementSummaries';
 import { applyMovementResult, beginMovement, type MovementWrite } from './applyMovementResult';
 
 export const receptionKeys = {
@@ -147,7 +147,7 @@ export function useReceptionCheckInMutation() {
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
       invalidateDashboardKpis(queryClient);
-      void invalidateMovementSummaries(queryClient);
+      void refreshMovementRecords(queryClient);
     },
   });
 }
@@ -169,7 +169,7 @@ export function useReceptionCheckOutMutation() {
         queryKey: ['requests', 'visit-detail', variables.visitId],
       });
       invalidateDashboardKpis(queryClient);
-      void invalidateMovementSummaries(queryClient);
+      void refreshMovementRecords(queryClient);
     },
   });
 }

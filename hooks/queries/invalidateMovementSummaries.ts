@@ -50,8 +50,7 @@ function refreshAfterPendingRead(client: QueryClient, query: Query): Promise<voi
 }
 
 /** Refresh existing active lists/details only; no new role or per-row detail fetch. */
-export function invalidateMovementSummaries(client: QueryClient) {
-  if (!MOVEMENT_SUMMARY_ENABLED) return;
+export function refreshMovementRecords(client: QueryClient) {
   void client.invalidateQueries({
     predicate: isMovementSummaryQuery,
     refetchType: 'none',
@@ -59,4 +58,12 @@ export function invalidateMovementSummaries(client: QueryClient) {
   return Promise.all(client.getQueryCache().findAll({
     predicate: isMovementSummaryQuery, type: 'active',
   }).map(query => refreshAfterPendingRead(client, query)));
+}
+
+/** Background summary refresh remains gated; committed actions must refresh
+ * canonical records even when the historical-summary display is disabled.
+ */
+export function invalidateMovementSummaries(client: QueryClient) {
+  if (!MOVEMENT_SUMMARY_ENABLED) return;
+  return refreshMovementRecords(client);
 }

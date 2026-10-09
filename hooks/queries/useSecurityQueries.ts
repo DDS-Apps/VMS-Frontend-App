@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { invalidateMovementSummaries } from './invalidateMovementSummaries';
+import { refreshMovementRecords } from './invalidateMovementSummaries';
 import { applyMovementResult, beginMovement, type MovementWrite } from './applyMovementResult';
 import { securityApiService, SecurityVisitorsParams, SecurityVisitorsResponse } from '@/services/api/securityApiService';
 import type {
@@ -17,6 +17,7 @@ import type {
 } from '@/types';
 import { ApiError } from '@/api/errors';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
+import { movementDetailPollingInterval } from '@/utils/movementPolling';
 
 export const securityKeys = {
   all: ['security'] as const,
@@ -104,7 +105,7 @@ export function useSecurityVisitorQuery(
     queryKey: securityKeys.visitor(visitId),
     queryFn: () => securityApiService.getVisitorDetails(visitId),
     enabled: !!visitId,
-    refetchInterval: (query) => query.state.data?.status === 'checked_out' ? 60_000 : false,
+    refetchInterval: (query) => movementDetailPollingInterval(query.state.data?.status),
     ...options,
   });
 }
@@ -159,8 +160,22 @@ export function useAcknowledgeSecurityAlertMutation() {
 }
 
 export function useScanQRCodeMutation() {
+  const queryClient = useQueryClient();
   return useMutation<QRScanResult, ApiError, string>({
+    retry: false,
     mutationFn: (qrCode) => securityApiService.scanQRCode(qrCode),
+    onSuccess: (data) => {
+      // Validation/activation is authorization only: do not patch a visit to
+      // checked_in or chain a physical movement. Obtain canonical server state.
+      if (data.visitId) {
+        queryClient.invalidateQueries({ queryKey: securityKeys.visitor(data.visitId) });
+        queryClient.invalidateQueries({ queryKey: ['requests', 'visit-detail', data.visitId] });
+      }
+      queryClient.invalidateQueries({ queryKey: securityKeys.visitors() });
+      queryClient.invalidateQueries({ queryKey: securityKeys.today() });
+      queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
+      void refreshMovementRecords(queryClient);
+    },
   });
 }
 
@@ -181,7 +196,7 @@ export function useGateCheckInMutation() {
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
       invalidateDashboardKpis(queryClient);
-      void invalidateMovementSummaries(queryClient);
+      void refreshMovementRecords(queryClient);
     },
   });
 }
@@ -201,7 +216,7 @@ export function useGateCheckOutMutation() {
       queryClient.invalidateQueries({ queryKey: securityKeys.onSite() });
       queryClient.invalidateQueries({ queryKey: securityKeys.gateLogs() });
       invalidateDashboardKpis(queryClient);
-      void invalidateMovementSummaries(queryClient);
+      void refreshMovementRecords(queryClient);
     },
   });
 }
