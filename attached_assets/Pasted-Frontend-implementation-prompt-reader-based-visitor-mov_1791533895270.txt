@@ -1,0 +1,74 @@
+Frontend implementation prompt: reader-based visitor movements
+Implement frontend compatibility for the backend's reader-based parking/building tracking fix. Inspect this frontend's actual API client, envelopes and routes before editing; preserve existing role permissions and designs.
+
+Confirmed product behavior
+Parking has ENTRY readers only; there is no parking OUT reader.
+
+Parking visitors: parking IN → building IN → building/reception OUT.
+Non-parking visitors: building IN → building/reception OUT.
+Parking arrival is not a building check-in or checkout.
+Building/reception OUT completes the visit. Do not wait for a parking OUT.
+Completion records the building exit, not independently measured departure from the parking area.
+The same visitor can have multiple check-in/out cycles when the backend's existing access window and re-entry rules permit. Never determine permission from the frontend clock or a scan counter.
+Repeated IN while already checked in and repeated OUT after checkout do not create another movement or refresh the original movement timestamp.
+QR validation means access authorized/activated, not physical building entry. Do not optimistically show Checked in when QR validation returns activated.
+Implemented backend behavior
+Matrix classification uses an owner-approved reader mapping, not scan parity:
+
+Device assignments	Meaning
+d_9, d_10	Parking entry only
+d_2, d_3, d_6, d_7	Building IN
+d_1, d_4, d_5, d_8	Building OUT / checkout
+This mapping belongs to the backend. Do not duplicate automatic classification in the frontend. Matrix currently reports IN for some OUT readers; the backend retains provider direction and records the explicit mapping basis in canonical movement audit metadata.
+
+Security's manual building-action endpoints now reject parking IDs, unknown IDs, and known wrong-direction reader IDs with HTTP 400:
+
+POST /api/v1/security/gate/check-in: d_2, d_3, d_6, d_7.
+POST /api/v1/security/gate/check-out: d_1, d_4, d_5, d_8.
+Existing generic building identifiers remain accepted for operator assertions: main, gate_main_entrance, gate_side_entrance, gate_vip.
+Do not offer gate_parking, d_9 or d_10 as building check-in/out selections.
+Do not call building check-in automatically after scanning at parking. There is no new manual parking-action endpoint in this change.
+Actual IN/OUT fields and history
+Use the existing additive per-visit summary:
+
+{
+  "movementSummary": {
+    "version": 1,
+    "latestCheckInAt": "2026-10-09T09:20:00.000Z",
+    "latestCheckOutAt": "2026-10-09T09:10:00.000Z"
+  },
+  "timezone": "Asia/Riyadh"
+}
+The example deliberately shows a latest IN later than the latest OUT: the visitor has re-entered. These are independent latest timestamps, not necessarily a pair.
+
+Render both in the visit timezone, with an explicit empty state for null.
+Do not clear Actual OUT merely because a new IN occurred.
+Do not populate Actual OUT from completedAt, scheduled end, countdown expiry, parking entry, or administrative completion.
+Do not treat checkedInAt/checkedOutAt as the history of every cycle. They are operational/current-cycle values. Re-entry can clear checkedOutAt/completedAt while the independent latest OUT summary still retains the previous exit.
+Status controls the current visit-state badge. Actual IN/OUT show physical history; a completed visit may have no recorded physical OUT after an administrative closure.
+Preserve all cycles in the detail timeline using the existing history API. Do not synthesize a timeline from scan count or only the two latest fields.
+Existing legacy movement history has not been repaired or reverified. Do not label all historical values as verified reader-based evidence.
+Inspect real response envelopes before changing selectors. Backend enrichment supports visit lists, reception lists/search, approvals, security lookup, the valet parking dashboard, and the existing visit/security movement mutations. The valet dashboard has nested list data; do not flatten it by assumption. Preserve movementSummaryAvailability: restricted access restrictions. For a mutation with movementSummaryAvailability: unavailable, the action may already have succeeded: refresh the record; do not automatically resubmit the mutation.
+
+UI work
+Audit reception, security, host/admin lists, valet dashboard, visit details, QR success pages, and manual check-in/out controls.
+Remove any odd/even, every-third-scan, parking-based counter, or optimistic QR-activation movement logic.
+Refresh affected lists/detail views after a successful action. Use existing polling/cache invalidation for hardware events; do not issue per-row history requests to populate a list.
+Preserve backend errors for expired, cancelled, denied, or otherwise ineligible actions. Do not hide every possible future re-entry solely because the current visit status is Completed; respect existing backend eligibility flows.
+Do not add a “parking arrival timestamp” or “currently in parking” display unless a separately documented API provides it. This change does not expose new parking-presence fields or a new occupancy API.
+Acceptance tests
+Parking IN leaves Actual IN/OUT and building status unchanged.
+Building IN then a repeated IN records one arrival, not checkout.
+Building OUT records checkout and completion.
+Second valid cycle updates latest IN and later latest OUT independently.
+Re-entry without another parking scan also works.
+Repeated OUT, exact event replays, denied and unknown readers do not fabricate new timeline movements.
+Non-parking visitors support multiple valid IN/OUT cycles.
+Parking IDs cannot be selected for manual building checkout.
+QR Activated does not immediately render Checked in.
+Null/restricted/unavailable summaries render safely; unavailable mutation summaries never cause duplicate actions.
+Administrative completion does not fabricate Actual OUT.
+Use mocked contracts for frontend tests; do not trigger real gates or send notifications. Report changed files, tests, and any API gaps rather than inventing fields or endpoints.
+
+Rollout dependency
+Backend source changes require deployment and controlled activation. Automatic Matrix movement stays paused unless the backend has mapping version skbc-reader-v1 and an approved UTC activation timestamp. The frontend must not claim that publishing its own changes activates backend gate processing.
