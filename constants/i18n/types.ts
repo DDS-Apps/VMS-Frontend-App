@@ -1,6 +1,40 @@
 export type SupportedLocale = 'en' | 'ar';
 
 export interface TranslationKeys {
+  passwordRecovery: {
+    requestTitle: string;
+    requestSubtitle: string;
+    sendLink: string;
+    sendingLink: string;
+    resendLink: string;
+    emailSentTitle: string;
+    emailSentBody: string;
+    editEmail: string;
+    cooldown: string;
+    microsoftGuidance: string;
+    resetTitle: string;
+    resetSubtitle: string;
+    checkingLink: string;
+    invalidTitle: string;
+    invalidBody: string;
+    requestNewLink: string;
+    resetPassword: string;
+    resettingPassword: string;
+    passwordHint: string;
+    showPassword: string;
+    hidePassword: string;
+    successTitle: string;
+    successBody: string;
+    backToLogin: string;
+    retry: string;
+    networkError: string;
+    unavailableError: string;
+    rateLimitError: string;
+    policyError: string;
+    requestValidationError: string;
+    languageSwitch: string;
+    languageError: string;
+  };
   common: {
     appName: string;
     brandName: string;

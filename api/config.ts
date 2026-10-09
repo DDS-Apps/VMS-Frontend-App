@@ -25,6 +25,7 @@ export const apiConfig = {
       password: "/api/v1/auth/password",
       forgotPassword: "/api/v1/auth/forgot-password",
       resetPassword: "/api/v1/auth/reset-password",
+      validateResetPassword: "/api/v1/auth/reset-password/validate",
       resetPasswordWithOtp: "/api/v1/auth/reset-password-with-otp",
       sendOtp: "/api/v1/auth/send-otp",
       verifyOtp: "/api/v1/auth/verify-otp",

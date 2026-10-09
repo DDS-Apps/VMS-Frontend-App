@@ -83,6 +83,10 @@ function createApp(distDir) {
 
   app.use(function (req, res, next) {
     res.setHeader("X-Content-Type-Options", "nosniff");
+    if (/^\/(forgot-password|reset-password)\/?$/.test(req.path)) {
+      res.setHeader("Referrer-Policy", "no-referrer");
+      res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    }
     // Outlook renders the add-in task pane inside its own frame, so those
     // files must stay frameable by the Office hosts.
     if (!req.path.startsWith(OUTLOOK_ADDIN_PREFIX)) {
@@ -164,7 +168,7 @@ function createApp(distDir) {
 
   app.use(function (req, res) {
     if (fs.existsSync(INDEX_PATH)) {
-      res.setHeader("Cache-Control", REVALIDATE_CACHE);
+      res.setHeader("Cache-Control", /^\/(forgot-password|reset-password)\/?$/.test(req.path) ? "no-store" : REVALIDATE_CACHE);
       res.sendFile(INDEX_PATH, { cacheControl: false });
     } else {
       res.setHeader("Cache-Control", "no-store");

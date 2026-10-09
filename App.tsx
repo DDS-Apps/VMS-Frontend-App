@@ -25,6 +25,9 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { PortalProvider } from "@/contexts/PortalContext";
 import SplashScreen from "@/screens/Auth/SplashScreen";
 import LoginScreen from "@/screens/Auth/LoginScreen";
+import PasswordRecoveryScreen from "@/screens/Auth/PasswordRecoveryScreen";
+import { usePasswordRecoveryNavigation } from "@/hooks/usePasswordRecoveryNavigation";
+import { parsePasswordRecoveryLink } from "@/utils/passwordRecoveryLinks";
 import DashboardContainer from "@/navigation/DashboardContainer";
 import VisitorInviteScreen from "@/screens/Visitor/VisitorInviteScreen";
 import { ThemeContext } from "@/hooks/useTheme";
@@ -92,6 +95,7 @@ function getRequestFormLinkFromUrl(): WebRequestFormLink | null {
 
 /** Routes a universal / App Link URL to the correct navigator screen. */
 function handleDeepLink(url: string) {
+  if (parsePasswordRecoveryLink(url)) return;
   try {
     const parsed = new URL(url);
     const path   = parsed.pathname;
@@ -118,7 +122,7 @@ function handleDeepLink(url: string) {
 
     navigationRef.navigate(ROUTES.DASHBOARD as any);
   } catch (e) {
-    console.warn('[VMS] Deep link parse error:', url, e);
+    console.warn('[VMS] Deep link could not be parsed');
   }
 }
 
@@ -141,6 +145,7 @@ function getLegalPageFromUrl(): LegalPage {
 
 function getInviteTokenFromUrl(): string | null {
   if (Platform.OS !== 'web') return null;
+  if (parsePasswordRecoveryLink(window.location.href)) return null;
   
   try {
     const fullUrl = window.location.href;
@@ -190,6 +195,7 @@ function getInviteTokenFromUrl(): string | null {
 }
 
 function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
+  const recovery = usePasswordRecoveryNavigation();
   const { user, isAuthenticated, isLoading: authLoading, logout, userDataVersion, refreshUser } = useAuth();
   const { layoutKey, isLoading: languageLoading, isRTL, locale, setLocale } = useLanguage();
   const [inviteToken, setInviteToken] = useState<string | null>(null);
@@ -198,6 +204,10 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   const appStateRef = useRef(AppState.currentState);
   const [pendingDeepLink, setPendingDeepLink] = useState<string | null>(null);
   const [webRequestFormLink, setWebRequestFormLink] = useState<WebRequestFormLink | null>(null);
+
+  useEffect(() => {
+    if (recovery.page?.locale) void setLocale(recovery.page.locale).catch(() => {});
+  }, [recovery.page?.revision]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -227,9 +237,12 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   useEffect(() => {
     if (Platform.OS === 'web') return;
     // Cold launch — link that opened the app
-    Linking.getInitialURL().then((url) => { if (url) setPendingDeepLink(url); });
+    Linking.getInitialURL().then((url) => {
+      if (url && !parsePasswordRecoveryLink(url)) setPendingDeepLink(url);
+    }).catch(() => {});
     // Warm launch — link tapped while app is running
     const sub = Linking.addEventListener('url', ({ url }) => {
+      if (parsePasswordRecoveryLink(url)) return;
       if (isAuthenticated && navigationRef.isReady()) {
         handleDeepLink(url);
       } else {
@@ -242,21 +255,24 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
 
   // Navigate pending mobile deep link once authenticated + nav ready
   useEffect(() => {
-    if (!pendingDeepLink || !isAuthenticated || authLoading) return;
+    if (!pendingDeepLink || !isAuthenticated || authLoading || recovery.page || recovery.showLogin) return;
+    let timer: ReturnType<typeof setTimeout>;
     const attempt = () => {
       if (navigationRef.isReady()) {
         handleDeepLink(pendingDeepLink);
         setPendingDeepLink(null);
       } else {
-        setTimeout(attempt, 150);
+        timer = setTimeout(attempt, 150);
       }
     };
-    setTimeout(attempt, 400);
-  }, [pendingDeepLink, isAuthenticated, authLoading]);
+    timer = setTimeout(attempt, 400);
+    return () => clearTimeout(timer);
+  }, [pendingDeepLink, isAuthenticated, authLoading, recovery.page, recovery.showLogin]);
 
   // Navigate web request-form route once authenticated + nav ready
   useEffect(() => {
-    if (!webRequestFormLink || !isAuthenticated || authLoading) return;
+    if (!webRequestFormLink || !isAuthenticated || authLoading || recovery.page || recovery.showLogin) return;
+    let timer: ReturnType<typeof setTimeout>;
     const attempt = () => {
       if (navigationRef.isReady()) {
         navigationRef.navigate(
@@ -265,15 +281,16 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
         );
         setWebRequestFormLink(null);
       } else {
-        setTimeout(attempt, 150);
+        timer = setTimeout(attempt, 150);
       }
     };
-    setTimeout(attempt, 400);
-  }, [webRequestFormLink, isAuthenticated, authLoading]);
+    timer = setTimeout(attempt, 400);
+    return () => clearTimeout(timer);
+  }, [webRequestFormLink, isAuthenticated, authLoading, recovery.page, recovery.showLogin]);
 
   // Sync language from user profile when authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.language && !hasAppliedUserLanguage) {
+    if (!recovery.page && isAuthenticated && user?.language && !hasAppliedUserLanguage) {
       const userLang = user.language;
       // Only change if different from current locale
       if (userLang !== locale) {
@@ -288,7 +305,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     if (!isAuthenticated) {
       setHasAppliedUserLanguage(false);
     }
-  }, [isAuthenticated, user?.language, locale, setLocale, hasAppliedUserLanguage]);
+  }, [isAuthenticated, user?.language, locale, setLocale, hasAppliedUserLanguage, !!recovery.page]);
 
   // The branded splash stays up only while startup work is genuinely pending
   // (locale verification, session restore) and hands off the moment both are
@@ -316,6 +333,7 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   }, [isBooting, isRTL]);
 
   const handleLoginSuccess = (role: UserRole) => {
+    recovery.loginSuccess();
     if (role === 'buffet_staff') {
       setCurrentStaff('staff_001', user?.name || 'Staff');
     }
@@ -344,6 +362,18 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   if (effectiveLanguageLoading) {
     console.log('[AppContent] Showing SplashScreen');
     return <SplashScreen />;
+  }
+
+  if (recovery.page) {
+    return <PasswordRecoveryScreen
+      key={recovery.page.revision}
+      mode={recovery.page.mode}
+      token={recovery.page.token}
+      initialEmail={recovery.page.initialEmail}
+      onRequestNewLink={() => recovery.requestNewLink()}
+      onBackToLogin={recovery.backToLogin}
+      onResetSuccess={recovery.resetSuccess}
+    />;
   }
 
   if (legalPage) {
@@ -379,9 +409,9 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
     );
   }
 
-  if (!isAuthenticated || !user) {
+  if (recovery.showLogin || !isAuthenticated || !user) {
     console.log('[AppContent] Showing LoginScreen');
-    return <LoginScreen key={layoutKey} onLoginSuccess={handleLoginSuccess} />;
+    return <LoginScreen key={layoutKey} onLoginSuccess={handleLoginSuccess} onForgotPassword={recovery.requestNewLink} />;
   }
 
   const userName = user.name || user.email;

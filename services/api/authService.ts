@@ -23,10 +23,14 @@ import {
 } from '@/types';
 import { httpClient } from '@/api/httpClient';
 import type { GetRequestOptions } from '@/api/inFlightGet';
+import { passwordResetService } from './passwordResetService';
 
 const { auth, users, health } = apiConfig.endpoints;
 
 export const authService = {
+  forgotPassword: passwordResetService.request,
+  validateResetPassword: passwordResetService.validate,
+  resetPassword: passwordResetService.reset,
   checkHealth: (): Promise<HealthCheckResponse> => {
     return get<HealthCheckResponse>(health);
   },

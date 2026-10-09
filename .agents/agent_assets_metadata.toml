@@ -70,3 +70,17 @@ mtime_ms = 1791364260268
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/862a8bcf-6804-47ba-a412-75cb748b274e/387ff824-582c-498b-9914-de6dc79919a5"
 storage_version_token = "1791364269558895"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "l8xZrD6gBzScYg6m21_nW"
+uri = "file://docs/non-sso-password-reset-backend-prompt.md"
+type = "text"
+title = "Password reset — backend implementation prompt"
+description = "Copy-ready API contracts, token and SSO safeguards, bilingual email guidance, session revocation requirements and QA acceptance checklist."
+logical_id = "b5e30440-ac08-4be4-9cbd-70c719016b61"
+content_hash = "sha256:99497c6ea09154d8be28db624d98f6d0ae495bcbf6d9dc429ba78e10da0d3de1"
+size = 14333
+mtime_ms = 1791532304060
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/b5e30440-ac08-4be4-9cbd-70c719016b61/fc52320e-c9fe-4e43-9799-11542c5952c7"
+storage_version_token = "1791532745313872"
+content_type = "text/markdown"

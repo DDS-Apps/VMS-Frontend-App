@@ -64,6 +64,13 @@ afterAll(async () => {
 });
 
 describe("cacheControlFor", () => {
+  it.each(["/reset-password", "/forgot-password"])("serves public recovery HTML without caching or referrers at %s", async route => {
+    const response = await request(route);
+    expect(response.status).toBe(200);
+    expect(response.headers["cache-control"]).toBe("no-store");
+    expect(response.headers["referrer-policy"]).toBe("no-referrer");
+    expect(response.headers["x-robots-tag"]).toBe("noindex, nofollow");
+  });
   it("marks hashed build output immutable and everything else revalidated", () => {
     expect(cacheControlFor("/_expo/static/js/web/index-abc.js")).toBe(
       "public, max-age=31536000, immutable",

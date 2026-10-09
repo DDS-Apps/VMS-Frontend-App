@@ -74,6 +74,22 @@ export interface ChangePasswordPayload {
   confirmPassword: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+  locale: 'en' | 'ar';
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ResetLinkValidation {
+  valid: true;
+  expiresAt: string;
+}
+
 export interface UpdateProfilePayload {
   name?: string;
   phoneNumber?: string;

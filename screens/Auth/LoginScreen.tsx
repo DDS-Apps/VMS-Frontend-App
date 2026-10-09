@@ -28,13 +28,14 @@ import { useAzureAuth, AzureErrorType } from "@/hooks/useAzureAuth";
 
 interface LoginScreenProps {
   onLoginSuccess?: (role: UserRole) => void;
+  onForgotPassword?: (email: string) => void;
 }
 
 const INPUT_ICON_SIZE = 22;
 const INPUT_FONT_SIZE = 17;
 const INPUT_HEIGHT = 56;
 
-export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export default function LoginScreen({ onLoginSuccess, onForgotPassword }: LoginScreenProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
@@ -473,6 +474,18 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   </ThemedText>
                 </DirectionalRow>
               </Pressable>
+              {onForgotPassword ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={isSubmitting || isMicrosoftSubmitting}
+                  onPress={() => onForgotPassword(email.trim())}
+                  style={{ paddingVertical: Spacing.sm, flexShrink: 1 }}
+                >
+                  <ThemedText style={[Typography.bodySmall, { color: theme.primary }]}>
+                    {t("auth.forgotPassword")}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
             </DirectionalRow>
 
             <Spacer height={Spacing.xl} />
