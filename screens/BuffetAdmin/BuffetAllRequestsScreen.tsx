@@ -627,7 +627,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <ScreenFlatList
           data={[]}
           keyExtractor={() => '_'}
-          contentContainerStyle={{ paddingTop: Spacing.xl }}
+          contentContainerStyle={{ paddingTop: Spacing.xl, paddingHorizontal: 0 }}
           renderItem={() => null}
           ListHeaderComponent={
             <>
@@ -667,7 +667,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
               <Spacer height={Spacing.lg} />
 
               <View style={styles.paddedContent}>
-                <DashboardKpiSection />
+                <DashboardKpiSection singleCardWidth={240} />
               </View>
 
               <Spacer height={LAYOUT.sectionSpacing} />
@@ -715,6 +715,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
   return (
     <>
       <ScreenScrollView
+        contentContainerStyle={{ paddingHorizontal: 0 }}
         refreshControl={
           <RefreshControl refreshing={isLoadingTasks} onRefresh={refreshDashboard} tintColor={theme.primary} />
         }
@@ -755,7 +756,7 @@ export default function BuffetAllRequestsScreen({ navigation }: BuffetAllRequest
         <Spacer height={Spacing.lg} />
 
         <View style={styles.paddedContent}>
-          <DashboardKpiSection />
+          <DashboardKpiSection singleCardWidth={240} />
         </View>
 
         <Spacer height={LAYOUT.sectionSpacing} />

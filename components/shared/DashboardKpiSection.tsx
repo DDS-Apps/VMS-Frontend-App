@@ -34,7 +34,7 @@ const KPI_TRANSLATION_KEYS: Record<string, string> = {
   todaysRequests: 'dashboard.todaysRequests',
 };
 
-export function DashboardKpiSection() {
+export function DashboardKpiSection({ singleCardWidth }: { singleCardWidth?: number } = {}) {
   const { user, isAuthenticated } = useAuth();
   const { theme } = useTheme();
   const { t, locale } = useTranslation();
@@ -65,7 +65,7 @@ export function DashboardKpiSection() {
   if (query.isFetching) {
     const skeletonCount = Math.max(query.data?.kpis.length ?? 4, 1);
     return (
-      <KPICardRow>
+      <KPICardRow singleCardWidth={singleCardWidth}>
         {Array.from({ length: skeletonCount }, (_, index) => (
           <SkeletonCard key={index} showImage={false} lines={1} style={styles.skeleton} />
         ))}
@@ -94,7 +94,7 @@ export function DashboardKpiSection() {
 
   const localeTag = locale === 'ar' ? 'ar-SA' : 'en-US';
   return (
-    <KPICardRow>
+    <KPICardRow singleCardWidth={singleCardWidth}>
       {kpis.map((kpi: DashboardKpi) => {
         const presentation = KPI_PRESENTATION[kpi.key] ?? { icon: 'bar-chart-2' as IconName, color: 'primary' as const };
         const translationKey = KPI_TRANSLATION_KEYS[kpi.key];

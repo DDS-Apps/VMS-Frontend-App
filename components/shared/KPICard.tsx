@@ -70,9 +70,11 @@ export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
 
 export interface KPICardRowProps {
   children: React.ReactNode;
+  /** Optional width for a lone KPI on wide screens; phone grids are unchanged. */
+  singleCardWidth?: number;
 }
 
-export function KPICardRow({ children }: KPICardRowProps) {
+export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
   const { width: windowWidth } = useWindowDimensions();
   const { isRTL } = useLanguage();
   const isMobile = windowWidth < 768;
@@ -87,16 +89,17 @@ export function KPICardRow({ children }: KPICardRowProps) {
 
   const effectiveColumns = Math.min(columnsPerRow, childCount);
   const fullWidth = isMobile && effectiveColumns === 1;
+  const customSingleWidth = !isMobile && effectiveColumns === 1 && singleCardWidth !== undefined;
   const flexBasisPercent = fullWidth ? '100%' : effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
   
   const childrenWithWidth = React.Children.map(visibleChildren, (child) => {
     if (React.isValidElement(child)) {
       return (
         <View style={{ 
-          flexBasis: flexBasisPercent,
-          flexGrow: 1,
-          flexShrink: 0,
-          maxWidth: fullWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
+          flexBasis: customSingleWidth ? singleCardWidth : flexBasisPercent,
+          flexGrow: customSingleWidth ? 0 : 1,
+          flexShrink: customSingleWidth ? 1 : 0,
+          maxWidth: fullWidth || customSingleWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
           marginBottom: Spacing.md,
         }}>
           {child}
