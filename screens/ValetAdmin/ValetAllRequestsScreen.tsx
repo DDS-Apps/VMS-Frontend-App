@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitleRow: {
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.sm,
@@ -601,10 +602,13 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   sectionControls: {
-    flexShrink: 0,
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    maxWidth: '100%',
     gap: Spacing.sm,
   },
   viewToggle: {
+    flexShrink: 0,
     borderWidth: 1,
     borderRadius: BorderRadius.sm,
     padding: 2,

@@ -143,12 +143,15 @@ const SectionHeader = ({
 }) => {
   return (
     <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
-      <ThemedText style={[Typography.subtitle]}>
+      <ThemedText style={[Typography.subtitle, { flex: 1 }]}>
         {t('navigation.buffetRequests')}
       </ThemedText>
-      {Platform.OS === 'web' ? (
         <View style={styles.viewToggle}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cardView')}
+            accessibilityState={{ selected: viewMode === 'card' }}
+            hitSlop={6}
             style={[
               styles.viewToggleButton,
               { backgroundColor: viewMode === 'card' ? theme.primary : theme.surface },
@@ -162,6 +165,10 @@ const SectionHeader = ({
             />
           </Pressable>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.tableView')}
+            accessibilityState={{ selected: viewMode === 'list' }}
+            hitSlop={6}
             style={[
               styles.viewToggleButton,
               { backgroundColor: viewMode === 'list' ? theme.primary : theme.surface },
@@ -175,7 +182,6 @@ const SectionHeader = ({
             />
           </Pressable>
         </View>
-      ) : null}
     </DirectionalRow>
   );
 };
@@ -878,11 +884,13 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     flexDirection: 'row',
+    flexShrink: 0,
     gap: Spacing.xs,
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
   },
   viewToggleButton: {
+    minHeight: 40,
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
     minWidth: 40,

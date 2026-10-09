@@ -124,6 +124,7 @@ const LAYOUT = {
   matrixHeaderHeight: 41,
   matrixRowMinHeight: 68,
 };
+const MATRIX_LAYOUT = LAYOUT;
 
 function MatrixRow({
   item,
@@ -564,6 +565,14 @@ function MatrixTable({
   const isSimple = columns === "simple";
   const showPurposeColumn = !isSimple && visitors.some((v) => v.purpose);
   const showContactColumn = !isSimple && visitors.some((v) => v.email || v.phone);
+  const [tableWidth, setTableWidth] = useState(0);
+  // Include the frozen name column; retain minimum widths and horizontal
+  // scrolling on phones, but fill the viewport when the columns would be short.
+  const columnCount = isSimple ? 4 : 9 + Number(showPurposeColumn) + Number(showContactColumn);
+  const LAYOUT = {
+    ...MATRIX_LAYOUT,
+    matrixColWidth: Math.max(MATRIX_LAYOUT.matrixColWidth, (tableWidth - 3) / columnCount),
+  };
   const statusHeaderLabel = showApproveReject || showCheckActions || showEditDelete
     ? t("common.actions").toUpperCase()
     : t("common.status").toUpperCase();
@@ -574,7 +583,7 @@ function MatrixTable({
   // shrink as well as grow (for example after leaving selection mode).
   useEffect(() => {
     setRowHeights((previous) => Object.keys(previous).length ? {} : previous);
-  }, [visitors, isRTL, isSelectionMode, showApproveReject, showCheckActions, showEditDelete, showExpiredState]);
+  }, [visitors, isRTL, isSelectionMode, showApproveReject, showCheckActions, showEditDelete, showExpiredState, LAYOUT.matrixColWidth]);
   const measureRow = (id: string, height: number) => {
     setRowHeights((previous) =>
       height > (previous[id] ?? LAYOUT.matrixRowMinHeight)
@@ -592,10 +601,13 @@ function MatrixTable({
   };
 
   return (
-    <View style={[styles.matrixWrapper, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+    <View
+      onLayout={(event) => setTableWidth(event.nativeEvent.layout.width)}
+      style={[styles.matrixWrapper, { borderColor: theme.border, backgroundColor: theme.surface }]}
+    >
       <View style={getTableColumnStyle(isRTL)}>
         {/* Frozen visitor-name column — header cell + one cell per row, stays put while the rest scrolls */}
-        <View style={[styles.matrixFrozenColStack, { borderEndColor: theme.border, backgroundColor: theme.surface }]}>
+        <View style={[styles.matrixFrozenColStack, { width: LAYOUT.matrixColWidth, borderEndColor: theme.border, backgroundColor: theme.surface }]}>
           <View
             style={[
               styles.matrixHeaderCell,
@@ -665,7 +677,7 @@ function MatrixTable({
           showsHorizontalScrollIndicator
           persistentScrollbar
           nestedScrollEnabled
-          style={{ flex: 1 }}
+          style={{ flex: 1, minWidth: 0 }}
         >
           <View>
             <View style={[styles.matrixHeaderRow, { backgroundColor: theme.surfaceSecondary, borderBottomColor: theme.border }, getTableColumnStyle(isRTL)]}>
@@ -697,6 +709,7 @@ function MatrixTable({
             {visitors.map((item, idx) => (
               <MatrixDataRowCells
                 key={item.id}
+                columnWidth={LAYOUT.matrixColWidth}
                 item={item}
                 isLast={idx === visitors.length - 1}
                 rowHeight={rowHeights[item.id] ?? LAYOUT.matrixRowMinHeight}
@@ -731,6 +744,7 @@ function MatrixTable({
 }
 
 function MatrixDataRowCells({
+  columnWidth = MATRIX_LAYOUT.matrixColWidth,
   item,
   isLast,
   rowHeight,
@@ -756,6 +770,7 @@ function MatrixDataRowCells({
   rejectLoadingId,
   isSimple,
 }: {
+  columnWidth?: number;
   item: VisitorMatrixItem;
   isLast: boolean;
   rowHeight: number;
@@ -781,6 +796,7 @@ function MatrixDataRowCells({
   rejectLoadingId?: string;
   isSimple?: boolean;
 }) {
+  const LAYOUT = { ...MATRIX_LAYOUT, matrixColWidth: columnWidth };
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatTimeFromString } = useFormatters();

@@ -727,13 +727,16 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
     <>
       <ScreenScrollView contentContainerStyle={scrollContentStyle}>
         <DirectionalRow style={styles.titleRow}>
-          <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600' }]}>
+          <ThemedText style={[Typography.title, { fontSize: 24, fontWeight: '600', flex: 1 }]}>
             {t('navigation.visitorVerification')}
           </ThemedText>
           
-          {Platform.OS === 'web' ? (
             <View style={[styles.viewToggle, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cardView')}
+                accessibilityState={{ selected: viewMode === 'card' }}
+                hitSlop={6}
                 style={[
                   styles.viewToggleButton,
                   styles.viewToggleButtonLeft,
@@ -751,6 +754,10 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 />
               </Pressable>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.tableView')}
+                accessibilityState={{ selected: viewMode === 'list' }}
+                hitSlop={6}
                 style={[
                   styles.viewToggleButton,
                   styles.viewToggleButtonRight,
@@ -768,7 +775,6 @@ export default function SecurityCheckInScreen({ navigation }: SecurityCheckInScr
                 />
               </Pressable>
             </View>
-          ) : null}
         </DirectionalRow>
         
         <Spacer height={Spacing.sm} />
@@ -911,6 +917,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   viewToggle: {
+    flexShrink: 0,
     borderRadius: BorderRadius.sm,
     overflow: 'hidden',
   },
@@ -967,7 +974,7 @@ const styles = StyleSheet.create({
   },
   calendarIconButton: {
     width: 56,
-    height: 56,
+    height: Spacing.inputHeight,
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',

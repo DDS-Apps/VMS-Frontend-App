@@ -98,17 +98,10 @@ export const getMenuGroups = (role: UserRole): { groups: MenuGroup[]; standalone
     ];
     result.groups = [];
   } else if (role === 'security') {
-    result.standalone = [];
-    result.groups = [
-      {
-        id: 'operations',
-        labelKey: 'sidebar.operations',
-        icon: 'shield',
-        items: [
-          { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
-        ],
-      },
+    result.standalone = [
+      { id: 'check_in', labelKey: 'navigation.visitorVerification', icon: 'shield', screen: 'CheckIn' },
     ];
+    result.groups = [];
   } else if (role === 'valet_driver') {
     result.standalone = [
       { id: 'my_tasks', labelKey: 'navigation.myTasks', icon: 'list', screen: 'DriverTasks' },

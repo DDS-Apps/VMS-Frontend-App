@@ -1,6 +1,6 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { en, ar, getTranslation } from "@/constants/i18n";
 import { Spacing } from "@/constants/theme";
@@ -15,6 +15,46 @@ import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
 import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
 import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
+
+describe("Matrix table viewport widths", () => {
+  it.each((["en", "ar"] as const).flatMap(locale => [
+    { locale, columns: "simple" as const, optional: false, count: 4 },
+    { locale, columns: "visitor" as const, optional: false, count: 9 },
+    { locale, columns: "visitor" as const, optional: true, count: 11 },
+  ]))("fills $columns tables in $locale (optional columns=$optional) and preserves phone scrolling", ({ locale, columns, optional, count }) => {
+    const visitors: VisitorMatrixItem[] = [{
+      id: "width-visitor", visitorName: "Test visitor", plannedInTime: "09:00",
+      status: "approved", location: "Lotus",
+      ...(optional ? { purpose: "meeting", email: "visitor@example.com" } : {}),
+    }];
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        <LanguageContext.Provider value={localeContextValue(locale)}>
+          <VisitorMatrixTable visitors={visitors} variant="matrix" columns={columns} />
+        </LanguageContext.Provider>,
+      );
+    });
+    const styleOf = (node: ReturnType<typeof create>["root"]) => StyleSheet.flatten(node.props.style);
+    const table = () => renderer.root.findAll(node => typeof node.props.onLayout === "function" && styleOf(node)?.borderWidth === 1)[0];
+    const headerWidths = () => renderer.root.findAll(node =>
+      node.type === View && [40, 41].includes(styleOf(node)?.height) && typeof styleOf(node)?.width === "number",
+    ).map(node => styleOf(node).width);
+    act(() => table().props.onLayout({ nativeEvent: { layout: { width: count * 300 + 3 } } }));
+    expect(headerWidths()).toEqual(Array(count).fill(300));
+    const nameCell = renderer.root.findAll(node =>
+      node.props.onPress && styleOf(node)?.width === 300,
+    )[0];
+    expect(nameCell).toBeDefined();
+    // Frozen name and scrolling rows use the same computed column width.
+    expect(renderer.root.findAll(node =>
+      styleOf(node)?.minHeight === 68 && styleOf(node)?.width === 300,
+    ).length).toBeGreaterThanOrEqual(4);
+    act(() => table().props.onLayout({ nativeEvent: { layout: { width: 390 } } }));
+    expect(headerWidths()).toEqual(Array(count).fill(170));
+    act(() => renderer.unmount());
+  });
+});
 
 const mockTheme = {
   background: "#ffffff",
@@ -448,6 +488,7 @@ describe("VisitorMatrixTable frozen name column alignment", () => {
       const findName = (name: string) => measuredCells().find((node) =>
         styleOf(node)?.width === 170 && themedTextsIn(node).includes(name));
       const findData = (company: string) => measuredCells().find((node) =>
+        styleOf(node)?.minHeight !== undefined &&
         styleOf(node)?.width !== 170 && themedTextsIn(node).includes(company));
 
       const nameHeader = renderer.root.findAll((node) =>
