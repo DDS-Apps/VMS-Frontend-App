@@ -408,7 +408,6 @@ function RecoveryPage({
           {mode === "reset" && !invalid && linkState === "valid" ? (
             <>
               {renderField("newPassword")}
-              <ThemedText style={[Typography.caption, aligned, styles.hint, { color: theme.textSecondary }]}>{t("passwordRecovery.passwordHint")}</ThemedText>
               {renderField("confirmPassword")}
             </>
           ) : null}

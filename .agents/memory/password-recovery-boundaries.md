@@ -26,3 +26,9 @@ Public password recovery should match the existing sign-in screen's background, 
 **Why:** The user explicitly requested visual consistency after reviewing recovery screenshots, including the focused email field.
 
 **How to apply:** Use the sign-in screen as the visual reference in both languages, retain a visible single focus indicator, and keep meaningful recovery wording and backend-unavailable errors intact.
+
+Show one concise new-password policy message, not overlapping helper paragraphs.
+
+**Why:** The user reported contradictory six- and eight-character instructions and explicitly asked for a single clear policy.
+
+**How to apply:** When policy wording changes, check all simultaneously rendered guidance in both languages, not just whether the new text is present.

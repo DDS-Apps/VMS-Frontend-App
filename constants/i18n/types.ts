@@ -20,7 +20,6 @@ export interface TranslationKeys {
     requestNewLink: string;
     resetPassword: string;
     resettingPassword: string;
-    passwordHint: string;
     showPassword: string;
     hidePassword: string;
     successTitle: string;

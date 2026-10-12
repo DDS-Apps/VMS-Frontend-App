@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { TextInput, StyleSheet, Platform } from 'react-native';
+import { TextInput, Text, StyleSheet, Platform } from 'react-native';
 
 let mockLocale: 'en' | 'ar' = 'en';
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -50,6 +50,71 @@ describe('password recovery public states', () => {
     api.validateResetPassword.mockResolvedValue({ valid: true, expiresAt: new Date(Date.now() + 900000).toISOString() });
   });
   afterEach(() => { if (renderer) act(() => renderer.unmount()); jest.useRealTimers(); jest.restoreAllMocks(); });
+
+  it.each(['en', 'ar'] as const)('shows exactly one current password policy in %s', async locale => {
+    mockLocale = locale;
+    await mount('reset', 'fixture-token');
+    const messages = renderer.root.findAllByType(Text).map(node => node.props.children);
+    expect(messages.filter(message => message === tr('auth.newPasswordGuidance'))).toHaveLength(1);
+    expect(text()).not.toMatch(/6 characters|6 أحرف|passwordHint/);
+    expect(tr('auth.newPasswordGuidance')).toContain('8');
+    expect(tr('auth.newPasswordGuidance')).toContain('72');
+  });
+
+  it.each(['en', 'ar'] as const)('counts down across edits and language changes in %s', async locale => {
+    mockLocale = locale;
+    await mount('request');
+    type('form.emailAddress', 'fixture@example.test');
+    await press('passwordRecovery.sendLink');
+    const expectSeconds = (seconds: number) => {
+      expect(text()).toContain(mockLocale === 'en'
+        ? `You can try again in ${seconds} seconds.`
+        : `يمكنك المحاولة مجدداً بعد ${seconds} ثانية.`);
+      expect(text()).not.toContain('{seconds}');
+    };
+    expectSeconds(60);
+    await act(async () => { jest.advanceTimersByTime(1000); });
+    expectSeconds(59);
+    await act(async () => { jest.advanceTimersByTime(14000); });
+    expectSeconds(45);
+    expect(action('passwordRecovery.resendLink').props.disabled).toBe(true);
+    await press('passwordRecovery.editEmail');
+    type('form.emailAddress', 'another@example.test');
+    mockLocale = locale === 'en' ? 'ar' : 'en';
+    await act(async () => renderer.update(<PasswordRecoveryScreen {...props} mode="request" token={null} />));
+    expectSeconds(45);
+    await press('passwordRecovery.sendLink');
+    expect(api.forgotPassword).toHaveBeenCalledTimes(1);
+    await act(async () => { jest.advanceTimersByTime(44000); });
+    expectSeconds(1);
+    expect(action('passwordRecovery.sendLink').props.disabled).toBe(true);
+    await act(async () => { jest.advanceTimersByTime(1000); });
+    expect(text()).not.toMatch(/try again in|المحاولة مجدداً بعد|\{seconds\}/);
+    expect(action('passwordRecovery.sendLink').props.disabled).toBe(false);
+    await press('passwordRecovery.sendLink');
+    expect(api.forgotPassword).toHaveBeenCalledTimes(2);
+    expectSeconds(60);
+  });
+
+  it.each(['en', 'ar'] as const)('renders server Retry-After countdown and unlocks at expiry in %s', async locale => {
+    mockLocale = locale;
+    api.forgotPassword.mockRejectedValueOnce(new PasswordResetError('rateLimit', 120));
+    await mount('request');
+    type('form.emailAddress', 'fixture@example.test');
+    await press('passwordRecovery.sendLink');
+    const expected = (seconds: number) => locale === 'en'
+      ? `You can try again in ${seconds} seconds.`
+      : `يمكنك المحاولة مجدداً بعد ${seconds} ثانية.`;
+    expect(text()).toContain(expected(120));
+    await act(async () => { jest.advanceTimersByTime(75000); });
+    expect(text()).toContain(expected(45));
+    expect(text()).not.toContain('{seconds}');
+    await press('passwordRecovery.sendLink');
+    expect(api.forgotPassword).toHaveBeenCalledTimes(1);
+    await act(async () => { jest.advanceTimersByTime(45000); });
+    expect(action('passwordRecovery.sendLink').props.disabled).toBe(false);
+    expect(text()).not.toContain(expected(0));
+  });
 
   it.each(['en', 'ar'] as const)('matches login field and action sizing with one web focus border in %s', async locale => {
     mockLocale = locale;
