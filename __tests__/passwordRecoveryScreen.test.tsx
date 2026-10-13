@@ -51,14 +51,15 @@ describe('password recovery public states', () => {
   });
   afterEach(() => { if (renderer) act(() => renderer.unmount()); jest.useRealTimers(); jest.restoreAllMocks(); });
 
-  it.each(['en', 'ar'] as const)('shows exactly one current password policy in %s', async locale => {
+  it.each(['en', 'ar'] as const)('shows exactly one concise new-password helper in %s', async locale => {
     mockLocale = locale;
     await mount('reset', 'fixture-token');
     const messages = renderer.root.findAllByType(Text).map(node => node.props.children);
-    expect(messages.filter(message => message === tr('auth.newPasswordGuidance'))).toHaveLength(1);
+    const helper = tr('auth.newPasswordGuidance');
+    expect(helper).toBe(locale === 'en' ? 'Password must be at least 8 characters long.' : 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.');
+    expect(messages.filter(message => message === helper)).toHaveLength(1);
+    expect(helper).not.toMatch(/72|UTF-8|spaces|confirmation|مسافات|المسافات|التأكيد/);
     expect(text()).not.toMatch(/6 characters|6 أحرف|passwordHint/);
-    expect(tr('auth.newPasswordGuidance')).toContain('8');
-    expect(tr('auth.newPasswordGuidance')).toContain('72');
   });
 
   it.each(['en', 'ar'] as const)('counts down across edits and language changes in %s', async locale => {

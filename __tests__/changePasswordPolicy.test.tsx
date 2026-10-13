@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { TextInput } from 'react-native';
+import { TextInput, Text } from 'react-native';
 import ChangePasswordScreen from '@/screens/Profile/ChangePasswordScreen';
 import { getTranslation } from '@/constants/i18n';
 
@@ -35,6 +35,13 @@ describe.each(['en', 'ar'] as const)('signed-in password policy (%s)', locale =>
     act(() => { tree = create(<ChangePasswordScreen onSuccess={jest.fn()} onCancel={jest.fn()} />); });
   });
   afterEach(() => act(() => tree.unmount()));
+  it('shows exactly one concise new-password helper', () => {
+    const helper = tr('auth.newPasswordGuidance');
+    expect(helper).toBe(locale === 'en' ? 'Password must be at least 8 characters long.' : 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.');
+    const messages = tree.root.findAllByType(Text).map(node => node.props.children);
+    expect(messages.filter(message => message === helper)).toHaveLength(1);
+    expect(helper).not.toMatch(/72|UTF-8|spaces|confirmation|مسافات|المسافات|التأكيد/);
+  });
   it.each(['1234567', '        ', 'a'.repeat(73), 'ع'.repeat(37), '🙂'.repeat(19)])('blocks invalid password before transport', async password => {
     enter(password);
     expect(submit().props.disabled).toBe(true);

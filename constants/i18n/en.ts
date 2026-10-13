@@ -203,7 +203,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     passwordMinLength: 'Password must be at least 6 characters',
     newPasswordMinLength: 'New password must be at least 8 characters.',
     passwordMaxBytes: 'Password must not exceed 72 UTF-8 bytes. Arabic letters and emoji can use more than one byte.',
-    newPasswordGuidance: 'Use at least 8 characters, not only spaces, and at most 72 UTF-8 bytes. Spaces are preserved; confirmation must match exactly.',
+    newPasswordGuidance: 'Password must be at least 8 characters long.',
     otpSent: 'Verification code sent to your email',
     otpResent: 'Verification code resent to your email',
     invalidOtp: 'Invalid verification code',

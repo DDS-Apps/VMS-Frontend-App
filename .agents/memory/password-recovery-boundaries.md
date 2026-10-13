@@ -27,8 +27,8 @@ Public password recovery should match the existing sign-in screen's background, 
 
 **How to apply:** Use the sign-in screen as the visual reference in both languages, retain a visible single focus indicator, and keep meaningful recovery wording and backend-unavailable errors intact.
 
-Show one concise new-password policy message, not overlapping helper paragraphs.
+Show one concise new-password helper containing only the minimum-length instruction, not overlapping helper paragraphs or the full password policy.
 
-**Why:** The user reported contradictory six- and eight-character instructions and explicitly asked for a single clear policy.
+**Why:** The user reported contradictory six- and eight-character instructions and requested only a minimum-length helper, later specifying “Password must be at least 8 characters long.” while preserving all validation rules and errors.
 
 **How to apply:** When policy wording changes, check all simultaneously rendered guidance in both languages, not just whether the new text is present.
