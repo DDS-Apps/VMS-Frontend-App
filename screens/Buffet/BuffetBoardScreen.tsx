@@ -18,12 +18,11 @@ import { useFormatters } from '@/hooks/useFormatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RTLHorizontalScrollView, FilterChip } from '@/components/shared';
 import { SkeletonCard } from '@/components/shared/Skeleton';
-import { applyOpacity } from '@/utils/statusStyles';
+import { applyOpacity, getStatusConfig as getSharedStatusConfig } from '@/utils/statusStyles';
 import { useMyBuffetTasksQuery, useUpdateBuffetTaskStatusMutation } from '@/hooks/queries/useBuffetQueries';
 import { useRetainedDatedData } from '@/hooks/useRetainedDatedData';
 import { ActiveDateRangeLabel } from '@/components/shared/ActiveDateRangeLabel';
 import { RequestStatusBadge } from '@/components/shared/RequestStatusBadge';
-import { getStatusConfig as getSharedStatusConfig } from '@/utils/statusStyles';
 import type { BuffetStaffTaskDto, BuffetStaffTaskStatus } from '@/types/api.types';
 
 type StatusFilter = 'all' | BuffetStaffTaskStatus;
