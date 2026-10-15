@@ -7,16 +7,16 @@ also the source of the **production** web bundle for IIS at `https://vms.dallah.
 | Setting | QA | Production |
 |---------|----|------------|
 | **Web / app domain** | `vms-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
-| **Backend API** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| **Microsoft SSO** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
+| **Backend API** | `https://vms.dallah.com` (live data) | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| **Microsoft SSO** | `https://vms.dallah.com` | `https://vms.dallah.com` |
 | **Firebase Project** | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
-| **APP_VARIANT** | `staging` (default) | `production` |
+| **APP_VARIANT** | `staging` (explicit only; production API) | `production` (default) |
 
 ### Environment configuration
 - **Source of truth**: `config/app-environments.js` (plain CommonJS, public values only). `app.config.js` derives `extra.apiBaseUrl` / `microsoftAuthUrl` / `appDomain` / `legalPagesUrl`, iOS `associatedDomains` and Android `intentFilters` from it. `app.json` contains no environment-specific hosts.
-- **Precedence**: `EXPO_PUBLIC_<KEY>` process env (Replit shared env; `*.replit.dev` values ignored) → git-ignored variant file (`.env.production` / `.env.staging`, keys `API_BASE_URL`, `MICROSOFT_AUTH_URL`, `APP_DOMAIN`, `LEGAL_PAGES_URL`, **no `EXPO_PUBLIC_` prefix**) → committed defaults. The Expo CLI auto-loads `.env.production` for every `expo export`, which is why variant files must never contain `EXPO_PUBLIC_*` keys.
-- **Guard rails**: with `APP_VARIANT=production`, `app.config.js` ignores inherited `EXPO_PUBLIC_*` URLs (warns) and throws if the result still points at a QA/Replit host. The app reads `Constants.expoConfig.extra.*` before `process.env.EXPO_PUBLIC_*`. Web builds scan `dist/` and fail on foreign hostnames, a mismatched inlined `apiBaseUrl`, or leftover `%%PLACEHOLDER%%` tokens.
-- **Web builds**: `npm run build:web` (explicit QA build) and `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` (IIS; ignores inherited `EXPO_PUBLIC_*`, renders `web/web.config` into `dist/`, skips pre-compression). Replit Publishing uses `scripts/build-and-verify.sh` to build the QA variant without IIS-only `web.config` and with pre-compression. Logic lives in `scripts/build-web.js` + `scripts/lib/web-dist.js`.
+- **Backend policy**: all variants, including QA/staging, use `https://vms.dallah.com` from `config/web-backend.json` on both native and web. Process variables, local env files and stale Expo metadata cannot redirect API or Microsoft sign-in. These clients access live data. Other public app-domain settings retain variant-specific resolution.
+- **Guard rails**: production rejects foreign app domains; all exported variants reject the old QA backend and mismatched inlined API configuration. Web builds also reject development URLs and leftover template tokens.
+- **Web builds**: `npm run build:web` creates a production export without IIS configuration and with pre-compression. `npm run build:web:production` requires the real production backend listener through `VMS_BACKEND_ORIGIN` or `--backend-origin`; never use the public frontend as its own upstream. `http://localhost:3000` is only an example, not a confirmed server setting. Replit Publishing uses the production variant.
 - **Static web files** (`public/`): `firebase-messaging-sw.js`, legal pages, `.well-known/*`, Outlook add-in. `expo export` copies them into `dist/`; the add-in manifest/task pane use `%%APP_DOMAIN%%` / `%%APP_ORIGIN%%` / `%%ADDIN_*%%` placeholders filled per environment (distinct add-in ids for QA and production).
 - **EAS build profiles**: `eas.json` sets `APP_VARIANT=staging` for dev/preview profiles and `APP_VARIANT=production` for production profiles.
 - **Docs**: `DEPLOY_WEB_IIS.md` (IIS deployment), `docs/production-readiness-checklist.md` (what is done vs. still outside this repo), `docs/store-publishing-checklist.md`.

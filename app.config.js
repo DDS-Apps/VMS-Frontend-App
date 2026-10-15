@@ -11,7 +11,7 @@ const {
 } = require('./config/app-environments');
 
 // APP_VARIANT selects the environment: `production` builds target
-// https://vms.dallah.com by default. QA requires explicit `qa`/`staging`.
+// https://vms.dallah.com for all variants. QA only retains a separate app identity.
 // eas.json sets it per build profile; scripts/build-web.js sets it for web.
 const APP_VARIANT = normalizeVariant(process.env.APP_VARIANT);
 const IS_PRODUCTION = APP_VARIANT === PRODUCTION_VARIANT;
@@ -27,10 +27,8 @@ function readVariantFile(fileName) {
 }
 
 const fileEnv = readVariantFile(IS_PRODUCTION ? '.env.production' : '.env.staging');
-// Production never takes URLs from the process environment: this workspace's
-// shared env holds the QA hosts, and `eas build --profile production` would
-// otherwise evaluate against them. The app reads Constants.expoConfig.extra
-// (resolved here) before process.env, so ignoring them is sufficient.
+// Backend URLs are fixed to production for every variant. Production also
+// ignores process overrides for the other public app-domain settings.
 const environment = resolveEnvironment({
   appVariant: APP_VARIANT,
   fileEnv,
@@ -39,7 +37,7 @@ const environment = resolveEnvironment({
 assertProductionConfig(environment);
 if (environment.ignored.length > 0) {
   console.warn(
-    `[app.config] APP_VARIANT=production: ignoring ${environment.ignored.join(', ')} from the environment; ` +
+    `[app.config] APP_VARIANT=${APP_VARIANT}: ignoring ${environment.ignored.join(', ')} from the environment; ` +
       `using ${environment.apiBaseUrl} (${environment.sources.apiBaseUrl}).`,
   );
 }

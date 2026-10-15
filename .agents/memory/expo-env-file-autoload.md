@@ -2,7 +2,7 @@
 name: Expo .env.production auto-load and environment resolution
 description: Why per-variant config is resolved explicitly in app.config.js instead of trusting process.env, and how production builds stay isolated from the QA shared env.
 ---
-**Rule:** Production remains the default base environment and native backend, including internal/preview binaries. QA must be explicitly selected, never inferred from a missing or unknown variant. Resolve native URLs through the shared environment resolver, ignore process URL overrides in production, enforce the canonical HTTPS production hosts and prefer `Constants.expoConfig.extra.*` at runtime.
+**Rule:** Production remains the default base environment, including internal/preview binaries. Explicit QA/staging may retain its app identity, but must use the production backend. Stale process variables, local files and Expo metadata must not redirect clients to QA.
 
 **All-configuration policy (2026-10-15):** The user explicitly superseded the web-only QA exception and requested `https://vms.dallah.com` for every configuration, including IIS web and mobile. Explicit QA/staging variants must not restore the old QA backend. This is the requested policy, not evidence that every setting has already been updated.
 

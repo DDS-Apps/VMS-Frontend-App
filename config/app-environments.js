@@ -10,7 +10,8 @@
  * It is plain CommonJS on purpose: `app.config.js` (evaluated by the Expo CLI),
  * `scripts/build-web.js` and the Jest suites all consume it without a build step.
  *
- * Resolution order for each value (highest priority first):
+ * Backend API and Microsoft SSO always use the committed production origin.
+ * Resolution order for other public values (highest priority first):
  *   1. `EXPO_PUBLIC_<KEY>` in the process environment (Replit shared env, CI).
  *   2. `<KEY>` or `EXPO_PUBLIC_<KEY>` from the optional, git-ignored variant
  *      file (`.env.production` / `.env.staging`), when one is provided.
@@ -26,12 +27,17 @@
 
 const PRODUCTION_VARIANT = 'production';
 const QA_VARIANT = 'qa';
+// All clients use the live backend, including explicit QA/staging variants.
+const { origin: BACKEND_ORIGIN } = require('./web-backend.json');
+if (BACKEND_ORIGIN !== 'https://vms.dallah.com') {
+  throw new Error('All client configurations must use https://vms.dallah.com');
+}
 
 const ENVIRONMENTS = {
   [QA_VARIANT]: {
     name: QA_VARIANT,
-    apiBaseUrl: 'https://vms-backend-app-qa.replit.app',
-    microsoftAuthUrl: 'https://vms-backend-app-qa.replit.app',
+    apiBaseUrl: BACKEND_ORIGIN,
+    microsoftAuthUrl: BACKEND_ORIGIN,
     // The QA web app (and therefore /.well-known, /invite/* and /requests/*)
     // is served by the Replit deployment of this project.
     appDomain: 'vms-frontend-folio3.replit.app',
@@ -44,8 +50,8 @@ const ENVIRONMENTS = {
   },
   [PRODUCTION_VARIANT]: {
     name: PRODUCTION_VARIANT,
-    apiBaseUrl: 'https://vms.dallah.com',
-    microsoftAuthUrl: 'https://vms.dallah.com',
+    apiBaseUrl: BACKEND_ORIGIN,
+    microsoftAuthUrl: BACKEND_ORIGIN,
     appDomain: 'vms.dallah.com',
     legalPagesUrl: 'https://vms.dallah.com',
     outlookAddin: {
@@ -140,6 +146,11 @@ function resolveEnvironment(options = {}) {
     : [];
 
   const pick = (key) => {
+    // Neither stale process variables nor local .env files may redirect clients.
+    if (key === 'apiBaseUrl' || key === 'microsoftAuthUrl') {
+      sources[key] = 'production backend policy';
+      return BACKEND_ORIGIN;
+    }
     const envKey = ENV_KEYS[key];
     const publicKey = `EXPO_PUBLIC_${envKey}`;
     let note = '';
@@ -188,6 +199,9 @@ function resolveEnvironment(options = {}) {
  * `APP_VARIANT=production` can never be built against the QA backend.
  */
 function assertProductionConfig(resolved) {
+  if (resolved.apiBaseUrl !== BACKEND_ORIGIN || resolved.microsoftAuthUrl !== BACKEND_ORIGIN) {
+    throw new Error('All variants must use the canonical production backend');
+  }
   if (resolved.variant !== PRODUCTION_VARIANT) return;
   const offenders = [];
   for (const key of ['apiBaseUrl', 'microsoftAuthUrl', 'appDomain', 'legalPagesUrl']) {

@@ -24,7 +24,7 @@ Do not mark a box complete merely because a file exists in the repository. Recor
 | Setting | QA | Production |
 |---|---|---|
 | App domain | `vms-frontend-folio3.replit.app` | `vms.dallah.com` |
-| API / Microsoft SSO origin | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
+| API / Microsoft SSO origin | `https://vms.dallah.com` (live data) | `https://vms.dallah.com` |
 | Native build variant | `APP_VARIANT=staging` (resolves to QA) | `APP_VARIANT=production` |
 | Outlook add-in name | VMS QA - Create Visit Request | VMS - Create Visit Request |
 | Firebase | Currently configured for `dallah-albaraka-vms` | Currently shares the same project; confirm client approval |

@@ -1,5 +1,12 @@
 # Deploying the VMS web app to IIS (https://vms.dallah.com)
 
+All client variants now use the production API, including QA/staging and previews.
+`VMS_BACKEND_ORIGIN` is different: it must be the actual backend listener reachable
+from IIS. Never use `https://vms.dallah.com` as that upstream, since it would proxy
+back to this frontend. The build rejects this self-loop and old Replit backend hosts.
+No real IIS upstream is configured in the workspace; confirm it with the IIS operator.
+The localhost address in examples is illustrative, not a verified deployment setting.
+
 The production web frontend is a static bundle served by IIS at
 `https://vms.dallah.com`. The backend runs on the same host behind IIS and is
 reached through the same domain: IIS forwards `/api/*` and `/auth/microsoft/*`

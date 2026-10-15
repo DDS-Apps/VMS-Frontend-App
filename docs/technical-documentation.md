@@ -65,7 +65,7 @@ The Dallah Albaraka VMS mobile application provides a comprehensive digital solu
 | Package (Android) | `com.dallah.vms`                           |
 | EAS Project ID    | `33b6baff-6c89-44be-905f-006d0da4434d`     |
 | Slug              | `dallah-vms`                               |
-| Backend API       | QA `https://vms-backend-app-qa.replit.app`, production `https://vms.dallah.com` |
+| Backend API       | All variants: `https://vms.dallah.com` (live production data) |
 
 ### 1.4 High-Level Architecture
 
@@ -97,7 +97,7 @@ The Dallah Albaraka VMS mobile application provides a comprehensive digital solu
 │                                                                  │
 │   ┌────────────────────────────────────────────────┐             │
 │   │     VMS Backend API (Shared by Mobile & Web)   │             │
-│   │     https://vms-backend-app-qa.replit.app      │             │
+│   │     https://vms.dallah.com                    │             │
 │   └──────────────────┬─────────────────────────────┘             │
 │                      │                                           │
 │   ┌─────────┐  ┌─────┴──────┐  ┌────────────┐                   │

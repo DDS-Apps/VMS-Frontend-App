@@ -77,10 +77,13 @@ function assertBackendOrigin(backendOrigin) {
       `VMS_BACKEND_ORIGIN must be an absolute http(s) URL such as http://localhost:3000 (got "${backendOrigin}")`,
     );
   }
-  if (parsed.search || parsed.hash || (parsed.pathname && parsed.pathname !== '/')) {
+  if (parsed.username || parsed.password || parsed.search || parsed.hash || (parsed.pathname && parsed.pathname !== '/')) {
     throw new Error(
       `VMS_BACKEND_ORIGIN must be an origin without a path, query or fragment (got "${backendOrigin}")`,
     );
+  }
+  if (parsed.hostname === 'vms.dallah.com' || parsed.hostname.endsWith('.replit.app') || parsed.hostname.endsWith('.replit.dev')) {
+    throw new Error('VMS_BACKEND_ORIGIN must be the real production backend upstream, not the public frontend (self-proxy loop) or a Replit QA/dev host');
   }
   return parsed.origin;
 }
@@ -145,6 +148,9 @@ function snippet(content, index) {
  */
 function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
   const errors = [];
+  if (webBackendUrl && webBackendUrl !== 'https://vms.dallah.com') {
+    throw new Error('Web backend must be https://vms.dallah.com');
+  }
   if (webBackendUrl && (!webBackendUrl.startsWith('https://') || new URL(webBackendUrl).origin !== webBackendUrl)) {
     throw new Error('Web backend must be an HTTPS origin without a path or credentials');
   }
@@ -190,7 +196,12 @@ function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
       errors.push(`${relative}: unreplaced placeholders ${[...new Set(leftover)].join(', ')}`);
     }
 
-    if (!isProduction) continue;
+    if (!isProduction) {
+      for (const host of QA_HOSTS.filter(host => host !== hostnameOf(environment.appDomain))) {
+        if (content.includes(host)) errors.push(`${relative}: forbidden QA backend "${host}"`);
+      }
+      continue;
+    }
 
     // Permit only the explicitly configured web origin, not other QA/dev hosts.
     // Native Expo metadata is still checked against its original environment.

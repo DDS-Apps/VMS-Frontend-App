@@ -4,7 +4,7 @@
  * This file documents the structure of environment configurations for Production and QA.
  * 
  * IMPORTANT: 
- * - All actual values are stored in Replit Secrets/Environment Variables
+ * - Backend origins are fixed to production; other values use environment configuration.
  * - This file only shows the structure and provides helper functions
  * - NEVER hardcode actual API keys, secrets, or credentials in this file
  * 
@@ -13,6 +13,8 @@
  * 2. Add each variable listed in the ENV_VAR_KEYS array below
  * 3. Use the values from the environment-specific documentation (provided separately)
  */
+
+import { API_BASE_URL, MICROSOFT_AUTH_BASE_URL } from '../api/backendUrls';
 
 export interface EnvironmentConfig {
   name: string;
@@ -104,8 +106,7 @@ export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
 }
 
 /**
- * Get the config for the current environment from process.env
- * All values come from environment variables, not hardcoded
+ * Get the config with the fixed production backend and environment-provided Firebase values.
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
   const env = getCurrentEnvironment();
@@ -117,9 +118,9 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     name: env,
     description: identifier.description,
     backend: {
-      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || '',
-      vmsApiBaseUrl: process.env.EXPO_PUBLIC_VMS_API_BASE_URL || '',
-      microsoftAuthUrl: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || '',
+      apiBaseUrl: API_BASE_URL,
+      vmsApiBaseUrl: API_BASE_URL,
+      microsoftAuthUrl: MICROSOFT_AUTH_BASE_URL,
     },
     firebase: {
       apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',

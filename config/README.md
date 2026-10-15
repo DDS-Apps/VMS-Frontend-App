@@ -34,18 +34,18 @@ Restoration verification uses resolved configuration, type checking and a clean
 production web export, without running unit tests. No live notification,
 device registration, deliberate crash or remote native build is part of this work.
 
-### Web-only backend override
+### Shared production backend
 
 Web API requests and Microsoft sign-in use `config/web-backend.json`, currently
-`https://vms-backend-app-qa.replit.app`, through Metro's `backendUrls.web.ts`.
+`https://vms.dallah.com`, through Metro's `backendUrls.web.ts`.
 This applies to web preview and published web builds, including production exports.
-Android and iOS continue to use the Expo-resolved environment described below.
-Firebase, app domains, legal pages and native links are not changed by this override.
+Android and iOS use the same committed backend origin. Explicit QA/staging variants
+also use production APIs. Firebase, app domains, legal pages and native links retain their identities.
 
 The web origin is embedded at build time: changing the shared API secret does not
 replace it. Change this public configuration and republish to update the web backend.
-The bundle verifier allows this exact HTTPS origin while retaining checks against
-other QA/development hosts and unexpected native Expo configuration.
+The bundle verifier rejects the former QA backend in every variant.
+All these clients access live data; QA/staging is no longer an isolated backend.
 
 The app has two base environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
@@ -54,8 +54,8 @@ The app has two base environments. Their public values are committed in
 | | QA | Production |
 |---|---|---|
 | Web app / app domain | `vms-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
-| API base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| Microsoft SSO base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
+| API base URL | `https://vms.dallah.com` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| Microsoft SSO base URL | `https://vms.dallah.com` | `https://vms.dallah.com` |
 | Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
 | Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
 | Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
@@ -74,8 +74,9 @@ files in `config/qa/` remain unchanged.
 
 ## How values are resolved
 
-For `apiBaseUrl`, `microsoftAuthUrl`, `appDomain` and `legalPagesUrl`, highest
-priority first:
+`apiBaseUrl` and `microsoftAuthUrl` are fixed to the production origin in all
+variants. Process and local-file overrides cannot redirect them.
+For `appDomain` and `legalPagesUrl`, highest priority first:
 
 1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
    `EXPO_PUBLIC_APP_DOMAIN`, `EXPO_PUBLIC_LEGAL_PAGES_URL` from the process
@@ -90,12 +91,12 @@ priority first:
    for every `expo export` and would inline them into QA builds.
 3. The committed defaults.
 
-`microsoftAuthUrl` follows `apiBaseUrl` unless set explicitly.
+`microsoftAuthUrl` always matches the production API origin.
 
 If `APP_VARIANT=production` ends up pointing at HTTP or a non-production host (e.g. a
 stale `.env.production`), `app.config.js` throws and the build stops. The app
-reads `Constants.expoConfig.extra.*` before `process.env.EXPO_PUBLIC_*`, so the
-resolved values are what the app uses at runtime.
+uses the committed production origin directly on web and native; Expo metadata
+and exported public URL variables are resolved to that same origin.
 
 ## What is derived from the environment
 

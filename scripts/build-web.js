@@ -40,7 +40,7 @@ const {
   assertProductionConfig,
   publicEnvFor,
 } = require('../config/app-environments');
-const { finalizeDist, verifyBundleHosts } = require('./lib/web-dist');
+const { finalizeDist, verifyBundleHosts, assertBackendOrigin } = require('./lib/web-dist');
 const { origin: webBackendUrl } = require('../config/web-backend.json');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -124,8 +124,8 @@ function main() {
 
   banner(`VMS Frontend ${isProduction ? 'PRODUCTION' : 'QA'} web build`);
   console.log(`  variant:            ${environment.variant}`);
-  console.log(`  API / backend:      ${webBackendUrl} (web-only configuration)`);
-  console.log(`  Microsoft SSO:      ${webBackendUrl} (web-only configuration)`);
+  console.log(`  API / backend:      ${webBackendUrl} (all clients)`);
+  console.log(`  Microsoft SSO:      ${webBackendUrl} (all clients)`);
   console.log(`  app domain:         ${environment.appDomain} (${environment.sources.appDomain})`);
   console.log(`  legal pages:        ${environment.legalPagesUrl} (${environment.sources.legalPagesUrl})`);
   console.log(`  Outlook add-in id:  ${environment.outlookAddin.id}`);
@@ -156,6 +156,7 @@ function main() {
         '--backend-origin <url>, or pass --no-web-config to keep the web.config already on the server.',
     );
   }
+  if (webConfig) assertBackendOrigin(webConfig.backendOrigin);
 
   if (!options.skipExport) {
     console.log('');
