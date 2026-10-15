@@ -4,11 +4,11 @@ description: Why per-variant config is resolved explicitly in app.config.js inst
 ---
 **Rule:** Production remains the default base environment and native backend, including internal/preview binaries. QA must be explicitly selected, never inferred from a missing or unknown variant. Resolve native URLs through the shared environment resolver, ignore process URL overrides in production, enforce the canonical HTTPS production hosts and prefer `Constants.expoConfig.extra.*` at runtime.
 
-**Web exception (2026-10-08):** The user explicitly requested the QA backend at `https://vms-backend-app-qa.replit.app/` for web only, superseding the earlier all-platform production requirement. Web API and Microsoft authentication should use the same QA backend; do not switch native backends, Firebase, or app domains along with it.
+**All-configuration policy (2026-10-15):** The user explicitly superseded the web-only QA exception and requested `https://vms.dallah.com` for every configuration, including IIS web and mobile. Explicit QA/staging variants must not restore the old QA backend. This is the requested policy, not evidence that every setting has already been updated.
 
-**Why:** Changing the shared API secret did not affect published web because production resolution intentionally ignores it. Keep the web exception explicit and isolated rather than weakening native production guards.
+**Why:** The user now wants all clients to target production. Changing a shared API variable alone does not affect exported web when build-time resolution overrides it.
 
-**How to apply:** Preserve web-only backend selection and republish when its embedded public configuration changes. Shared API secrets are not live runtime configuration for an exported browser bundle.
+**How to apply:** Align web-specific overrides and all client variants with production without changing Firebase. Distinguish the public client origin from IIS's real backend upstream to avoid self-proxy loops. Exported browser configuration requires rebuilding; publishing needs separate authorization.
 
 **Why:** The user explicitly stated all builds and publishing should target production. Expo also loads `.env.production` for every export regardless of variant, and Metro inlines `EXPO_PUBLIC_*` references. Stale QA process variables or a plaintext production URL must not override that requirement.
 
