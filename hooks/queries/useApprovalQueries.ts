@@ -1,4 +1,7 @@
 import { movementDetailPollingInterval } from '@/utils/movementPolling';
+import { qrPollingInterval } from '@/utils/movementPolling';
+import { useActiveVisitView } from '@/hooks/useActiveVisitView';
+import { useVisitMovementHistory } from './useVisitMovementHistory';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { requestApiService, type ListRequestsParams } from '@/services/api/requestApiService';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
@@ -365,15 +368,25 @@ export function useCreateVisitMutation() {
 }
 
 export function useVisitDetailsQuery(id: string, enabled = true) {
-  return useQuery<VisitDetailsDto>({
+  const active = useActiveVisitView();
+  const query = useQuery<VisitDetailsDto>({
     queryKey: requestKeys.visitDetail(id),
     queryFn: ({ signal }) => requestApiService.getVisitById(id, { signal }),
-    enabled: enabled && !!id,
+    enabled: enabled && active && !!id,
     retry: false,
-    // An early physical checkout remains active until the server closes the
-    // visit after its scheduled end. Keep an open detail screen up to date.
-    refetchInterval: (query) => movementDetailPollingInterval(query.state.data?.status),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: (query) => active ? qrPollingInterval(query.state.data, query.state.error) : false,
+    refetchIntervalInBackground: false,
   });
+  const history = useVisitMovementHistory(id, query.data, active && enabled && !query.error);
+  return {
+    ...query,
+    data: query.data && history.data && !history.error
+      ? { ...query.data, movementHistory: history.data } : query.data,
+    movementHistoryError: history.error,
+  };
 }
 
 export function useUpdateVisitMutation() {

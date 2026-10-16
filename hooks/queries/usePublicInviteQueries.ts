@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { publicInviteService } from '@/services/api/publicInviteService';
 import type { AcceptInviteDto, RejectInviteDto, PublicInviteDto } from '@/types/api.types';
+import { useActiveVisitView } from '@/hooks/useActiveVisitView';
+import { qrPollingInterval } from '@/utils/movementPolling';
 
 export const publicInviteKeys = {
   all: ['publicInvites'] as const,
@@ -8,15 +10,17 @@ export const publicInviteKeys = {
 };
 
 export function usePublicInviteQuery(token: string | undefined) {
+  const active = useActiveVisitView();
   return useQuery({
     queryKey: publicInviteKeys.byToken(token || ''),
     queryFn: () => publicInviteService.getByToken(token!),
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5,
+    enabled: !!token && active,
+    staleTime: 0,
     retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: query => active ? qrPollingInterval(query.state.data, query.state.error) : false,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -25,7 +29,7 @@ export function useAcceptInviteMutation(token: string) {
 
   return useMutation({
     mutationFn: (data?: AcceptInviteDto) => publicInviteService.accept(token, data),
-    onSuccess: (_response, variables) => {
+    onSuccess: (response, variables) => {
       // Immediately update the cache with the submitted parking info
       // so the accepted screen shows the correct data without waiting for refetch
       queryClient.setQueryData(
@@ -34,6 +38,7 @@ export function useAcceptInviteMutation(token: string) {
           if (!oldData) return oldData;
           return {
             ...oldData,
+            qrCode: response.qrCode,
             status: 'visitor_accepted' as const,
             canAccept: false,
             canReject: false,

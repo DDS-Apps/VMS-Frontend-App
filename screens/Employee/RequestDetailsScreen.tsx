@@ -22,6 +22,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
+import { canDisplayQr } from '@/utils/qrAccess';
+import { useQrClock } from '@/hooks/useActiveVisitView';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -129,6 +132,7 @@ export default function RequestDetailsScreen({
   } = useFormatters();
   const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
+  const qrNow = useQrClock();
   const [expiredFooterHeight, setExpiredFooterHeight] = useState(0);
   const handleExpiredFooterLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -2321,7 +2325,7 @@ export default function RequestDetailsScreen({
                   },
                 ]}
               >
-                {request.qrCode ? (
+                {visitData && canDisplayQr(visitData, qrNow) && request.qrCode ? (
                   <QRCode
                     value={request.qrCode}
                     size={150}
@@ -2343,6 +2347,7 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.xl} />
 
         {/* Existing scheduled manager expired message remains inline. */}
+        {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
         {showInlineExpiredVisitNotice ? expiredVisitNotice : null}
 
         <Modal

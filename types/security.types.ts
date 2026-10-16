@@ -1,5 +1,6 @@
 import type { VisitStatus, AlertPriority, BaseListParams } from './common.types';
 import type { VisitMovementHistory } from './api.types';
+import type { QrAccessFields } from './qrAccess';
 
 export type SecurityAlertType =
   | 'blacklist_match'
@@ -13,7 +14,7 @@ export type GateAction = 'scan' | 'check_in' | 'check_out' | 'denied' | 'access_
 
 export type GateResult = 'success' | 'failed' | 'blocked' | 'allowed' | 'denied';
 
-export interface SecurityVisitorDto {
+export interface SecurityVisitorDto extends QrAccessFields {
   movementSummary?: import('./movementSummary').MovementSummary;
   movementSummaryAvailability?: 'restricted' | 'unavailable';
   movementSummaryError?: string;

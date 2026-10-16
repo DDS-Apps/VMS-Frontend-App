@@ -5,6 +5,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/hooks/useTheme';
 import { ar } from '@/constants/i18n/ar';
 import { en } from '@/constants/i18n/en';
+import { useTranslation } from '@/hooks/useTranslation';
+import { reconcileMovementEvents, movementEventLabel, movementEffectText } from '@/utils/movementEventPresentation';
 import type {
   VisitMovementEvent,
   VisitMovementHistory,
@@ -16,6 +18,7 @@ type MovementHistoryRow =
   | { kind: 'administrative_completion'; event: VisitMovementEvent };
 
 export function groupMovementEvents(data: VisitMovementEvent[]): MovementHistoryRow[] {
+  data = reconcileMovementEvents(data);
   const checkoutsById = new Map(
     data.filter((event) => event.eventType === 'checked_out').map((event) => [event.id, event]),
   );
@@ -61,6 +64,7 @@ export interface MovementHistoryProps {
 }
 
 export function MovementHistory({ movementHistory }: MovementHistoryProps) {
+  const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const { theme } = useTheme();
   if (movementHistory === undefined) return null;
@@ -68,9 +72,10 @@ export function MovementHistory({ movementHistory }: MovementHistoryProps) {
   const strings = isRTL ? ar.movementHistory : en.movementHistory;
   const rows = groupMovementEvents(movementHistory.data);
   const renderMetadata = (event: VisitMovementEvent) =>
-    (event.actor?.name || event.gate?.name) ? (
+    (event.actor?.name || event.gate?.name || movementEffectText(event, t)) ? (
       <ThemedText style={[styles.metadata, { color: theme.textSecondary }]}>
         {[
+          movementEffectText(event, t),
           event.actor?.name && `${strings.actor}: ${event.actor.name}`,
           event.gate?.name && `${strings.gate}: ${event.gate.name}`,
         ].filter(Boolean).join(' · ')}
@@ -97,12 +102,12 @@ export function MovementHistory({ movementHistory }: MovementHistoryProps) {
           {row.kind === 'checkin' ? (
             <>
               <View style={styles.movement}>
-                <ThemedText style={styles.label}>{strings.checkIn}</ThemedText>
+                <ThemedText style={styles.label}>{movementEventLabel(row.event, t)}</ThemedText>
                 {renderTime(row.event)}
               </View>
               {row.checkout ? (
                 <View key={row.checkout.id} style={styles.movement}>
-                  <ThemedText style={styles.label}>{strings.checkOut}</ThemedText>
+                  <ThemedText style={styles.label}>{movementEventLabel(row.checkout, t)}</ThemedText>
                   {renderTime(row.checkout)}
                 </View>
               ) : (
@@ -113,12 +118,12 @@ export function MovementHistory({ movementHistory }: MovementHistoryProps) {
             </>
           ) : row.kind === 'checkout' ? (
             <View style={styles.movement}>
-              <ThemedText style={styles.label}>{strings.checkOut}</ThemedText>
+              <ThemedText style={styles.label}>{movementEventLabel(row.event, t)}</ThemedText>
               {renderTime(row.event)}
             </View>
           ) : (
             <View style={styles.movement}>
-              <ThemedText style={styles.label}>{strings.administrativelyClosed}</ThemedText>
+              <ThemedText style={styles.label}>{movementEventLabel(row.event, t)}</ThemedText>
               {renderTime(row.event)}
             </View>
           )}

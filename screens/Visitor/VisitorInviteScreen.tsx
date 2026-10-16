@@ -17,6 +17,9 @@ import type { PublicInviteDto } from "@/types/api.types";
 import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
+import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
+import { canDisplayQr, httpErrorStatus } from '@/utils/qrAccess';
+import { useQrClock } from '@/hooks/useActiveVisitView';
 
 // Dallah Albaraka Light Theme Colors for this page
 const PageColors = {
@@ -375,9 +378,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [actionCompleted, setActionCompleted] = useState<'accepted' | 'rejected' | null>(null);
-  const [responseQrCode, setResponseQrCode] = useState<string | null>(null);
   const [apiResponseMessage, setApiResponseMessage] = useState<string | null>(null);
-  const inviteSnapshotRef = React.useRef<PublicInviteDto | null>(null);
   
   // Inline parking selection state
   const [selectedParkingOption, setSelectedParkingOption] = useState<'no_parking' | 'needs_parking'>('no_parking');
@@ -385,13 +386,19 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const { data: invite, isLoading, isFetching, error, isError } = usePublicInviteQuery(token);
   const acceptMutation = useAcceptInviteMutation(token || '');
   const rejectMutation = useRejectInviteMutation(token || '');
+  const now = useQrClock();
+  const pageError = error || acceptMutation.error || rejectMutation.error;
+  const accessBlocked = !!pageError || invite?.isExpired === true ||
+    ['expired', 'cancelled', 'rejected', 'visitor_rejected'].includes(invite?.status || '');
 
-  // Always keep invite snapshot updated so we have data during refetch
   React.useEffect(() => {
-    if (invite) {
-      inviteSnapshotRef.current = invite;
-    }
-  }, [invite]);
+    setActionCompleted(null);
+    setApiResponseMessage(null);
+    setShowRejectModal(false);
+  }, [token]);
+  React.useEffect(() => {
+    if (!invite?.canReject || accessBlocked) setShowRejectModal(false);
+  }, [invite?.canReject, accessBlocked]);
 
   const scrollContentStyle = {
     paddingHorizontal: Spacing.xl,
@@ -401,27 +408,24 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const handleAccept = useCallback(async () => {
-    if (acceptMutation.isPending || !selectedParkingOption) return;
+    if (acceptMutation.isPending || rejectMutation.isPending || !selectedParkingOption || !invite?.canAccept || accessBlocked) return;
     
-    if (invite) inviteSnapshotRef.current = invite;
     try {
       const needsParking = selectedParkingOption === 'needs_parking';
       const response = await acceptMutation.mutateAsync({
         needsParking,
       });
-      setResponseQrCode(response.qrCode || null);
       setActionCompleted('accepted');
     } catch (err) {
       console.error('Accept failed:', err);
     }
-  }, [acceptMutation, invite, selectedParkingOption]);
+  }, [acceptMutation, rejectMutation.isPending, invite, selectedParkingOption, accessBlocked]);
 
   const handleReject = useCallback(async (reason: string) => {
     // Prevent multiple submissions
-    if (rejectMutation.isPending) return;
+    if (rejectMutation.isPending || acceptMutation.isPending || !invite?.canReject || accessBlocked) return;
     
     // Store snapshot before action
-    if (invite) inviteSnapshotRef.current = invite;
     try {
       const response = await rejectMutation.mutateAsync(
         reason ? { reason } : undefined
@@ -434,7 +438,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     } catch (err) {
       console.error('Reject failed:', err);
     }
-  }, [rejectMutation, invite]);
+  }, [rejectMutation, acceptMutation.isPending, invite, accessBlocked]);
 
   const handleCancelReject = useCallback(() => {
     setShowRejectModal(false);
@@ -591,11 +595,12 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     return invite.location?.address || invite.building?.address || '';
   };
 
-  // If action was completed (accept/reject), show success immediately without waiting for refetch
-  // Use the snapshot to ensure we have data even if refetch causes invite to be undefined
-  const displayInvite = invite || inviteSnapshotRef.current;
-  if (actionCompleted && displayInvite) {
-    const qrCodeValue = responseQrCode || displayInvite.qrCode;
+  // The current query response always wins over a previous acceptance result.
+  const displayInvite = invite;
+  if (actionCompleted && displayInvite && !pageError && !accessBlocked &&
+      ((actionCompleted === 'accepted' && ['accepted', 'visitor_accepted'].includes(displayInvite.status)) ||
+       (actionCompleted === 'rejected' && ['rejected', 'visitor_rejected'].includes(displayInvite.status)))) {
+    const qrCodeValue = canDisplayQr(displayInvite, now) ? displayInvite.qrCode : undefined;
     
     return (
       <ScrollView style={styles.scrollContainer} contentContainerStyle={scrollContentStyle}>
@@ -626,6 +631,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             </ThemedText>
           </View>
 
+          <QrAccessNotice source={displayInvite} now={now} />
           {actionCompleted === 'accepted' && qrCodeValue ? (
             <>
               <GlassCard style={styles.qrCardContainer}>
@@ -727,7 +733,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   // Don't show loading screen when modal is open or mutation is pending
   // This prevents the modal from unmounting and losing its state
-  const shouldShowLoadingScreen = (isLoading || isFetching) && !showRejectModal && !rejectMutation.isPending && !acceptMutation.isPending;
+  const shouldShowLoadingScreen = isLoading && !invite && !showRejectModal && !rejectMutation.isPending && !acceptMutation.isPending;
   
   if (shouldShowLoadingScreen) {
     return (
@@ -746,9 +752,9 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     );
   }
 
-  if (isError || !token) {
-    const is404 = (error as any)?.status === 404;
-    const is410 = (error as any)?.status === 410;
+  if (pageError || !token) {
+    const is404 = httpErrorStatus(pageError) === 404;
+    const is410 = httpErrorStatus(pageError) === 410;
     
     if (is410) {
       return (
@@ -805,11 +811,11 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
     return null;
   }
 
-  const isExpiredOrCancelled = invite.status === 'expired' || invite.status === 'cancelled';
+  const isExpiredOrCancelled = invite.isExpired === true || invite.status === 'expired' || invite.status === 'cancelled';
   const hasVisitorDecision = invite.visitorDecision?.decidedAt !== undefined && invite.visitorDecision?.decidedAt !== null;
-  const isAlreadyResponded = hasVisitorDecision || invite.status === 'visitor_accepted' || invite.status === 'visitor_rejected' || actionCompleted !== null;
-  const isAccepted = actionCompleted === 'accepted' || invite.visitorDecision?.accepted === true || invite.status === 'visitor_accepted';
-  const finalStatus = actionCompleted || (isAccepted ? 'accepted' : (hasVisitorDecision && !invite.visitorDecision?.accepted) ? 'rejected' : invite.status === 'visitor_rejected' ? 'rejected' : null);
+  const isAlreadyResponded = hasVisitorDecision || ['accepted', 'visitor_accepted', 'visitor_rejected', 'rejected', 'checked_in', 'checked_out', 'completed'].includes(invite.status) || !!invite.qrCode;
+  const isAccepted = invite.visitorDecision?.accepted === true || ['accepted', 'visitor_accepted', 'checked_in', 'checked_out', 'completed'].includes(invite.status) || !!invite.qrCode;
+  const finalStatus = ['rejected', 'visitor_rejected'].includes(invite.status) || invite.visitorDecision?.accepted === false ? 'rejected' : isAccepted ? 'accepted' : null;
 
   if (isExpiredOrCancelled) {
     const isCancelled = invite.status === 'cancelled';
@@ -867,7 +873,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
 
   // Already responded - show confirmation with details
   if (isAlreadyResponded && finalStatus) {
-    const qrCodeValue = responseQrCode || invite.qrCode;
+    const qrCodeValue = canDisplayQr(invite, now) ? invite.qrCode : undefined;
     const decisionDate = invite.visitorDecision?.decidedAt;
     const decisionReason = invite.visitorDecision?.reason;
     
@@ -914,6 +920,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             {/* QR Code Section */}
             <GlassCard style={styles.qrCardContainer}>
               <ThemedText style={styles.qrCardTitle}>{t('invitation.accessCode')}</ThemedText>
+              <QrAccessNotice source={invite} now={now} />
               <Spacer height={Spacing.lg} />
               {qrCodeValue ? (
                 <View style={styles.qrCodeWrapper}>
@@ -1166,7 +1173,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <LoadingButton
           onPress={() => setShowRejectModal(true)}
           loading={rejectMutation.isPending}
-          disabled={acceptMutation.isPending || rejectMutation.isPending}
+          disabled={!invite.canReject || accessBlocked || acceptMutation.isPending || rejectMutation.isPending}
           variant="danger-outline"
           size="large"
           icon="x"
@@ -1182,7 +1189,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
         <LoadingButton
           onPress={handleAccept}
           loading={acceptMutation.isPending}
-          disabled={acceptMutation.isPending || rejectMutation.isPending}
+          disabled={!invite.canAccept || accessBlocked || acceptMutation.isPending || rejectMutation.isPending}
           variant="success"
           size="large"
           icon="check"

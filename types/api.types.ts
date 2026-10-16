@@ -1,3 +1,5 @@
+import type { QrAccessFields as importQrAccessFields } from './qrAccess';
+
 export enum UserRole {
   EMPLOYEE = 'employee',
   MANAGER = 'manager',
@@ -1393,7 +1395,7 @@ export interface VisitListParams {
   isWalkIn?: boolean;
 }
 
-export interface VisitListItemDto {
+export interface VisitListItemDto extends importQrAccessFields {
   movementSummary?: import('./movementSummary').MovementSummary;
   movementSummaryAvailability?: 'restricted' | 'unavailable';
   movementSummaryError?: string;
@@ -1613,6 +1615,8 @@ export interface VisitMovementGate {
 }
 
 export interface VisitMovementEvent {
+  displayLabel?: string;
+  qrEffect?: string;
   id: string;
   requestId: string;
   eventType: VisitMovementEventType;
@@ -1628,14 +1632,14 @@ export interface VisitMovementEvent {
   departureEventId?: string | null;
 }
 
-export interface VisitMovementHistory {
+export interface VisitMovementHistory extends importQrAccessFields {
   requestId: string;
   timezone: string;
   /** Events are returned oldest first. */
   data: VisitMovementEvent[];
 }
 
-export interface VisitDetailsDto {
+export interface VisitDetailsDto extends importQrAccessFields {
   movementSummary?: import('./movementSummary').MovementSummary;
   movementSummaryAvailability?: 'restricted' | 'unavailable';
   movementSummaryError?: string;
@@ -1847,9 +1851,9 @@ export interface PublicInviteVisitorDecisionDto {
   reason?: string;
 }
 
-export interface PublicInviteDto {
+export interface PublicInviteDto extends importQrAccessFields {
   id: string;
-  status: 'pending' | 'approved' | 'accepted' | 'rejected' | 'expired' | 'cancelled' | 'checked_in' | 'checked_out' | 'visitor_accepted' | 'visitor_rejected';
+  status: 'pending' | 'approved' | 'accepted' | 'rejected' | 'expired' | 'cancelled' | 'checked_in' | 'checked_out' | 'completed' | 'visitor_accepted' | 'visitor_rejected';
   hostName: string;
   hostDepartment?: string;
   visitDate: string;

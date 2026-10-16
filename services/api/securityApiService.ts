@@ -29,6 +29,8 @@ function normalizeBoolean(value: unknown): boolean | undefined {
   return undefined;
 }
 
+import { qrAccessFields } from '@/utils/qrAccess';
+
 function buildQueryString(params: Record<string, unknown>): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -42,6 +44,10 @@ function buildQueryString(params: Record<string, unknown>): string {
 
 function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto {
   return {
+    ...qrAccessFields(visit),
+    visitStartAt: visit.visitStartAt,
+    endTime: visit.endTime ?? undefined,
+    duration: visit.duration,
     movementSummary: visit.movementSummary,
     movementSummaryAvailability: visit.movementSummaryAvailability,
     movementSummaryError: visit.movementSummaryError,
@@ -72,6 +78,8 @@ function mapVisitToSecurityVisitor(visit: VisitListItemDto): SecurityVisitorDto 
 
 function mapVisitDetailsToSecurityVisitor(visit: VisitDetailsDto): SecurityVisitorDto {
   return {
+    ...qrAccessFields(visit),
+    visitStartAt: visit.visitStartAt,
     movementSummary: visit.movementSummary,
     movementSummaryAvailability: visit.movementSummaryAvailability,
     movementSummaryError: visit.movementSummaryError,

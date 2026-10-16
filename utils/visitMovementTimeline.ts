@@ -1,5 +1,6 @@
 import type { TimelineStep } from '@/components/shared/RequestTimeline';
 import type { VisitMovementHistory } from '@/types/api.types';
+import { reconcileMovementEvents, movementEventLabel, movementEffectText } from './movementEventPresentation';
 
 /**
  * The movement feed is authoritative when present. Legacy single-movement rows
@@ -23,31 +24,17 @@ export function mergeVisitMovementTimeline(
     step.id !== 'completed' && (step.id !== 'next_steps' || history.data.length === 0),
   );
 
-  const seen = new Set<string>();
-  const events = [...history.data]
-    .filter((event) => {
-      if (seen.has(event.id)) return false;
-      seen.add(event.id);
-      return true;
-    })
-    .sort((a, b) => {
-      const aTime = Date.parse(a.occurredAt);
-      const bTime = Date.parse(b.occurredAt);
-      return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime);
-    });
+  const events = reconcileMovementEvents(history.data);
   const movements = events.map((event): TimelineStep => ({
       id: `movement-${event.id}`,
-      label: t(
-        event.eventType === 'checked_in' ? 'movementHistory.checkIn'
-          : event.eventType === 'checked_out' ? 'movementHistory.checkOut'
-            : 'movementHistory.administrativelyClosed',
-      ),
+      label: movementEventLabel(event, t),
       timestamp: event.occurredAt,
       timezone: history.timezone,
       status: 'completed',
       icon: event.eventType === 'checked_in' ? 'log-in'
         : event.eventType === 'checked_out' ? 'log-out' : 'check-circle',
       metadata: [
+        ...(movementEffectText(event, t) ? [movementEffectText(event, t)!] : []),
         ...(event.actor?.name ? [`${t('movementHistory.actor')}: ${event.actor.name}`] : []),
         ...(event.gate?.name ? [`${t('movementHistory.gate')}: ${event.gate.name}`] : []),
       ],

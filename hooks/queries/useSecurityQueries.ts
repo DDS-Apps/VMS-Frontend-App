@@ -18,6 +18,9 @@ import type {
 import { ApiError } from '@/api/errors';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
 import { movementDetailPollingInterval } from '@/utils/movementPolling';
+import { qrPollingInterval } from '@/utils/movementPolling';
+import { useActiveVisitView } from '@/hooks/useActiveVisitView';
+import { useVisitMovementHistory } from './useVisitMovementHistory';
 
 export const securityKeys = {
   all: ['security'] as const,
@@ -101,13 +104,26 @@ export function useSecurityVisitorQuery(
   visitId: string,
   options?: Omit<UseQueryOptions<SecurityVisitorDto, ApiError>, 'queryKey' | 'queryFn'>
 ) {
-  return useQuery<SecurityVisitorDto, ApiError>({
+  const active = useActiveVisitView();
+  const query = useQuery<SecurityVisitorDto, ApiError>({
     queryKey: securityKeys.visitor(visitId),
     queryFn: () => securityApiService.getVisitorDetails(visitId),
-    enabled: !!visitId,
-    refetchInterval: (query) => movementDetailPollingInterval(query.state.data?.status),
+    enabled: !!visitId && active,
+    staleTime: 0,
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: (query) => active ? qrPollingInterval(query.state.data, query.state.error) : false,
+    refetchIntervalInBackground: false,
     ...options,
   });
+  const history = useVisitMovementHistory(visitId, query.data, active && !query.error && options?.enabled !== false);
+  return {
+    ...query,
+    data: query.data && history.data && !history.error
+      ? { ...query.data, movementHistory: history.data } : query.data,
+    movementHistoryError: history.error,
+  };
 }
 
 export function useOnSiteVisitorsQuery(

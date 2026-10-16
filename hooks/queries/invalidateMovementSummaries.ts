@@ -3,6 +3,7 @@ import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
 
 export function isMovementSummaryQuery(query: { queryKey: readonly unknown[] }) {
   const [root, group] = query.queryKey;
+  if (root === 'requests' && group === 'movement-history') return true;
   return (root === 'requests' && ['visits', 'reception-requests', 'visit-detail', 'pending-approvals', 'awaiting-visitor', 'pending-host-walk-ins'].includes(String(group))) ||
     (root === 'security' && ['visitors', 'visitor', 'today', 'on-site'].includes(String(group))) ||
     (root === 'reception' && ['today', 'search'].includes(String(group))) ||
