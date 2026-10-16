@@ -17,7 +17,7 @@ export interface QrAccessSource extends QrAccessFields {
   movementHistory?: QrAccessFields;
 }
 
-export type QrAccessState = 'notActive' | 'valid' | 'retained' | 'expired' | 'revocationPending' | 'unavailable' | 'invalidSchedule';
+export type QrAccessState = 'unissued' | 'notActive' | 'valid' | 'retained' | 'expired' | 'revocationPending' | 'unavailable' | 'invalidSchedule';
 
 /** Reject ambiguous/invalid timestamps instead of falling back to the device clock. */
 export function absoluteTime(value?: string | null): number | undefined {
@@ -75,6 +75,9 @@ export function getQrAccessState(source: QrAccessSource, now = Date.now()): QrAc
   if (validity?.expired === true || validity?.terminal === true || source.isExpired === true || source.movementHistory?.isExpired === true ||
       ['expired', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(source.status || '')) return 'expired';
   if (source.accessReadUnavailable) return 'unavailable';
+  // "Not expired" is not evidence that a QR has actually been issued.
+  // Keep negative server decisions and failed-read warnings above this state.
+  if (!source.qrCode?.trim()) return 'unissued';
   const expires = absoluteTime(validity?.expiresAt ?? source.qrExpiresAt ?? source.expiresAt);
   // Reaching a server-provided cutoff requires a fresh authority read. Do not
   // continue claiming valid access, or fabricate expiry from a local meeting end.

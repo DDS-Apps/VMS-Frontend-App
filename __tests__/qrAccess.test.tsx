@@ -24,6 +24,26 @@ const event = (id: string, occurredAt: string, extra = {}): VisitMovementEvent =
 });
 
 describe('backend-owned QR presentation', () => {
+  it.each([undefined, null, '', '   '])('never claims validity for an unissued QR (%s)', qrCode => {
+    const source = { ...meeting, status: 'pending', qrCode };
+    expect(getQrAccessState(source, at('09:30'))).toBe('unissued');
+    expect(getQrAccessState(source, at('10:30'))).toBe('unissued');
+    expect(canDisplayQr(source, at('09:30'))).toBe(false);
+    expect(getQrAccessState({ ...source, isExpired: true }, at('09:30'))).toBe('expired');
+    expect(getQrAccessState({ ...source, accessReadUnavailable: true }, at('09:30'))).toBe('unavailable');
+    expect(getQrAccessState({ ...source, qrValidity: { expired: true, revocationPending: true },
+      movementHistory: undefined }, at('09:30'))).toBe('revocationPending');
+  });
+  it.each(['en', 'ar'])('renders unissued QR text and updates when a QR is issued (%s)', language => {
+    mockRTL = language === 'ar';
+    let tree: ReturnType<typeof create>;
+    act(() => { tree = create(<QrAccessNotice source={{ ...meeting, qrCode: undefined }} now={at('09:30')} />); });
+    expect(JSON.stringify(tree!.toJSON())).toContain(mockRTL ? 'لم يتم إصدار رمز QR بعد' : 'QR not issued yet');
+    expect(tree!.root.findByProps({ testID: 'qr-access-unissued' })).toBeTruthy();
+    act(() => tree!.update(<QrAccessNotice source={meeting} now={at('09:30')} />));
+    expect(tree!.root.findByProps({ testID: 'qr-access-valid' })).toBeTruthy();
+    act(() => tree!.unmount());
+  });
   it('consumes the confirmed nested validity shape without list expiry fields', () => {
     const source = { ...meeting, isExpired: undefined, qrExpiresAt: undefined,
       movementHistory: { qrValidity: { expiresAt: '2026-10-16T18:00:00.000Z',
@@ -68,7 +88,7 @@ describe('backend-owned QR presentation', () => {
     expect(getQrAccessState({ ...meeting, visitDate: '2026-02-30' }, at('10:30'))).toBe('unavailable');
     expect(getQrAccessState({ ...meeting, timezone: 'invalid-zone' }, at('10:30'))).toBe('unavailable');
     expect(getQrAccessState({ ...meeting, visitTime: '27:00' }, at('10:30'))).toBe('unavailable');
-    expect(getQrAccessState({ ...meeting, isExpired: undefined, qrCode: undefined }, at('10:30'))).toBe('unavailable');
+    expect(getQrAccessState({ ...meeting, isExpired: undefined, qrCode: undefined }, at('10:30'))).toBe('unissued');
   });
   it('supports absolute starts and public invitation expiresAt, independently of device zone', () => {
     expect(getQrAccessState({ ...meeting, qrExpiresAt: undefined, expiresAt: meeting.qrExpiresAt, isExpired: undefined,
@@ -78,7 +98,7 @@ describe('backend-owned QR presentation', () => {
   it('warns on invalid schedule and never treats unknown revocation keys as permission', () => {
     expect(getQrAccessState({ ...meeting, scheduleWarning: 'invalid_legacy_schedule' }, at('10:30'))).toBe('invalidSchedule');
     expect(canDisplayQr({ ...meeting, scheduleWarning: 'invalid_legacy_schedule' }, at('10:30'))).toBe(false);
-    expect(getQrAccessState({ visitDate: meeting.visitDate, visitTime: meeting.visitTime,
+    expect(getQrAccessState({ qrCode: 'fixture-qr', visitDate: meeting.visitDate, visitTime: meeting.visitTime,
       qrValidity: { undocumented: true } }, at('10:30'))).toBe('unavailable');
   });
   it.each(['en', 'ar'])('renders localized retention and schedule warning (%s)', language => {

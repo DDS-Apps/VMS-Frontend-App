@@ -6,6 +6,7 @@ import { getQrAccessState, type QrAccessSource } from '@/utils/qrAccess';
 
 export const qrAccessCopy = {
   en: {
+    unissued: 'QR not issued yet',
     notActive: 'Not active yet',
     valid: 'Valid',
     retained: 'Valid until checkout or 9 PM.',
@@ -15,6 +16,7 @@ export const qrAccessCopy = {
     revocationPending: 'Revocation pending — access expired; device cleanup pending.',
   },
   ar: {
+    unissued: 'لم يتم إصدار رمز QR بعد',
     notActive: 'غير مفعّل بعد',
     valid: 'صالح',
     retained: 'صالح حتى تسجيل الخروج أو الساعة 9 مساءً.',
