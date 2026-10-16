@@ -17,10 +17,10 @@ import type {
 } from '@/types';
 import { ApiError } from '@/api/errors';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
-import { movementDetailPollingInterval } from '@/utils/movementPolling';
 import { qrPollingInterval } from '@/utils/movementPolling';
 import { useActiveVisitView } from '@/hooks/useActiveVisitView';
 import { useVisitMovementHistory } from './useVisitMovementHistory';
+import { useQrHistoryData } from './useQrHistoryData';
 
 export const securityKeys = {
   all: ['security'] as const,
@@ -118,10 +118,10 @@ export function useSecurityVisitorQuery(
     ...options,
   });
   const history = useVisitMovementHistory(visitId, query.data, active && !query.error && options?.enabled !== false);
+  const data = useQrHistoryData(query.data, history.data, history.error || query.error, history.dataUpdatedAt, query.dataUpdatedAt);
   return {
     ...query,
-    data: query.data && history.data && !history.error
-      ? { ...query.data, movementHistory: history.data } : query.data,
+    data,
     movementHistoryError: history.error,
   };
 }

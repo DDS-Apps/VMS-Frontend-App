@@ -1,7 +1,7 @@
-import { movementDetailPollingInterval } from '@/utils/movementPolling';
 import { qrPollingInterval } from '@/utils/movementPolling';
 import { useActiveVisitView } from '@/hooks/useActiveVisitView';
 import { useVisitMovementHistory } from './useVisitMovementHistory';
+import { useQrHistoryData } from './useQrHistoryData';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { requestApiService, type ListRequestsParams } from '@/services/api/requestApiService';
 import { invalidateDashboardKpis } from '@/hooks/queries/useDashboardKpiQuery';
@@ -381,10 +381,10 @@ export function useVisitDetailsQuery(id: string, enabled = true) {
     refetchIntervalInBackground: false,
   });
   const history = useVisitMovementHistory(id, query.data, active && enabled && !query.error);
+  const data = useQrHistoryData(query.data, history.data, history.error || query.error, history.dataUpdatedAt, query.dataUpdatedAt);
   return {
     ...query,
-    data: query.data && history.data && !history.error
-      ? { ...query.data, movementHistory: history.data } : query.data,
+    data,
     movementHistoryError: history.error,
   };
 }

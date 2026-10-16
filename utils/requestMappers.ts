@@ -1,5 +1,6 @@
 import type { VisitorRequest, ParkingType, RequestStatus } from '@/types/vms.types';
 import type { VisitDetailsDto, VisitListItemDto, AwaitingVisitorDto, PendingApprovalDto, PendingHostWalkInDto, BuffetMealType } from '@/types/api.types';
+import { qrAccessFields } from './qrAccess';
 import {
   API_STATUS_MAP,
   resolveStatus,
@@ -107,6 +108,7 @@ export const mapVisitDetailsToVisitorRequest = (visit: VisitDetailsDto): Visitor
   });
 
   return {
+    ...qrAccessFields(visit),
     movementSummary: visit.movementSummary,
     movementSummaryAvailability: visit.movementSummaryAvailability,
     movementSummaryError: visit.movementSummaryError,
@@ -218,6 +220,7 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     hasParking: visit.hasParking,
   });
   return {
+    ...qrAccessFields(visit),
     movementSummary: visit.movementSummary,
     movementSummaryAvailability: visit.movementSummaryAvailability,
     movementSummaryError: visit.movementSummaryError,

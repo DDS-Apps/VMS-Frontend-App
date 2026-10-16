@@ -19,6 +19,7 @@ jest.mock('@/hooks/queries/useApprovalQueries', () => ({
   },
 }));
 jest.mock('@react-navigation/native', () => ({ useFocusEffect: () => undefined }));
+jest.mock('@/hooks/useActiveVisitView', () => ({ useQrClock: () => Date.parse('2026-10-07T12:00:00Z') }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -101,6 +102,7 @@ describe.each(['web', 'ios', 'android'] as const)('Receptionist detail scope on 
       id: 'visit', visitor: { fullName: 'Test Visitor', company: 'Test Company' },
       employeeName: 'Test Host', visitDate: '2020-01-01', visitTime: '10:00', endTime: '11:00',
       status, isWalkIn, createdAt: '2020-01-01T07:00:00Z', qrCode: 'test-qr',
+      isExpired: status === 'expired',
       movementHistory: history, timezone: 'Asia/Riyadh',
     };
     const visitor = {
@@ -125,7 +127,11 @@ describe.each(['web', 'ios', 'android'] as const)('Receptionist detail scope on 
     }
     expect(mockMovementHook).not.toHaveBeenCalled();
     expect(mockDetailsQuery).toHaveBeenCalledWith('visit', true);
-    expect(tree!.root.findByType('QRCode' as any).props.value).toBe('test-qr');
+    if (entry === 'legacyFallback' || status === 'expired') {
+      expect(tree!.root.findAllByType('QRCode' as any)).toHaveLength(0);
+    } else {
+      expect(tree!.root.findByType('QRCode' as any).props.value).toBe('test-qr');
+    }
     if (entry !== 'legacyFallback') {
       expect(text.filter(value => value === dictionary.movementHistory.checkIn)).toHaveLength(2);
       expect(text.filter(value => value === dictionary.movementHistory.checkOut)).toHaveLength(2);

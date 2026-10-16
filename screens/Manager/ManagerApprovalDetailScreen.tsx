@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
+import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
+import { useQrClock } from '@/hooks/useActiveVisitView';
 import {
   View,
   StyleSheet,
@@ -284,6 +286,7 @@ export default function ManagerApprovalDetailScreen({
     refetch,
   } = useVisitDetailsQuery(requestId);
 
+  const qrNow = useQrClock();
   const initializeWalkInServices = (data: typeof visitData) => {
     const requiresBuffet = !!data?.buffet;
     setWalkInRequiresMeetingRoom(!!data?.meetingRoom || requiresBuffet);
@@ -2019,6 +2022,7 @@ export default function ManagerApprovalDetailScreen({
         <Spacer height={LAYOUT.sectionSpacing} />
 
         <ActualMovementSummary source={visitData} />
+        {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
         <RequestTimeline
           steps={timelineSteps}
           movementHistory={visitData?.movementHistory}

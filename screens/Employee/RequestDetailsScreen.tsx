@@ -2314,6 +2314,7 @@ export default function RequestDetailsScreen({
               >
                 {t("invitation.qrCode")}
               </ThemedText>
+              {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
               <Spacer height={Spacing.xl} />
 
               <View
@@ -2347,7 +2348,6 @@ export default function RequestDetailsScreen({
         <Spacer height={Spacing.xl} />
 
         {/* Existing scheduled manager expired message remains inline. */}
-        {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
         {showInlineExpiredVisitNotice ? expiredVisitNotice : null}
 
         <Modal

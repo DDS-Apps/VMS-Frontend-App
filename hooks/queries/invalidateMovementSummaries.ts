@@ -18,7 +18,7 @@ const refreshes = new WeakMap<Query, { again: boolean; promise: Promise<void> }>
  * Some services share transport GETs without consuming React Query's AbortSignal:
  * cancelling only the query could still let the replacement join the old HTTP read.
  */
-function refreshAfterPendingRead(client: QueryClient, query: Query): Promise<void> {
+export function refreshAfterPendingRead(client: QueryClient, query: Query): Promise<void> {
   const pending = refreshes.get(query);
   if (pending) {
     pending.again = true;

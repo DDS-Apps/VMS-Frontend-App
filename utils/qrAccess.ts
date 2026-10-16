@@ -1,7 +1,8 @@
 import type { QrAccessFields } from '@/types/qrAccess';
-import { parseServerDateTimeStrings } from './dateTimeUtils';
 
 export interface QrAccessSource extends QrAccessFields {
+  /** Local query freshness marker, not a backend contract field. */
+  accessReadUnavailable?: boolean;
   status?: string;
   qrCode?: string | null;
   expiresAt?: string;
@@ -36,8 +37,23 @@ function scheduledTime(source: QrAccessSource, value?: string | null): number | 
   const calendarDate = new Date(`${date}T00:00:00Z`);
   if (!Number.isFinite(calendarDate.getTime()) || calendarDate.toISOString().slice(0, 10) !== date) return undefined;
   try {
-    const time = parseServerDateTimeStrings(date, value.toUpperCase(), source.timezone || 'Asia/Riyadh').getTime();
-    return Number.isFinite(time) ? time : undefined;
+    let hour = Number(match[1]);
+    if (match[3]) hour = hour % 12 + (match[3].toUpperCase() === 'PM' ? 12 : 0);
+    const [year, month, day] = date.split('-').map(Number);
+    const desired = Date.UTC(year, month - 1, day, hour, Number(match[2]));
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: source.timezone || 'Asia/Riyadh',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    });
+    const wallTime = (instant: number) => {
+      const parts = formatter.formatToParts(instant);
+      const part = (name: string) => Number(parts.find(p => p.type === name)?.value);
+      return Date.UTC(part('year'), part('month') - 1, part('day'), part('hour'), part('minute'));
+    };
+    let time = desired;
+    for (let attempt = 0; attempt < 3; attempt++) time += desired - wallTime(time);
+    return wallTime(time) === desired ? time : undefined;
   } catch {
     return undefined;
   }
@@ -56,6 +72,7 @@ export function getQrAccessState(source: QrAccessSource, now = Date.now()): QrAc
   if (hasInvalidQrSchedule(source)) return 'invalidSchedule';
   if (source.isExpired === true || source.movementHistory?.isExpired === true ||
       ['expired', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(source.status || '')) return 'expired';
+  if (source.accessReadUnavailable) return 'unavailable';
   const expires = absoluteTime(source.qrExpiresAt ?? source.expiresAt);
   // Reaching a server-provided cutoff requires a fresh authority read. Do not
   // continue claiming valid access, or fabricate expiry from a local meeting end.

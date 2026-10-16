@@ -1,4 +1,5 @@
 import { UserRole as UserRoleType, USER_ROLES, isValidRole } from '@/constants/roles';
+import type { QrAccessFields } from './qrAccess';
 
 export type UserRole = UserRoleType;
 export { USER_ROLES, isValidRole };
@@ -92,7 +93,7 @@ export interface ReminderSchedule {
   secondReminderSent?: boolean;
 }
 
-export interface VisitorRequest {
+export interface VisitorRequest extends QrAccessFields {
   movementSummary?: import('./movementSummary').MovementSummary;
   movementSummaryAvailability?: 'restricted' | 'unavailable';
   movementSummaryError?: string;

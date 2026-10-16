@@ -18,7 +18,7 @@ import { DirectionalRow, getFlexDirection } from '@/components/DirectionalRow';
 import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/requestConstants";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
-import { canDisplayQr, httpErrorStatus } from '@/utils/qrAccess';
+import { canDisplayQr, httpErrorStatus, hasInvalidQrSchedule } from '@/utils/qrAccess';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 
 // Dallah Albaraka Light Theme Colors for this page
@@ -383,18 +383,20 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   // Inline parking selection state
   const [selectedParkingOption, setSelectedParkingOption] = useState<'no_parking' | 'needs_parking'>('no_parking');
 
-  const { data: invite, isLoading, isFetching, error, isError } = usePublicInviteQuery(token);
+  const { data: invite, isLoading, error, refetch } = usePublicInviteQuery(token);
   const acceptMutation = useAcceptInviteMutation(token || '');
   const rejectMutation = useRejectInviteMutation(token || '');
   const now = useQrClock();
   const pageError = error || acceptMutation.error || rejectMutation.error;
-  const accessBlocked = !!pageError || invite?.isExpired === true ||
+  const accessBlocked = !!pageError || invite?.isExpired === true || (!!invite && hasInvalidQrSchedule(invite)) ||
     ['expired', 'cancelled', 'rejected', 'visitor_rejected'].includes(invite?.status || '');
 
   React.useEffect(() => {
     setActionCompleted(null);
     setApiResponseMessage(null);
     setShowRejectModal(false);
+    acceptMutation.reset();
+    rejectMutation.reset();
   }, [token]);
   React.useEffect(() => {
     if (!invite?.canReject || accessBlocked) setShowRejectModal(false);
@@ -753,6 +755,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   }
 
   if (pageError || !token) {
+    const is403 = httpErrorStatus(pageError) === 403;
     const is404 = httpErrorStatus(pageError) === 404;
     const is410 = httpErrorStatus(pageError) === 410;
     
@@ -786,11 +789,16 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
               <DDIcon name="alert-circle" size={32} color={PageColors.warning} />
             </View>
             <Spacer height={Spacing.xl} />
-            <ThemedText style={styles.statusTitle}>{t('visitorInvite.invitationNotFound')}</ThemedText>
+            <ThemedText style={styles.statusTitle}>{is403 ? t('security.accessDenied') : is404 || !token ? t('visitorInvite.invitationNotFound') : t('common.error')}</ThemedText>
             <Spacer height={Spacing.md} />
             <ThemedText style={styles.statusDescription}>
-              {t('visitorInvite.invitationNotFoundDescription')}
+              {is403 ? t('visitorInvite.contactSuggestion') : is404 || !token ? t('visitorInvite.invitationNotFoundDescription') : t('toast.networkError')}
             </ThemedText>
+            {!is403 && token ? (
+              <LoadingButton onPress={() => { acceptMutation.reset(); rejectMutation.reset(); void refetch(); }}>
+                {t('common.retry')}
+              </LoadingButton>
+            ) : null}
             <Spacer height={Spacing.xl * 2} />
             <GlassCard>
               <View style={styles.suggestionRow}>
@@ -1169,6 +1177,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       <Spacer height={Spacing.xl * 1.5} />
 
       {/* Action Buttons - Reject on left, Accept on right */}
+      {hasInvalidQrSchedule(invite) ? <QrAccessNotice source={invite} now={now} /> : null}
       <View style={styles.actionButtons}>
         <LoadingButton
           onPress={() => setShowRejectModal(true)}

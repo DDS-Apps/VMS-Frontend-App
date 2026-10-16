@@ -3,6 +3,7 @@ import { publicInviteService } from '@/services/api/publicInviteService';
 import type { AcceptInviteDto, RejectInviteDto, PublicInviteDto } from '@/types/api.types';
 import { useActiveVisitView } from '@/hooks/useActiveVisitView';
 import { qrPollingInterval } from '@/utils/movementPolling';
+import { refreshAfterPendingRead } from './invalidateMovementSummaries';
 
 export const publicInviteKeys = {
   all: ['publicInvites'] as const,
@@ -29,40 +30,11 @@ export function useAcceptInviteMutation(token: string) {
 
   return useMutation({
     mutationFn: (data?: AcceptInviteDto) => publicInviteService.accept(token, data),
-    onSuccess: (response, variables) => {
-      // Immediately update the cache with the submitted parking info
-      // so the accepted screen shows the correct data without waiting for refetch
-      queryClient.setQueryData(
-        publicInviteKeys.byToken(token),
-        (oldData: PublicInviteDto | undefined) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            qrCode: response.qrCode,
-            status: 'visitor_accepted' as const,
-            canAccept: false,
-            canReject: false,
-            visitorDecision: {
-              accepted: true,
-              decidedAt: new Date().toISOString(),
-            },
-            // Only the parking requirement is collected from visitors; vehicle
-            // details are never part of the invite flow (see AcceptInviteDto).
-            parkingInfo: variables?.needsParking ? {
-              ...oldData.parkingInfo,
-              needsParking: true,
-            } : {
-              ...oldData.parkingInfo,
-              needsParking: false,
-              licensePlate: null,
-              carModel: null,
-              carColor: null,
-            },
-          };
-        }
-      );
-      // Also invalidate to get the server's authoritative data in background
-      queryClient.invalidateQueries({ queryKey: publicInviteKeys.byToken(token) });
+    onSuccess: async () => {
+      // Wait out any pre-action read, then obtain the current QR and decision
+      // permissions. Never resurrect a mutation-result QR over a newer GET/410.
+      const query = queryClient.getQueryCache().find({ queryKey: publicInviteKeys.byToken(token), exact: true });
+      if (query) await refreshAfterPendingRead(queryClient, query);
     },
   });
 }
@@ -72,8 +44,9 @@ export function useRejectInviteMutation(token: string) {
 
   return useMutation({
     mutationFn: (data?: RejectInviteDto) => publicInviteService.reject(token, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: publicInviteKeys.byToken(token) });
+    onSuccess: async () => {
+      const query = queryClient.getQueryCache().find({ queryKey: publicInviteKeys.byToken(token), exact: true });
+      if (query) await refreshAfterPendingRead(queryClient, query);
     },
   });
 }
