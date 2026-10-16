@@ -6,9 +6,9 @@ import { getEnvironmentConfig } from '../config/environments';
 const production = 'https://vms.dallah.com';
 const stale = 'https://vms-backend-app-qa.replit.app';
 
-describe('all clients use production', () => {
-  it.each(['production', 'qa', 'staging', 'preview', 'development', ''])(
-    'ignores stale backend overrides for %s', appVariant => {
+describe('backend targets stay separated by client build', () => {
+  it.each(['production', 'preview', 'development', ''])(
+    'keeps production variants on the live backend despite stale QA overrides (%s)', appVariant => {
       const resolved = resolveEnvironment({
         appVariant,
         env: {
@@ -31,8 +31,23 @@ describe('all clients use production', () => {
     },
   );
 
-  it('uses the same origin for native, web, and configuration helpers', () => {
-    expect([API_BASE_URL, MICROSOFT_AUTH_BASE_URL, WEB_API, WEB_AUTH]).toEqual(Array(4).fill(production));
+  it.each(['qa', 'staging'])('uses QA backend for explicit web QA builds (%s)', appVariant => {
+    const resolved = resolveEnvironment({ appVariant, env: { EXPO_PUBLIC_API_BASE_URL: stale } });
+    expect(resolved.apiBaseUrl).toBe(stale);
+    expect(resolved.microsoftAuthUrl).toBe(stale);
+    expect(publicEnvFor(resolved)).toMatchObject({
+      EXPO_PUBLIC_API_BASE_URL: stale,
+      EXPO_PUBLIC_VMS_API_BASE_URL: stale,
+      EXPO_PUBLIC_MICROSOFT_AUTH_URL: stale,
+    });
+  });
+
+  it('keeps native and helper defaults on production while web accepts its build-time target', () => {
+    expect([API_BASE_URL, MICROSOFT_AUTH_BASE_URL]).toEqual([production, production]);
+    expect([WEB_API, WEB_AUTH]).toEqual([
+      process.env.EXPO_PUBLIC_API_BASE_URL || production,
+      process.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL || process.env.EXPO_PUBLIC_API_BASE_URL || production,
+    ]);
     expect(getEnvironmentConfig().backend).toEqual({
       apiBaseUrl: production, vmsApiBaseUrl: production, microsoftAuthUrl: production,
     });

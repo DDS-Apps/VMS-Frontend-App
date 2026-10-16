@@ -10,7 +10,8 @@
  * It is plain CommonJS on purpose: `app.config.js` (evaluated by the Expo CLI),
  * `scripts/build-web.js` and the Jest suites all consume it without a build step.
  *
- * Backend API and Microsoft SSO always use the committed production origin.
+ * QA web publishing uses the QA backend; production web and native clients use
+ * the production backend.
  * Resolution order for other public values (highest priority first):
  *   1. `EXPO_PUBLIC_<KEY>` in the process environment (Replit shared env, CI).
  *   2. `<KEY>` or `EXPO_PUBLIC_<KEY>` from the optional, git-ignored variant
@@ -28,16 +29,13 @@
 const PRODUCTION_VARIANT = 'production';
 const QA_VARIANT = 'qa';
 // All clients use the live backend, including explicit QA/staging variants.
-const { origin: BACKEND_ORIGIN } = require('./web-backend.json');
-if (BACKEND_ORIGIN !== 'https://vms.dallah.com') {
-  throw new Error('All client configurations must use https://vms.dallah.com');
-}
+const { origin: BACKEND_ORIGIN, qaOrigin: QA_BACKEND_ORIGIN } = require('./web-backend.json');
 
 const ENVIRONMENTS = {
   [QA_VARIANT]: {
     name: QA_VARIANT,
-    apiBaseUrl: BACKEND_ORIGIN,
-    microsoftAuthUrl: BACKEND_ORIGIN,
+    apiBaseUrl: QA_BACKEND_ORIGIN,
+    microsoftAuthUrl: QA_BACKEND_ORIGIN,
     // The QA web app (and therefore /.well-known, /invite/* and /requests/*)
     // is served by the Replit deployment of this project.
     appDomain: 'vms-frontend-folio3.replit.app',
@@ -146,11 +144,6 @@ function resolveEnvironment(options = {}) {
     : [];
 
   const pick = (key) => {
-    // Neither stale process variables nor local .env files may redirect clients.
-    if (key === 'apiBaseUrl' || key === 'microsoftAuthUrl') {
-      sources[key] = 'production backend policy';
-      return BACKEND_ORIGIN;
-    }
     const envKey = ENV_KEYS[key];
     const publicKey = `EXPO_PUBLIC_${envKey}`;
     let note = '';
@@ -173,7 +166,7 @@ function resolveEnvironment(options = {}) {
   };
 
   const apiBaseUrl = stripTrailingSlash(pick('apiBaseUrl'));
-  // Microsoft SSO is served by the same backend unless explicitly overridden.
+  // Microsoft SSO follows the selected backend unless explicitly overridden.
   const microsoftAuthUrlRaw = pick('microsoftAuthUrl');
   const microsoftAuthUrl = stripTrailingSlash(
     sources.microsoftAuthUrl.startsWith('default') ? apiBaseUrl : microsoftAuthUrlRaw,
@@ -194,13 +187,15 @@ function resolveEnvironment(options = {}) {
 }
 
 /**
- * Throws when a production configuration still points at a QA or development
- * host (e.g. a stale `.env.production`). Called from app.config.js so
- * `APP_VARIANT=production` can never be built against the QA backend.
+ * Keeps production builds on the production backend and QA builds on the
+ * configured QA backend. Both targets must use the same API and SSO origin.
  */
 function assertProductionConfig(resolved) {
-  if (resolved.apiBaseUrl !== BACKEND_ORIGIN || resolved.microsoftAuthUrl !== BACKEND_ORIGIN) {
-    throw new Error('All variants must use the canonical production backend');
+  const expectedBackend = resolved.variant === PRODUCTION_VARIANT ? BACKEND_ORIGIN : QA_BACKEND_ORIGIN;
+  if (resolved.apiBaseUrl !== expectedBackend || resolved.microsoftAuthUrl !== expectedBackend) {
+    throw new Error(
+      `The ${resolved.variant} variant must use ${expectedBackend} for both API and Microsoft SSO`,
+    );
   }
   if (resolved.variant !== PRODUCTION_VARIANT) return;
   const offenders = [];

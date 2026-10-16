@@ -1,3 +1,4 @@
 {
-  "origin": "https://vms.dallah.com"
+  "origin": "https://vms.dallah.com",
+  "qaOrigin": "https://vms-backend-app-qa.replit.app"
 }

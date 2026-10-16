@@ -1,16 +1,14 @@
 # Environment configuration
 
-**Production is the default** for publishing, web builds and every configured
-Android/iOS EAS profile, including preview and development binaries. They target
-`https://vms.dallah.com`. QA requires an explicit `qa`/`staging` variant and is
-not selected by any standard build command. Missing or unrecognized variants
-default to production, and production rejects non-production or HTTP targets.
+Replit publishing builds the **QA web variant**, which targets
+`https://vms-backend-app-qa.replit.app`. The IIS web build and every configured
+Android/iOS EAS profile target production at `https://vms.dallah.com`. Missing or
+unrecognized variants default to production; production rejects non-production
+or HTTP targets.
 
-Production targeting does not grant cross-origin access: the production API
-currently permits the canonical `https://vms.dallah.com` web origin. A local or
-Replit preview/published host needs explicit backend CORS approval before its
-authenticated API calls can work. Do not use wildcard credentialed CORS or
-switch a production build back to QA to bypass this requirement.
+The QA backend must allow the published Replit frontend origin through its CORS
+policy for authenticated browser calls. The production IIS build stays on the
+same-origin production API. Do not use wildcard credentialed CORS.
 
 ## Web Firebase project
 
@@ -34,18 +32,13 @@ Restoration verification uses resolved configuration, type checking and a clean
 production web export, without running unit tests. No live notification,
 device registration, deliberate crash or remote native build is part of this work.
 
-### Shared production backend
+### Environment-specific backend
 
-Web API requests and Microsoft sign-in use `config/web-backend.json`, currently
-`https://vms.dallah.com`, through Metro's `backendUrls.web.ts`.
-This applies to web preview and published web builds, including production exports.
-Android and iOS use the same committed backend origin. Explicit QA/staging variants
-also use production APIs. Firebase, app domains, legal pages and native links retain their identities.
-
-The web origin is embedded at build time: changing the shared API secret does not
-replace it. Change this public configuration and republish to update the web backend.
-The bundle verifier rejects the former QA backend in every variant.
-All these clients access live data; QA/staging is no longer an isolated backend.
+Web API requests and Microsoft sign-in use the selected build environment. The
+Replit publish build uses the QA backend; the IIS and native builds use the
+production backend. The web API origin is embedded in the JavaScript at build
+time, so changing Replit settings requires a new publish. The bundle verifier
+rejects cross-environment backend hosts.
 
 The app has two base environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
@@ -74,8 +67,9 @@ files in `config/qa/` remain unchanged.
 
 ## How values are resolved
 
-`apiBaseUrl` and `microsoftAuthUrl` are fixed to the production origin in all
-variants. Process and local-file overrides cannot redirect them.
+`apiBaseUrl` and `microsoftAuthUrl` resolve to the selected variant's backend.
+QA accepts the configured QA backend URL; production ignores process overrides
+and stays on the production origin.
 For `appDomain` and `legalPagesUrl`, highest priority first:
 
 1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
@@ -126,7 +120,7 @@ FIREBASE_APP_ID_WEB, FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS, FIREBASE_VAPI
 
 | Target | Command |
 |--------|---------|
-| Production web (Replit publishing) | `npm run build:web` |
+| QA web (Replit publishing) | `npm run build:web` |
 | Production web (IIS) | `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` |
 | Production iOS / Android | `npm run build:ios` / `npm run build:android` (EAS `production` profile) |
 | Internal iOS / Android (production backend) | `npm run build:preview:ios` / `npm run build:preview:android` |

@@ -1,7 +1,7 @@
 /**
  * Guards the environment wiring used by app.config.js and the web build:
- * all variants use the production backend, QA keeps its app identity,
- * and the bundle checks reject stale backend configuration.
+ * Replit web builds use QA while IIS and native builds remain on production,
+ * and the bundle checks reject cross-environment backend configuration.
  */
 const fs = require("fs");
 const os = require("os");
@@ -30,12 +30,12 @@ const QA_SHARED_ENV = {
 };
 
 describe("Replit publishing build", () => {
-  it("builds production by default without the IIS-only web.config", () => {
+  it("builds QA without the IIS-only web.config", () => {
     const script = fs.readFileSync(path.join(ROOT, "scripts", "build-and-verify.sh"), "utf8");
 
-    expect(script).toContain("--variant production");
+    expect(script).toContain("--variant qa");
     expect(script).toContain("--no-web-config");
-    expect(script).not.toContain("--variant qa");
+    expect(script).not.toContain("--variant production");
   });
 });
 
@@ -53,11 +53,12 @@ describe("resolveEnvironment", () => {
     expect(() => assertProductionConfig(resolved)).not.toThrow();
   });
 
-  it("keeps QA identities but uses production APIs for explicit QA or staging", () => {
+  it("uses the QA API and QA identity for explicit QA or staging", () => {
     for (const appVariant of ["staging", "qa"]) {
       const resolved = resolveEnvironment({ appVariant, env: {} });
       expect(resolved.variant).toBe("qa");
-      expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
+      expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
+      expect(resolved.microsoftAuthUrl).toBe("https://vms-backend-app-qa.replit.app");
       expect(resolved.appDomain).toBe("vms-frontend-folio3.replit.app");
       expect(resolved.legalPagesUrl).toBe("https://vms-frontend-folio3.replit.app");
     }
@@ -73,8 +74,8 @@ describe("resolveEnvironment", () => {
       },
     });
 
-    expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
-    expect(resolved.sources.apiBaseUrl).toBe("production backend policy");
+    expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
+    expect(resolved.sources.apiBaseUrl).toContain("development host");
     expect(resolved.legalPagesUrl).toBe("https://legal.example.com");
   });
 
@@ -139,7 +140,7 @@ describe("resolveEnvironment", () => {
     );
   });
 
-  it("emits the EXPO_PUBLIC_* set Metro inlines, with APP_VARIANT matching eas.json", () => {
+  it("emits production values for production and QA values for Replit web builds", () => {
     const production = publicEnvFor(resolveEnvironment({ appVariant: "production", env: {} }));
     expect(production).toEqual({
       APP_VARIANT: "production",
@@ -149,7 +150,12 @@ describe("resolveEnvironment", () => {
       EXPO_PUBLIC_APP_DOMAIN: "vms.dallah.com",
       EXPO_PUBLIC_LEGAL_PAGES_URL: "https://vms.dallah.com",
     });
-    expect(publicEnvFor(resolveEnvironment({ appVariant: "qa", env: {} })).APP_VARIANT).toBe("staging");
+    expect(publicEnvFor(resolveEnvironment({ appVariant: "qa", env: {} }))).toMatchObject({
+      APP_VARIANT: "staging",
+      EXPO_PUBLIC_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
+      EXPO_PUBLIC_VMS_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
+      EXPO_PUBLIC_MICROSOFT_AUTH_URL: "https://vms-backend-app-qa.replit.app",
+    });
   });
 });
 
@@ -196,14 +202,14 @@ describe("app.config.js", () => {
     expect(config.scheme).toBe("dallahvms");
   });
 
-  it("keeps QA app identity while using the production backend", () => {
+  it("keeps QA app identity and uses the QA backend", () => {
     const config = evaluate({ APP_VARIANT: "staging", PATH: originalEnv.PATH, ...QA_SHARED_ENV });
 
     expect(config.ios.associatedDomains).toEqual(["applinks:vms-frontend-folio3.replit.app"]);
     expect(config.android.intentFilters[0].data[0].host).toBe("vms-frontend-folio3.replit.app");
     expect(config.extra).toMatchObject({
       environment: "qa",
-      apiBaseUrl: "https://vms.dallah.com",
+      apiBaseUrl: "https://vms-backend-app-qa.replit.app",
       legalPagesUrl: "https://vms-frontend-folio3.replit.app",
     });
   });
@@ -253,6 +259,8 @@ describe("web dist finalize + verify", () => {
 
   const PRODUCTION_BUNDLE =
     'var a="https://vms.dallah.com";var b=hostname.includes("replit.dev")||hostname.includes("replit.app");';
+  const QA_BUNDLE =
+    'var a="https://vms-backend-app-qa.replit.app";var b=hostname.includes("replit.dev")||hostname.includes("replit.app");';
 
   beforeEach(() => {
     distDir = fs.mkdtempSync(path.join(os.tmpdir(), "vms-web-dist-"));
@@ -299,8 +307,8 @@ describe("web dist finalize + verify", () => {
     expect(result.requiredHostFound).toBe(true);
   });
 
-  it("renders the QA add-in against the Replit host without a web.config", () => {
-    seedDist(PRODUCTION_BUNDLE);
+  it("renders the QA add-in and verifies its QA backend without a web.config", () => {
+    seedDist(QA_BUNDLE);
 
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
 
@@ -308,7 +316,7 @@ describe("web dist finalize + verify", () => {
     expect(manifest).toContain(`<Id>${ENVIRONMENTS.qa.outlookAddin.id}</Id>`);
     expect(manifest).toContain("https://vms-frontend-folio3.replit.app/outlook-addin/taskpane.html");
     expect(fs.existsSync(path.join(distDir, "web.config"))).toBe(false);
-    expect(verifyBundleHosts({ distDir, environment: qa }).errors).toEqual([]);
+    expect(verifyBundleHosts({ distDir, environment: qa, webBackendUrl: qa.apiBaseUrl }).errors).toEqual([]);
   });
 
   it("fails a production bundle that still references QA or development hosts", () => {
@@ -323,7 +331,7 @@ describe("web dist finalize + verify", () => {
   });
 
   it("fails when the config inlined into the bundle belongs to the other environment", () => {
-    seedDist('var c={"extra":{"apiBaseUrl":"https://wrong.example.com"}};var q="https://vms.dallah.com";');
+    seedDist('var c={"extra":{"apiBaseUrl":"https://wrong.example.com"}};var q="https://vms-backend-app-qa.replit.app";');
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
     expect(verifyBundleHosts({ distDir, environment: qa }).errors).toEqual([
       expect.stringContaining('apiBaseUrl is "https://wrong.example.com" but the qa build expects'),
@@ -373,15 +381,19 @@ describe("web dist finalize + verify", () => {
     expect(() => assertBackendOrigin("https://user:password@backend.internal")).toThrow();
   });
 
-  it("rejects the former web-only QA exception and QA backend leaks in staging", () => {
+  it("allows the configured QA backend and rejects production-backend leaks in QA", () => {
+    seedDist(QA_BUNDLE);
+    finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
+    expect(verifyBundleHosts({ distDir, environment: qa, webBackendUrl: qa.apiBaseUrl }).errors).toEqual([]);
+
     seedDist('var a="https://vms.dallah.com";var q="https://vms-backend-app-qa.replit.app";');
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
     expect(verifyBundleHosts({ distDir, environment: qa }).errors).toEqual([
-      expect.stringContaining("forbidden QA backend"),
+      expect.stringContaining("production backend leaked into the QA bundle"),
     ]);
     expect(() => verifyBundleHosts({
       distDir, environment: production, webBackendUrl: QA_SHARED_ENV.EXPO_PUBLIC_API_BASE_URL,
-    })).toThrow(/must be https:\/\/vms.dallah.com/);
+    })).toThrow(/must match the production environment/);
   });
 
   it("reports placeholders a template forgot to fill", () => {
