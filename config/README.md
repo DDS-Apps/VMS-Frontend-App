@@ -46,10 +46,10 @@ The app has two base environments. Their public values are committed in
 
 | | QA | Production |
 |---|---|---|
-| Web app / app domain | `vms-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
-| API base URL | `https://vms.dallah.com` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| Microsoft SSO base URL | `https://vms.dallah.com` | `https://vms.dallah.com` |
-| Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
+| Web app / app domain | `vms-qa-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
+| API base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| Microsoft SSO base URL | QA backend | `https://vms.dallah.com` |
+| Legal pages | `https://vms-qa-frontend-folio3.replit.app` | `https://vms.dallah.com` |
 | Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
 | Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
 | `APP_VARIANT` | `qa` / `staging` (explicit only) | `production` (default) |
@@ -70,7 +70,7 @@ files in `config/qa/` remain unchanged.
 `apiBaseUrl` and `microsoftAuthUrl` resolve to the selected variant's backend.
 QA accepts the configured QA backend URL; production ignores process overrides
 and stays on the production origin.
-For `appDomain` and `legalPagesUrl`, highest priority first:
+For QA API/SSO and the other public variant values, highest priority first:
 
 1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
    `EXPO_PUBLIC_APP_DOMAIN`, `EXPO_PUBLIC_LEGAL_PAGES_URL` from the process
@@ -85,12 +85,12 @@ For `appDomain` and `legalPagesUrl`, highest priority first:
    for every `expo export` and would inline them into QA builds.
 3. The committed defaults.
 
-`microsoftAuthUrl` always matches the production API origin.
+`microsoftAuthUrl` must match the selected variant's API origin.
 
 If `APP_VARIANT=production` ends up pointing at HTTP or a non-production host (e.g. a
 stale `.env.production`), `app.config.js` throws and the build stops. The app
-uses the committed production origin directly on web and native; Expo metadata
-and exported public URL variables are resolved to that same origin.
+uses the committed production origin for IIS and native builds. QA web uses the
+QA origin from the resolved Expo configuration and exported public URL variables.
 
 ## What is derived from the environment
 

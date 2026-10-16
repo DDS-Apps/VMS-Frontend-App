@@ -197,7 +197,7 @@ function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
     }
 
     if (!isProduction) {
-      if (content.includes('https://vms.dallah.com')) {
+      if (relative.startsWith('_expo/') && content.includes('https://vms.dallah.com')) {
         errors.push(`${relative}: production backend leaked into the QA bundle`);
       }
       for (const host of QA_HOSTS.filter(

@@ -4,7 +4,7 @@
  * This file documents the structure of environment configurations for Production and QA.
  * 
  * IMPORTANT: 
- * - Backend origins are fixed to production; other values use environment configuration.
+ * - Native backends stay on production; web uses its selected build environment.
  * - This file only shows the structure and provides helper functions
  * - NEVER hardcode actual API keys, secrets, or credentials in this file
  * 
@@ -106,7 +106,7 @@ export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
 }
 
 /**
- * Get the config with the fixed production backend and environment-provided Firebase values.
+ * Get the selected platform backend and environment-provided Firebase values.
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
   const env = getCurrentEnvironment();

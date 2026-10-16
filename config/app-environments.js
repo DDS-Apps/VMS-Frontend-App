@@ -28,7 +28,7 @@
 
 const PRODUCTION_VARIANT = 'production';
 const QA_VARIANT = 'qa';
-// All clients use the live backend, including explicit QA/staging variants.
+// Native and IIS production use origin; Replit web publishing uses qaOrigin.
 const { origin: BACKEND_ORIGIN, qaOrigin: QA_BACKEND_ORIGIN } = require('./web-backend.json');
 
 const ENVIRONMENTS = {
@@ -38,8 +38,8 @@ const ENVIRONMENTS = {
     microsoftAuthUrl: QA_BACKEND_ORIGIN,
     // The QA web app (and therefore /.well-known, /invite/* and /requests/*)
     // is served by the Replit deployment of this project.
-    appDomain: 'vms-frontend-folio3.replit.app',
-    legalPagesUrl: 'https://vms-frontend-folio3.replit.app',
+    appDomain: 'vms-qa-frontend-folio3.replit.app',
+    legalPagesUrl: 'https://vms-qa-frontend-folio3.replit.app',
     outlookAddin: {
       id: 'a3f7c2d1-84b6-4e9a-bc12-5f3d8e6a1c7b',
       version: '1.0.0',
@@ -68,6 +68,7 @@ const ENVIRONMENTS = {
 // call in the web push code.
 const QA_HOSTS = [
   'vms-backend-app-qa.replit.app',
+  'vms-qa-frontend-folio3.replit.app',
   'vms-frontend-folio3.replit.app',
   'vms-backend-folio3.replit.app',
 ];
@@ -144,6 +145,10 @@ function resolveEnvironment(options = {}) {
     : [];
 
   const pick = (key) => {
+    if (variant === PRODUCTION_VARIANT && (key === 'apiBaseUrl' || key === 'microsoftAuthUrl')) {
+      sources[key] = 'production backend policy';
+      return BACKEND_ORIGIN;
+    }
     const envKey = ENV_KEYS[key];
     const publicKey = `EXPO_PUBLIC_${envKey}`;
     let note = '';
@@ -197,7 +202,14 @@ function assertProductionConfig(resolved) {
       `The ${resolved.variant} variant must use ${expectedBackend} for both API and Microsoft SSO`,
     );
   }
-  if (resolved.variant !== PRODUCTION_VARIANT) return;
+  if (resolved.variant !== PRODUCTION_VARIANT) {
+    for (const key of ['appDomain', 'legalPagesUrl']) {
+      if (hostnameOf(resolved[key]) === hostnameOf(expectedBackend)) {
+        throw new Error(`QA ${key} must point to the frontend, not the backend API`);
+      }
+    }
+    return;
+  }
   const offenders = [];
   for (const key of ['apiBaseUrl', 'microsoftAuthUrl', 'appDomain', 'legalPagesUrl']) {
     const host = hostnameOf(resolved[key]);

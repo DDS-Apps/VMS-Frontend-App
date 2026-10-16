@@ -26,7 +26,8 @@ const QA_SHARED_ENV = {
   EXPO_PUBLIC_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
   EXPO_PUBLIC_VMS_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
   EXPO_PUBLIC_MICROSOFT_AUTH_URL: "https://vms-backend-app-qa.replit.app",
-  EXPO_PUBLIC_LEGAL_PAGES_URL: "https://vms-frontend-folio3.replit.app",
+  EXPO_PUBLIC_APP_DOMAIN: "vms-qa-frontend-folio3.replit.app",
+  EXPO_PUBLIC_LEGAL_PAGES_URL: "https://vms-qa-frontend-folio3.replit.app",
 };
 
 describe("Replit publishing build", () => {
@@ -59,8 +60,8 @@ describe("resolveEnvironment", () => {
       expect(resolved.variant).toBe("qa");
       expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
       expect(resolved.microsoftAuthUrl).toBe("https://vms-backend-app-qa.replit.app");
-      expect(resolved.appDomain).toBe("vms-frontend-folio3.replit.app");
-      expect(resolved.legalPagesUrl).toBe("https://vms-frontend-folio3.replit.app");
+      expect(resolved.appDomain).toBe("vms-qa-frontend-folio3.replit.app");
+      expect(resolved.legalPagesUrl).toBe("https://vms-qa-frontend-folio3.replit.app");
     }
   });
 
@@ -78,6 +79,16 @@ describe("resolveEnvironment", () => {
     expect(resolved.sources.apiBaseUrl).toContain("development host");
     expect(resolved.legalPagesUrl).toBe("https://legal.example.com");
   });
+
+  it.each(["EXPO_PUBLIC_APP_DOMAIN", "EXPO_PUBLIC_LEGAL_PAGES_URL"])(
+    "rejects a QA frontend setting that was replaced with the backend URL (%s)", key => {
+      const resolved = resolveEnvironment({
+        appVariant: "qa",
+        env: { ...QA_SHARED_ENV, [key]: QA_SHARED_ENV.EXPO_PUBLIC_API_BASE_URL },
+      });
+      expect(() => assertProductionConfig(resolved)).toThrow(/frontend, not the backend API/);
+    },
+  );
 
   it("reads overrides from the variant file but never from non-prefixed process env", () => {
     const resolved = resolveEnvironment({
@@ -114,6 +125,7 @@ describe("resolveEnvironment", () => {
     expect(clean.ignored).toEqual([
       "EXPO_PUBLIC_API_BASE_URL",
       "EXPO_PUBLIC_MICROSOFT_AUTH_URL",
+      "EXPO_PUBLIC_APP_DOMAIN",
       "EXPO_PUBLIC_LEGAL_PAGES_URL",
     ]);
     expect(() => assertProductionConfig(clean)).not.toThrow();
@@ -129,7 +141,7 @@ describe("resolveEnvironment", () => {
         appVariant: "staging",
         env: { EXPO_PUBLIC_API_BASE_URL: url },
       });
-      expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
+      expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
     }
   });
 
@@ -205,12 +217,12 @@ describe("app.config.js", () => {
   it("keeps QA app identity and uses the QA backend", () => {
     const config = evaluate({ APP_VARIANT: "staging", PATH: originalEnv.PATH, ...QA_SHARED_ENV });
 
-    expect(config.ios.associatedDomains).toEqual(["applinks:vms-frontend-folio3.replit.app"]);
-    expect(config.android.intentFilters[0].data[0].host).toBe("vms-frontend-folio3.replit.app");
+    expect(config.ios.associatedDomains).toEqual(["applinks:vms-qa-frontend-folio3.replit.app"]);
+    expect(config.android.intentFilters[0].data[0].host).toBe("vms-qa-frontend-folio3.replit.app");
     expect(config.extra).toMatchObject({
       environment: "qa",
       apiBaseUrl: "https://vms-backend-app-qa.replit.app",
-      legalPagesUrl: "https://vms-frontend-folio3.replit.app",
+      legalPagesUrl: "https://vms-qa-frontend-folio3.replit.app",
     });
   });
 
@@ -314,7 +326,7 @@ describe("web dist finalize + verify", () => {
 
     const manifest = fs.readFileSync(path.join(distDir, "outlook-addin/manifest.xml"), "utf8");
     expect(manifest).toContain(`<Id>${ENVIRONMENTS.qa.outlookAddin.id}</Id>`);
-    expect(manifest).toContain("https://vms-frontend-folio3.replit.app/outlook-addin/taskpane.html");
+    expect(manifest).toContain("https://vms-qa-frontend-folio3.replit.app/outlook-addin/taskpane.html");
     expect(fs.existsSync(path.join(distDir, "web.config"))).toBe(false);
     expect(verifyBundleHosts({ distDir, environment: qa, webBackendUrl: qa.apiBaseUrl }).errors).toEqual([]);
   });

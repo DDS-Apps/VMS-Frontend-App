@@ -42,7 +42,7 @@ npm ci --include=dev
 npm run build:web:production -- --backend-origin http://localhost:3000
 ```
 
-Replace `http://localhost:3000` with the internal backend origin used by IIS. It is not the public task-pane URL. The existing Replit publishing build also renders production add-in assets, but deliberately omits IIS configuration.
+Replace `http://localhost:3000` with the internal backend origin used by IIS. It is not the public task-pane URL. The Replit publishing build renders QA add-in assets and deliberately omits IIS configuration.
 
 Expected current production values:
 

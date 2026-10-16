@@ -25,8 +25,8 @@
  *   3. Completes dist/: checks the service worker, legal pages, .well-known and
  *      Outlook add-in files are present, fills in the add-in placeholders and
  *      (production) renders web/web.config.
- *   4. Verifies the bundle references the target backend and contains no QA or
- *      development hostnames. Any violation fails the build.
+ *   4. Verifies the bundle references the target backend and contains no foreign
+ *      backend or development hostnames. Any violation fails the build.
  */
 const fs = require('fs');
 const path = require('path');

@@ -27,8 +27,8 @@ function readVariantFile(fileName) {
 }
 
 const fileEnv = readVariantFile(IS_PRODUCTION ? '.env.production' : '.env.staging');
-// Backend URLs are fixed to production for every variant. Production also
-// ignores process overrides for the other public app-domain settings.
+// Replit QA web builds resolve their QA backend. Production ignores process
+// overrides so QA settings cannot leak into IIS or native production builds.
 const environment = resolveEnvironment({
   appVariant: APP_VARIANT,
   fileEnv,

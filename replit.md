@@ -6,11 +6,11 @@ also the source of the **production** web bundle for IIS at `https://vms.dallah.
 
 | Setting | QA | Production |
 |---------|----|------------|
-| **Web / app domain** | `vms-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
+| **Web / app domain** | `vms-qa-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
 | **Backend API** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
 | **Microsoft SSO** | QA backend | `https://vms.dallah.com` |
 | **Firebase Project** | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
-| **APP_VARIANT** | `staging` (explicit only; production API) | `production` (default) |
+| **APP_VARIANT** | `staging` / `qa` (Replit publishing) | `production` (default) |
 
 ### Environment configuration
 - **Source of truth**: `config/app-environments.js` (plain CommonJS, public values only). `app.config.js` derives `extra.apiBaseUrl` / `microsoftAuthUrl` / `appDomain` / `legalPagesUrl`, iOS `associatedDomains` and Android `intentFilters` from it. `app.json` contains no environment-specific hosts.
