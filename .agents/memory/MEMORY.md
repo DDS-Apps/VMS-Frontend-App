@@ -44,3 +44,4 @@
 - [Preview startup budget](preview-startup-budget.md) — cold production exports can exceed the startup deadline; separate preview startup and verify bundle readiness.
 - [Mobile KPI columns](mobile-kpi-columns.md) — iPhone 14 and newer must show two KPI cards per row; clipping fixes must not silently switch phones to one column.
 - [Password recovery boundaries](password-recovery-boundaries.md) — external backend owns eligibility, mail and revocation; distinguish frontend fixtures from live QA and keep reset secrets memory-only.
+- [QR retention contract](qr-retention-contract.md) — backend validity governs retained QR access; meeting end, approval deadlines, and physical checkout remain distinct.
