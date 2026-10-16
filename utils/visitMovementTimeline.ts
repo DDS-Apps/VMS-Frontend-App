@@ -44,7 +44,7 @@ export function mergeVisitMovementTimeline(
   // determines which physical movements actually happened, including repeats.
   const checkInActionStep = steps.find(step => ['checked_in', 'verified'].includes(step.id) && step.actions?.length);
   const checkOutActionStep = steps.find(step => ['checked_out', 'exit'].includes(step.id) && step.actions?.length);
-  const pendingCheckIn: TimelineStep[] = (completion.length || checkInActionStep) && !events.some(event => event.eventType === 'checked_in')
+  const pendingCheckIn: TimelineStep[] = (completion.length || checkInActionStep) && !events.some(event => event.eventType === 'checked_in' && event.movementBoundary !== 'parking' && event.displayLabel !== 'Parking arrival')
     ? [{
         id: 'pending-check-in',
         label: completion.length ? t('timeline.visitorCheckedIn') : checkInActionStep!.label,

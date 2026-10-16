@@ -1615,6 +1615,7 @@ export interface VisitMovementGate {
 }
 
 export interface VisitMovementEvent {
+  movementBoundary?: string;
   displayLabel?: string;
   qrEffect?: string;
   id: string;

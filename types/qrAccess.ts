@@ -1,6 +1,10 @@
 /** Only documented backend fields are interpreted. Unknown qrValidity metadata
  * is retained until the backend supplies an explicit contract for it. */
 export interface QrValidity {
+  expiresAt?: string | null;
+  terminal?: boolean;
+  revocationPending?: boolean;
+  expired?: boolean;
   retainedUntilCheckout?: boolean;
   [key: string]: unknown;
 }

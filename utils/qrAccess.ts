@@ -17,7 +17,7 @@ export interface QrAccessSource extends QrAccessFields {
   movementHistory?: QrAccessFields;
 }
 
-export type QrAccessState = 'notActive' | 'valid' | 'retained' | 'expired' | 'unavailable' | 'invalidSchedule';
+export type QrAccessState = 'notActive' | 'valid' | 'retained' | 'expired' | 'revocationPending' | 'unavailable' | 'invalidSchedule';
 
 /** Reject ambiguous/invalid timestamps instead of falling back to the device clock. */
 export function absoluteTime(value?: string | null): number | undefined {
@@ -69,11 +69,13 @@ export function hasInvalidQrSchedule(source: QrAccessSource): boolean {
  * No undocumented qrValidity activation/revocation properties are interpreted.
  */
 export function getQrAccessState(source: QrAccessSource, now = Date.now()): QrAccessState {
+  const validity = source.movementHistory?.qrValidity ?? source.qrValidity;
+  if (validity?.expired === true && validity.revocationPending === true) return 'revocationPending';
   if (hasInvalidQrSchedule(source)) return 'invalidSchedule';
-  if (source.isExpired === true || source.movementHistory?.isExpired === true ||
+  if (validity?.expired === true || validity?.terminal === true || source.isExpired === true || source.movementHistory?.isExpired === true ||
       ['expired', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(source.status || '')) return 'expired';
   if (source.accessReadUnavailable) return 'unavailable';
-  const expires = absoluteTime(source.qrExpiresAt ?? source.expiresAt);
+  const expires = absoluteTime(validity?.expiresAt ?? source.qrExpiresAt ?? source.expiresAt);
   // Reaching a server-provided cutoff requires a fresh authority read. Do not
   // continue claiming valid access, or fabricate expiry from a local meeting end.
   if (expires !== undefined && now >= expires) return 'unavailable';
@@ -81,11 +83,10 @@ export function getQrAccessState(source: QrAccessSource, now = Date.now()): QrAc
     scheduledTime(source, source.visitTime || source.scheduledTime || source.startTime);
   if (start === undefined) return 'unavailable';
   if (now < start - 60 * 60_000) return 'notActive';
-  const knownValid = source.isExpired === false || source.movementHistory?.isExpired === false ||
+  const knownValid = validity?.expired === false || source.isExpired === false || source.movementHistory?.isExpired === false ||
     (!!source.qrCode && expires !== undefined && expires > now);
   if (!knownValid) return 'unavailable';
   const end = scheduledTime(source, source.endTime);
-  const validity = source.movementHistory?.qrValidity ?? source.qrValidity;
   if (validity?.retainedUntilCheckout === true && end !== undefined && now >= end) return 'retained';
   return 'valid';
 }

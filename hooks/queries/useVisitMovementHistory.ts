@@ -27,7 +27,10 @@ export function useVisitMovementHistory(id: string, source: QrAccessSource | und
     staleTime: 0,
     refetchOnWindowFocus: query => ![403, 410].includes(httpErrorStatus(query.state.error) ?? 0),
     refetchOnReconnect: query => ![403, 410].includes(httpErrorStatus(query.state.error) ?? 0),
-    refetchInterval: query => active ? qrPollingInterval(source, query.state.error) : false,
+    refetchInterval: query => active ? qrPollingInterval(
+      query.state.data ? { ...source, movementHistory: query.state.data } : source,
+      query.state.error,
+    ) : false,
     refetchIntervalInBackground: false,
   });
 }

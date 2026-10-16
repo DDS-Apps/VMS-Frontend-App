@@ -1,10 +1,10 @@
 # QR retention integration and release
 
-## Contract confirmation still required
+## Confirmed response contract
 
-The supplied 2026-10-16 handoff names revocation pending but supplies no corresponding field/value or complete qrValidity example. Do not infer device cleanup state from lifecycle status, a checkout timestamp, or isExpired. The localized copy is prepared; **revocation-pending presentation is not connected yet**.
+The user confirmed the complete response on 2026-10-16: requestId, timezone, qrValidity, and data. qrValidity contains expiresAt, retainedUntilCheckout, terminal, revocationPending, and expired. expired:true plus revocationPending:true means access is invalid while device cleanup remains pending. This now drives the localized revocation-pending state; the QR remains hidden. terminal/expired stop normal polling, while pending cleanup remains observed at a bounded interval.
 
-Obtain sanitized complete response bodies (including envelope) for:
+Use sanitized complete response bodies (including envelope) for release verification:
 - GET /api/v1/visits/:id and its movement-history endpoint while retained.
 - The same endpoints while logically expired but device revocation remains pending.
 - GET /api/v1/invites/:token while retained, including expiresAt and decision permissions.
@@ -25,7 +25,7 @@ The current history reader accepts an object containing requestId, timezone, dat
 ## Required release sequence
 
 1. Backend team completes controlled QA and confirms the response contract, including device revocation.
-2. Finish the unresolved frontend mapping and fixture coverage. Run TypeScript, focused rendered and query-lifecycle regressions, and the web export.
+2. Run TypeScript, focused rendered and query-lifecycle regressions, and the web export.
 3. Verify authorized role views and the public invite flow in English/Arabic on browser and native devices. Confirm retained access never enables late acceptance and history 403 does not discard allowed detail content.
 4. In an explicitly approved controlled setup, verify parking arrival, reception IN/OUT, checkout-before-end re-entry, after-end expiry, the server cutoff, delayed scan correction, and pending device cleanup against physical readers.
 5. Publish/rebuild clients only after approval. No backend publication, native build, IIS configuration, physical-reader test, or production mutation is performed by the frontend implementation.

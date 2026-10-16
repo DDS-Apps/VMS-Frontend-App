@@ -14,6 +14,10 @@ import { httpErrorStatus, type QrAccessSource } from './qrAccess';
  * failures. Completed status is NOT terminal access state (re-entry is possible). */
 export function qrPollingInterval(source?: QrAccessSource, error?: unknown): number | false {
   if (error || [403, 410].includes(httpErrorStatus(error) ?? 0)) return false;
+  const validity = source?.movementHistory?.qrValidity ?? source?.qrValidity;
+  // Cleanup is still in progress; continue observing without granting access.
+  if (validity?.expired === true && validity.revocationPending === true) return 60_000;
+  if (validity?.expired === true || validity?.terminal === true) return false;
   if (!source || source.isExpired === true || source.movementHistory?.isExpired === true ||
       source.scheduleWarning === 'invalid_legacy_schedule' ||
       ['expired', 'cancelled', 'auto_cancelled', 'rejected', 'visitor_rejected'].includes(source.status || '')) return false;

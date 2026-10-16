@@ -16,6 +16,7 @@ const labelKeys: Record<string, string> = {
   'Reception check-in': 'receptionCheckIn',
   'Reception checkout': 'receptionCheckout',
   'Administrative completion': 'administrativeCompletion',
+  'Visit completed — not a physical checkout': 'administrativeCompletion',
   'Administrative completion—not physical departure': 'administrativeCompletion',
 };
 

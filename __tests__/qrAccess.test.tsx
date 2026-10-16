@@ -24,6 +24,32 @@ const event = (id: string, occurredAt: string, extra = {}): VisitMovementEvent =
 });
 
 describe('backend-owned QR presentation', () => {
+  it('consumes the confirmed nested validity shape without list expiry fields', () => {
+    const source = { ...meeting, isExpired: undefined, qrExpiresAt: undefined,
+      movementHistory: { qrValidity: { expiresAt: '2026-10-16T18:00:00.000Z',
+        retainedUntilCheckout: true, terminal: false, revocationPending: false, expired: false } } };
+    expect(getQrAccessState(source, at('09:30'))).toBe('valid');
+    expect(getQrAccessState(source, at('10:30'))).toBe('retained');
+    expect(getQrAccessState(source, at('07:30'))).toBe('notActive');
+    expect(getQrAccessState(source, at('18:00'))).toBe('unavailable');
+  });
+  it.each(['en', 'ar'])('renders pending revocation without a usable QR (%s)', language => {
+    mockRTL = language === 'ar';
+    const source = { ...meeting, movementHistory: { qrValidity: {
+      expiresAt: '2026-10-16T10:00:00.000Z', retainedUntilCheckout: false,
+      terminal: true, revocationPending: true, expired: true,
+    } } };
+    expect(getQrAccessState(source, at('10:30'))).toBe('revocationPending');
+    expect(canDisplayQr(source, at('10:30'))).toBe(false);
+    expect(qrPollingInterval(source)).toBe(60_000);
+    let tree: ReturnType<typeof create>;
+    act(() => { tree = create(<QrAccessNotice source={source} now={at('10:30')} />); });
+    expect(JSON.stringify(tree!.toJSON())).toContain(mockRTL ? 'إلغاء الوصول قيد التنفيذ' : 'Revocation pending');
+    act(() => tree!.unmount());
+    const settled = { ...source, movementHistory: { qrValidity: { ...source.movementHistory.qrValidity, revocationPending: false } } };
+    expect(getQrAccessState(settled, at('10:30'))).toBe('expired');
+    expect(qrPollingInterval(settled)).toBe(false);
+  });
   it.each([
     ['07:59', 'notActive'], ['08:00', 'valid'], ['09:59', 'valid'],
     ['10:00', 'retained'], ['17:59', 'retained'], ['18:00', 'unavailable'],
@@ -85,6 +111,14 @@ describe('backend-owned QR presentation', () => {
 });
 
 describe('corrected reader movements', () => {
+  it('keeps reception check-in pending for parking-only arrival', () => {
+    const steps = mergeVisitMovementTimeline([
+      { id: 'completed', label: 'Completed', icon: 'check-circle', status: 'pending' },
+    ], { requestId: 'v1', timezone: 'Asia/Riyadh',
+      data: [event('parking', '2026-10-16T09:00:00Z', { movementBoundary: 'parking', displayLabel: 'Parking arrival' })],
+    }, key => key);
+    expect(steps.some(step => step.id === 'pending-check-in')).toBe(true);
+  });
   it('replaces a provisional row by stable ID and sorts by corrected time', () => {
     const provisional = event('same', '2026-10-16T09:30:00Z');
     const corrected = event('same', '2026-10-16T08:00:00Z', { recordedAt: '2026-10-16T10:30:00Z' });
@@ -97,6 +131,7 @@ describe('corrected reader movements', () => {
     ['Reception check-in', 'reentry_allowed_before_meeting_end', 'receptionCheckIn'],
     ['Reception checkout', 'expired_on_checkout', 'receptionCheckout'],
     ['Administrative completion', 'visit_closed_not_physical_departure', 'administrativeCompletion'],
+    ['Visit completed — not a physical checkout', 'visit_closed_not_physical_departure', 'administrativeCompletion'],
     ['Custom label', 'invalid_schedule_access_denied', null],
   ])('preserves %s and its effect', (displayLabel, qrEffect, key) => {
     const result = mergeVisitMovementTimeline([], {
