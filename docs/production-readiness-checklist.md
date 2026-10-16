@@ -46,13 +46,13 @@ npx jest --runInBand __tests__/webBuildEnvironments.test.js __tests__/serverStat
 | Target | Command | Output / caveat |
 |---|---|---|
 | Production IIS web | `npm run build:web:production -- --backend-origin http://localhost:3000` | `dist/`, including generated `web.config`; replace the example origin with the actual internal backend |
-| Replit publishing build | `bash scripts/build-and-verify.sh` | QA backend; no IIS `web.config`, precompressed assets for `server.js` |
-| IIS web export | `npm run build:web:production` | Production backend; IIS `web.config` |
+| Replit publishing build | `bash scripts/build-and-verify.sh` | **Production**, not QA; no IIS `web.config`, precompressed assets for `server.js` |
+| QA web export | `npm run build:web` | QA export; not the current Replit publishing command |
 | Production Android | `npm run build:android` | EAS production profile |
 | Production iOS | `npm run build:ios` | EAS production profile through the Apple authentication helper |
 | QA native builds | `npm run build:preview:android` / `npm run build:preview:ios` | Preview profiles |
 
-The Replit publishing command embeds QA backend URLs; IIS and native production builds embed production URLs. Confirm the intended target before publishing.
+The public hostname alone does not identify an export's backend: the current Replit publishing command also embeds production URLs. Confirm the intended environment before publishing.
 
 The build verifies required assets, template substitution, the expected API origin and known QA/development host leakage. It is not a security scan or proof of live API availability.
 

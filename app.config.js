@@ -10,8 +10,8 @@ const {
   resolveEnvironment,
 } = require('./config/app-environments');
 
-// APP_VARIANT selects the backend and app identity: production uses
-// https://vms.dallah.com; the Replit QA web build uses the QA backend.
+// APP_VARIANT selects the environment: `production` builds target
+// https://vms.dallah.com for all variants. QA only retains a separate app identity.
 // eas.json sets it per build profile; scripts/build-web.js sets it for web.
 const APP_VARIANT = normalizeVariant(process.env.APP_VARIANT);
 const IS_PRODUCTION = APP_VARIANT === PRODUCTION_VARIANT;
@@ -27,8 +27,8 @@ function readVariantFile(fileName) {
 }
 
 const fileEnv = readVariantFile(IS_PRODUCTION ? '.env.production' : '.env.staging');
-// Replit QA web builds resolve their QA backend. Production ignores process
-// overrides so QA settings cannot leak into IIS or native production builds.
+// Backend URLs are fixed to production for every variant. Production also
+// ignores process overrides for the other public app-domain settings.
 const environment = resolveEnvironment({
   appVariant: APP_VARIANT,
   fileEnv,

@@ -1,14 +1,16 @@
 # Environment configuration
 
-Replit publishing builds the **QA web variant**, which targets
-`https://vms-backend-app-qa.replit.app`. The IIS web build and every configured
-Android/iOS EAS profile target production at `https://vms.dallah.com`. Missing or
-unrecognized variants default to production; production rejects non-production
-or HTTP targets.
+**Production is the default** for publishing, web builds and every configured
+Android/iOS EAS profile, including preview and development binaries. They target
+`https://vms.dallah.com`. QA requires an explicit `qa`/`staging` variant and is
+not selected by any standard build command. Missing or unrecognized variants
+default to production, and production rejects non-production or HTTP targets.
 
-The QA backend must allow the published Replit frontend origin through its CORS
-policy for authenticated browser calls. The production IIS build stays on the
-same-origin production API. Do not use wildcard credentialed CORS.
+Production targeting does not grant cross-origin access: the production API
+currently permits the canonical `https://vms.dallah.com` web origin. A local or
+Replit preview/published host needs explicit backend CORS approval before its
+authenticated API calls can work. Do not use wildcard credentialed CORS or
+switch a production build back to QA to bypass this requirement.
 
 ## Web Firebase project
 
@@ -32,13 +34,18 @@ Restoration verification uses resolved configuration, type checking and a clean
 production web export, without running unit tests. No live notification,
 device registration, deliberate crash or remote native build is part of this work.
 
-### Environment-specific backend
+### Shared production backend
 
-Web API requests and Microsoft sign-in use the selected build environment. The
-Replit publish build uses the QA backend; the IIS and native builds use the
-production backend. The web API origin is embedded in the JavaScript at build
-time, so changing Replit settings requires a new publish. The bundle verifier
-rejects cross-environment backend hosts.
+Web API requests and Microsoft sign-in use `config/web-backend.json`, currently
+`https://vms.dallah.com`, through Metro's `backendUrls.web.ts`.
+This applies to web preview and published web builds, including production exports.
+Android and iOS use the same committed backend origin. Explicit QA/staging variants
+also use production APIs. Firebase, app domains, legal pages and native links retain their identities.
+
+The web origin is embedded at build time: changing the shared API secret does not
+replace it. Change this public configuration and republish to update the web backend.
+The bundle verifier rejects the former QA backend in every variant.
+All these clients access live data; QA/staging is no longer an isolated backend.
 
 The app has two base environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
@@ -46,10 +53,10 @@ The app has two base environments. Their public values are committed in
 
 | | QA | Production |
 |---|---|---|
-| Web app / app domain | `vms-qa-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
-| API base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| Microsoft SSO base URL | QA backend | `https://vms.dallah.com` |
-| Legal pages | `https://vms-qa-frontend-folio3.replit.app` | `https://vms.dallah.com` |
+| Web app / app domain | `vms-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
+| API base URL | `https://vms.dallah.com` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| Microsoft SSO base URL | `https://vms.dallah.com` | `https://vms.dallah.com` |
+| Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
 | Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
 | Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
 | `APP_VARIANT` | `qa` / `staging` (explicit only) | `production` (default) |
@@ -67,10 +74,9 @@ files in `config/qa/` remain unchanged.
 
 ## How values are resolved
 
-`apiBaseUrl` and `microsoftAuthUrl` resolve to the selected variant's backend.
-QA accepts the configured QA backend URL; production ignores process overrides
-and stays on the production origin.
-For QA API/SSO and the other public variant values, highest priority first:
+`apiBaseUrl` and `microsoftAuthUrl` are fixed to the production origin in all
+variants. Process and local-file overrides cannot redirect them.
+For `appDomain` and `legalPagesUrl`, highest priority first:
 
 1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
    `EXPO_PUBLIC_APP_DOMAIN`, `EXPO_PUBLIC_LEGAL_PAGES_URL` from the process
@@ -85,12 +91,12 @@ For QA API/SSO and the other public variant values, highest priority first:
    for every `expo export` and would inline them into QA builds.
 3. The committed defaults.
 
-`microsoftAuthUrl` must match the selected variant's API origin.
+`microsoftAuthUrl` always matches the production API origin.
 
 If `APP_VARIANT=production` ends up pointing at HTTP or a non-production host (e.g. a
 stale `.env.production`), `app.config.js` throws and the build stops. The app
-uses the committed production origin for IIS and native builds. QA web uses the
-QA origin from the resolved Expo configuration and exported public URL variables.
+uses the committed production origin directly on web and native; Expo metadata
+and exported public URL variables are resolved to that same origin.
 
 ## What is derived from the environment
 
@@ -120,7 +126,7 @@ FIREBASE_APP_ID_WEB, FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS, FIREBASE_VAPI
 
 | Target | Command |
 |--------|---------|
-| QA web (Replit publishing) | `npm run build:web` |
+| Production web (Replit publishing) | `npm run build:web` |
 | Production web (IIS) | `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` |
 | Production iOS / Android | `npm run build:ios` / `npm run build:android` (EAS `production` profile) |
 | Internal iOS / Android (production backend) | `npm run build:preview:ios` / `npm run build:preview:android` |

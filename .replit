@@ -58,7 +58,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "APP_VARIANT=staging CI=1 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN node node_modules/expo/bin/cli start --web --host lan --port 5000 --max-workers 2 --clear"
+args = "CI=1 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN node node_modules/expo/bin/cli start --web --host lan --port 5000 --max-workers 2"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -75,9 +75,9 @@ isValidation = true
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_API_BASE_URL = "https://vms-backend-app-qa.replit.app"
-EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms-backend-app-qa.replit.app"
-EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms-backend-app-qa.replit.app"
+EXPO_PUBLIC_API_BASE_URL = "https://vms.dallah.com"
+EXPO_PUBLIC_VMS_API_BASE_URL = "https://vms.dallah.com"
+EXPO_PUBLIC_MICROSOFT_AUTH_URL = "https://vms.dallah.com"
 EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyAY6g-50Gu5zlB3sbkKHuuG5DpBOLZd_xo"
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "dallah-albaraka-vms.firebaseapp.com"
 EXPO_PUBLIC_FIREBASE_PROJECT_ID = "dallah-albaraka-vms"
@@ -88,9 +88,9 @@ EXPO_PUBLIC_FIREBASE_APP_ID_WEB = "1:913604772710:web:46c93bf8fbcd061362bea7"
 EXPO_PUBLIC_FIREBASE_APP_ID_ANDROID = "1:913604772710:android:a9320215a876705e62bea7"
 EXPO_PUBLIC_FIREBASE_APP_ID_IOS = "1:913604772710:ios:ea764c22ce480dec62bea7"
 EXPO_PUBLIC_FIREBASE_VAPID_KEY = "BKXyeihYX0n_rNHIEIP26eNGnbVZL_rCsiLnA7jv0ZuIThHmbV0FJqENbmt-QnikL4uqKbh3lYqp0sqAQImDass"
-EXPO_PUBLIC_LEGAL_PAGES_URL = "https://vms-qa-frontend-folio3.replit.app"
+EXPO_PUBLIC_LEGAL_PAGES_URL = "https://vms.dallah.com"
 APP_VARIANT = "production"
-EXPO_PUBLIC_APP_DOMAIN = "vms-qa-frontend-folio3.replit.app"
+EXPO_PUBLIC_APP_DOMAIN = "vms.dallah.com"
 
 [agent]
 expertMode = true

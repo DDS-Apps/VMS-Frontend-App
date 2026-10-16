@@ -6,17 +6,17 @@ also the source of the **production** web bundle for IIS at `https://vms.dallah.
 
 | Setting | QA | Production |
 |---------|----|------------|
-| **Web / app domain** | `vms-qa-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
-| **Backend API** | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| **Microsoft SSO** | QA backend | `https://vms.dallah.com` |
+| **Web / app domain** | `vms-frontend-folio3.replit.app` | `vms.dallah.com` (IIS) |
+| **Backend API** | `https://vms.dallah.com` (live data) | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| **Microsoft SSO** | `https://vms.dallah.com` | `https://vms.dallah.com` |
 | **Firebase Project** | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
-| **APP_VARIANT** | `staging` / `qa` (Replit publishing) | `production` (default) |
+| **APP_VARIANT** | `staging` (explicit only; production API) | `production` (default) |
 
 ### Environment configuration
 - **Source of truth**: `config/app-environments.js` (plain CommonJS, public values only). `app.config.js` derives `extra.apiBaseUrl` / `microsoftAuthUrl` / `appDomain` / `legalPagesUrl`, iOS `associatedDomains` and Android `intentFilters` from it. `app.json` contains no environment-specific hosts.
-- **Backend policy**: Replit web builds use `https://vms-backend-app-qa.replit.app`; IIS production web and all native EAS builds use `https://vms.dallah.com`. The QA backend URL is public configuration, not a credential. The QA web build may consume its `EXPO_PUBLIC_API_BASE_URL` setting; production and native builds remain protected from QA overrides.
-- **Guard rails**: production rejects QA/development backend hosts; QA rejects the production backend and unrelated QA hosts. Both reject mismatched inlined API configuration and development URLs.
-- **Web builds**: `npm run build:web` creates a QA export without IIS configuration and with pre-compression. `npm run build:web:production` creates the IIS production export and requires the real production backend listener through `VMS_BACKEND_ORIGIN` or `--backend-origin`; never use the public frontend as its own upstream. `http://localhost:3000` is only an example, not a confirmed server setting. Replit Publishing uses the QA variant.
+- **Backend policy**: all variants, including QA/staging, use `https://vms.dallah.com` from `config/web-backend.json` on both native and web. Process variables, local env files and stale Expo metadata cannot redirect API or Microsoft sign-in. These clients access live data. Other public app-domain settings retain variant-specific resolution.
+- **Guard rails**: production rejects foreign app domains; all exported variants reject the old QA backend and mismatched inlined API configuration. Web builds also reject development URLs and leftover template tokens.
+- **Web builds**: `npm run build:web` creates a production export without IIS configuration and with pre-compression. `npm run build:web:production` requires the real production backend listener through `VMS_BACKEND_ORIGIN` or `--backend-origin`; never use the public frontend as its own upstream. `http://localhost:3000` is only an example, not a confirmed server setting. Replit Publishing uses the production variant.
 - **Static web files** (`public/`): `firebase-messaging-sw.js`, legal pages, `.well-known/*`, Outlook add-in. `expo export` copies them into `dist/`; the add-in manifest/task pane use `%%APP_DOMAIN%%` / `%%APP_ORIGIN%%` / `%%ADDIN_*%%` placeholders filled per environment (distinct add-in ids for QA and production).
 - **EAS build profiles**: `eas.json` sets `APP_VARIANT=staging` for dev/preview profiles and `APP_VARIANT=production` for production profiles.
 - **Docs**: `DEPLOY_WEB_IIS.md` (IIS deployment), `docs/production-readiness-checklist.md` (what is done vs. still outside this repo), `docs/store-publishing-checklist.md`.
@@ -129,7 +129,7 @@ The VMS app employs a Clean Architecture pattern, segmenting the application int
 
 **Multi-Environment Setup:**
 - **Environments:** QA (Replit) and production (`vms.dallah.com`, IIS) share one Firebase project (`dallah-albaraka-vms`) but have separate backends. See the environment table at the top of this file.
-- **Deployment:** Replit Publishing serves a QA-configured bundle (`server.js` + `dist/`) that calls `https://vms-backend-app-qa.replit.app`; the custom-domain production site remains an IIS build made with `npm run build:web:production` (see `DEPLOY_WEB_IIS.md`).
+- **Deployment:** Replit Publishing serves a production-configured bundle (`server.js` + `dist/`) that calls `https://vms.dallah.com`; the custom-domain production site remains an IIS build made with `npm run build:web:production` (see `DEPLOY_WEB_IIS.md`).
 - **Configuration:** committed defaults in `config/app-environments.js`, optional git-ignored `.env.production` / `.env.staging` overrides, `EXPO_PUBLIC_*` env for QA only. `config/environments.ts` holds the runtime helpers.
 
 ## External Dependencies

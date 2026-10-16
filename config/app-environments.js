@@ -10,8 +10,7 @@
  * It is plain CommonJS on purpose: `app.config.js` (evaluated by the Expo CLI),
  * `scripts/build-web.js` and the Jest suites all consume it without a build step.
  *
- * QA web publishing uses the QA backend; production web and native clients use
- * the production backend.
+ * Backend API and Microsoft SSO always use the committed production origin.
  * Resolution order for other public values (highest priority first):
  *   1. `EXPO_PUBLIC_<KEY>` in the process environment (Replit shared env, CI).
  *   2. `<KEY>` or `EXPO_PUBLIC_<KEY>` from the optional, git-ignored variant
@@ -28,18 +27,21 @@
 
 const PRODUCTION_VARIANT = 'production';
 const QA_VARIANT = 'qa';
-// Native and IIS production use origin; Replit web publishing uses qaOrigin.
-const { origin: BACKEND_ORIGIN, qaOrigin: QA_BACKEND_ORIGIN } = require('./web-backend.json');
+// All clients use the live backend, including explicit QA/staging variants.
+const { origin: BACKEND_ORIGIN } = require('./web-backend.json');
+if (BACKEND_ORIGIN !== 'https://vms.dallah.com') {
+  throw new Error('All client configurations must use https://vms.dallah.com');
+}
 
 const ENVIRONMENTS = {
   [QA_VARIANT]: {
     name: QA_VARIANT,
-    apiBaseUrl: QA_BACKEND_ORIGIN,
-    microsoftAuthUrl: QA_BACKEND_ORIGIN,
+    apiBaseUrl: BACKEND_ORIGIN,
+    microsoftAuthUrl: BACKEND_ORIGIN,
     // The QA web app (and therefore /.well-known, /invite/* and /requests/*)
     // is served by the Replit deployment of this project.
-    appDomain: 'vms-qa-frontend-folio3.replit.app',
-    legalPagesUrl: 'https://vms-qa-frontend-folio3.replit.app',
+    appDomain: 'vms-frontend-folio3.replit.app',
+    legalPagesUrl: 'https://vms-frontend-folio3.replit.app',
     outlookAddin: {
       id: 'a3f7c2d1-84b6-4e9a-bc12-5f3d8e6a1c7b',
       version: '1.0.0',
@@ -68,7 +70,6 @@ const ENVIRONMENTS = {
 // call in the web push code.
 const QA_HOSTS = [
   'vms-backend-app-qa.replit.app',
-  'vms-qa-frontend-folio3.replit.app',
   'vms-frontend-folio3.replit.app',
   'vms-backend-folio3.replit.app',
 ];
@@ -145,7 +146,8 @@ function resolveEnvironment(options = {}) {
     : [];
 
   const pick = (key) => {
-    if (variant === PRODUCTION_VARIANT && (key === 'apiBaseUrl' || key === 'microsoftAuthUrl')) {
+    // Neither stale process variables nor local .env files may redirect clients.
+    if (key === 'apiBaseUrl' || key === 'microsoftAuthUrl') {
       sources[key] = 'production backend policy';
       return BACKEND_ORIGIN;
     }
@@ -171,7 +173,7 @@ function resolveEnvironment(options = {}) {
   };
 
   const apiBaseUrl = stripTrailingSlash(pick('apiBaseUrl'));
-  // Microsoft SSO follows the selected backend unless explicitly overridden.
+  // Microsoft SSO is served by the same backend unless explicitly overridden.
   const microsoftAuthUrlRaw = pick('microsoftAuthUrl');
   const microsoftAuthUrl = stripTrailingSlash(
     sources.microsoftAuthUrl.startsWith('default') ? apiBaseUrl : microsoftAuthUrlRaw,
@@ -192,24 +194,15 @@ function resolveEnvironment(options = {}) {
 }
 
 /**
- * Keeps production builds on the production backend and QA builds on the
- * configured QA backend. Both targets must use the same API and SSO origin.
+ * Throws when a production configuration still points at a QA or development
+ * host (e.g. a stale `.env.production`). Called from app.config.js so
+ * `APP_VARIANT=production` can never be built against the QA backend.
  */
 function assertProductionConfig(resolved) {
-  const expectedBackend = resolved.variant === PRODUCTION_VARIANT ? BACKEND_ORIGIN : QA_BACKEND_ORIGIN;
-  if (resolved.apiBaseUrl !== expectedBackend || resolved.microsoftAuthUrl !== expectedBackend) {
-    throw new Error(
-      `The ${resolved.variant} variant must use ${expectedBackend} for both API and Microsoft SSO`,
-    );
+  if (resolved.apiBaseUrl !== BACKEND_ORIGIN || resolved.microsoftAuthUrl !== BACKEND_ORIGIN) {
+    throw new Error('All variants must use the canonical production backend');
   }
-  if (resolved.variant !== PRODUCTION_VARIANT) {
-    for (const key of ['appDomain', 'legalPagesUrl']) {
-      if (hostnameOf(resolved[key]) === hostnameOf(expectedBackend)) {
-        throw new Error(`QA ${key} must point to the frontend, not the backend API`);
-      }
-    }
-    return;
-  }
+  if (resolved.variant !== PRODUCTION_VARIANT) return;
   const offenders = [];
   for (const key of ['apiBaseUrl', 'microsoftAuthUrl', 'appDomain', 'legalPagesUrl']) {
     const host = hostnameOf(resolved[key]);

@@ -2,7 +2,7 @@
 /**
  * Builds the deployable web bundle for one environment.
  *
- *   npm run build:web                  QA bundle for Replit publishing
+ *   npm run build:web                  production bundle for Replit publishing
  *   npm run build:web:production       production bundle for IIS at vms.dallah.com
  *
  * Options (also settable through the environment):
@@ -25,8 +25,8 @@
  *   3. Completes dist/: checks the service worker, legal pages, .well-known and
  *      Outlook add-in files are present, fills in the add-in placeholders and
  *      (production) renders web/web.config.
- *   4. Verifies the bundle references the target backend and contains no foreign
- *      backend or development hostnames. Any violation fails the build.
+ *   4. Verifies the bundle references the target backend and contains no QA or
+ *      development hostnames. Any violation fails the build.
  */
 const fs = require('fs');
 const path = require('path');
@@ -41,6 +41,7 @@ const {
   publicEnvFor,
 } = require('../config/app-environments');
 const { finalizeDist, verifyBundleHosts, assertBackendOrigin } = require('./lib/web-dist');
+const { origin: webBackendUrl } = require('../config/web-backend.json');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
@@ -115,16 +116,16 @@ function main() {
   const environment = resolveEnvironment({
     appVariant: variant,
     fileEnv: variantFile.values,
-    // Production builds ignore shared environment overrides. QA builds consume
-    // the public QA backend URL configured for Replit.
+    // A production bundle must never pick up the QA URLs from the Replit
+    // shared environment; only the committed defaults and .env.production count.
     ignoreProcessEnv: isProduction,
   });
   assertProductionConfig(environment);
 
   banner(`VMS Frontend ${isProduction ? 'PRODUCTION' : 'QA'} web build`);
   console.log(`  variant:            ${environment.variant}`);
-  console.log(`  API / backend:      ${environment.apiBaseUrl}`);
-  console.log(`  Microsoft SSO:      ${environment.microsoftAuthUrl}`);
+  console.log(`  API / backend:      ${webBackendUrl} (all clients)`);
+  console.log(`  Microsoft SSO:      ${webBackendUrl} (all clients)`);
   console.log(`  app domain:         ${environment.appDomain} (${environment.sources.appDomain})`);
   console.log(`  legal pages:        ${environment.legalPagesUrl} (${environment.sources.legalPagesUrl})`);
   console.log(`  Outlook add-in id:  ${environment.outlookAddin.id}`);
@@ -184,11 +185,7 @@ function main() {
 
   console.log('');
   console.log('[BUILD] Verifying bundle hostnames ...');
-  const { errors, scannedFiles } = verifyBundleHosts({
-    distDir: DIST_DIR,
-    environment,
-    webBackendUrl: environment.apiBaseUrl,
-  });
+  const { errors, scannedFiles } = verifyBundleHosts({ distDir: DIST_DIR, environment, webBackendUrl });
   if (errors.length > 0) {
     banner(`[BUILD] FAILED: ${errors.length} problem(s) found in the ${environment.variant} bundle`);
     errors.forEach((error) => console.error(`  - ${error}`));
@@ -208,7 +205,7 @@ function main() {
 
   banner('[BUILD] SUCCESS: bundle ready in dist/');
   console.log(`  environment:  ${environment.variant}`);
-  console.log(`  backend:      ${environment.apiBaseUrl}`);
+  console.log(`  backend:      ${webBackendUrl}`);
   console.log(`  web origin:   https://${environment.appDomain}`);
   if (webConfig) {
     console.log(`  web.config:   forwards /api and /auth/microsoft to ${webConfig.backendOrigin}`);

@@ -1,26 +1,14 @@
 import { resolveEnvironment, publicEnvFor } from '../config/app-environments';
 import { API_BASE_URL, MICROSOFT_AUTH_BASE_URL } from '../api/backendUrls';
+import { API_BASE_URL as WEB_API, MICROSOFT_AUTH_BASE_URL as WEB_AUTH } from '../api/backendUrls.web';
 import { getEnvironmentConfig } from '../config/environments';
 
 const production = 'https://vms.dallah.com';
 const stale = 'https://vms-backend-app-qa.replit.app';
-let mockWebExtra: Record<string, string> = {};
 
-jest.mock('expo-constants', () => ({
-  __esModule: true,
-  default: { get expoConfig() { return { extra: mockWebExtra }; } },
-}));
-
-function webUrlsFor(extra: Record<string, string>) {
-  mockWebExtra = extra;
-  let urls: typeof import('../api/backendUrls.web');
-  jest.isolateModules(() => { urls = require('../api/backendUrls.web'); });
-  return urls!;
-}
-
-describe('backend targets stay separated by client build', () => {
-  it.each(['production', 'preview', 'development', ''])(
-    'keeps production variants on the live backend despite stale QA overrides (%s)', appVariant => {
+describe('all clients use production', () => {
+  it.each(['production', 'qa', 'staging', 'preview', 'development', ''])(
+    'ignores stale backend overrides for %s', appVariant => {
       const resolved = resolveEnvironment({
         appVariant,
         env: {
@@ -43,47 +31,11 @@ describe('backend targets stay separated by client build', () => {
     },
   );
 
-  it.each(['qa', 'staging'])('uses QA backend for explicit web QA builds (%s)', appVariant => {
-    const resolved = resolveEnvironment({ appVariant, env: { EXPO_PUBLIC_API_BASE_URL: stale } });
-    expect(resolved.apiBaseUrl).toBe(stale);
-    expect(resolved.microsoftAuthUrl).toBe(stale);
-    expect(publicEnvFor(resolved)).toMatchObject({
-      EXPO_PUBLIC_API_BASE_URL: stale,
-      EXPO_PUBLIC_VMS_API_BASE_URL: stale,
-      EXPO_PUBLIC_MICROSOFT_AUTH_URL: stale,
-    });
-  });
-
-  it('keeps native and helper defaults on production', () => {
-    expect([API_BASE_URL, MICROSOFT_AUTH_BASE_URL]).toEqual([production, production]);
+  it('uses the same origin for native, web, and configuration helpers', () => {
+    expect([API_BASE_URL, MICROSOFT_AUTH_BASE_URL, WEB_API, WEB_AUTH]).toEqual(Array(4).fill(production));
     expect(getEnvironmentConfig().backend).toEqual({
       apiBaseUrl: production, vmsApiBaseUrl: production, microsoftAuthUrl: production,
     });
-  });
-
-  it.each([production, stale])('web uses its resolved build configuration (%s)', origin => {
-    const originalEnv = process.env;
-    process.env = {
-      EXPO_PUBLIC_API_BASE_URL: origin === production ? stale : production,
-      EXPO_PUBLIC_MICROSOFT_AUTH_URL: origin === production ? stale : production,
-    };
-    try {
-      const web = webUrlsFor({ apiBaseUrl: origin, microsoftAuthUrl: origin });
-      expect(web.API_BASE_URL).toBe(origin);
-      expect(web.MICROSOFT_AUTH_BASE_URL).toBe(origin);
-    } finally {
-      process.env = originalEnv;
-    }
-  });
-
-  it('fails explicitly rather than silently falling back to production without web configuration', () => {
-    const originalEnv = process.env;
-    process.env = {};
-    try {
-      expect(() => webUrlsFor({})).toThrow('Missing web API configuration');
-    } finally {
-      process.env = originalEnv;
-    }
   });
 
   it('keeps every configured EAS profile on production', () => {

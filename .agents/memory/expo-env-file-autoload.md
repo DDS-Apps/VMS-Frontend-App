@@ -2,20 +2,20 @@
 name: Expo .env.production auto-load and environment resolution
 description: Why per-variant config is resolved explicitly in app.config.js instead of trusting process.env, and how production builds stay isolated from the QA shared env.
 ---
-**Rule:** Resolve the intended application environment explicitly during export, and prefer its resolved Expo metadata at runtime over stale public process variables. Follow the current backend policy in `replit.md`; the Replit publishing runtime being called production does not determine which data environment the user wants.
+**Rule:** Production remains the default base environment, including internal/preview binaries. Explicit QA/staging may retain its app identity, but must use the production backend. Stale process variables, local files and Expo metadata must not redirect clients to QA.
 
-**Why:** Expo loads `.env.production` for every export regardless of application variant, and Metro inlines `EXPO_PUBLIC_*` references. Changing a shared URL alone cannot redirect a bundle whose build script or runtime adapter fixes another target. The user has changed the desired Replit web target independently of native/IIS targets, so historical all-client policies are not authoritative.
+**All-configuration policy (2026-10-15):** The user explicitly superseded the web-only QA exception and requested `https://vms.dallah.com` for every configuration, including IIS web and mobile. Explicit QA/staging variants must not restore the old QA backend. This is the requested policy, not evidence that every setting has already been updated.
 
-**How to apply:** Keep explicit variant resolution and exported public values aligned with Expo metadata. Verify the generated JavaScript targets the selected backend in both QA and production. Browser configuration changes require rebuilding and republishing. Scan minified bundles token-by-token with context, not `grep -v`, which can discard the entire matching line.
+**Why:** The user now wants all clients to target production. Changing a shared API variable alone does not affect exported web when build-time resolution overrides it.
 
-**Rule:** Clear Metro's cache when changing the application's environment variant, not just the workflow's process.
+**How to apply:** Align web-specific overrides and all client variants with production without changing Firebase. Distinguish the public client origin from IIS's real backend upstream to avoid self-proxy loops. Exported browser configuration requires rebuilding; publishing needs separate authorization.
 
-**Why:** During the QA switch, a normal restart retained production-bound browser requests even after the resolver and workflow selected QA. Export verification used a clean build; the preview also needed a cache-clearing startup.
+**Why:** The user explicitly stated all builds and publishing should target production. Expo also loads `.env.production` for every export regardless of variant, and Metro inlines `EXPO_PUBLIC_*` references. Stale QA process variables or a plaintext production URL must not override that requirement.
 
-**How to apply:** Use Expo's `--clear` after variant changes and check the effective client target rather than assuming a restarted process rebuilt its environment metadata.
+**How to apply:** New per-environment values go into `config/app-environments.js` (+ `publicEnvFor`, + `extra` in `app.config.js`); production web builds go through `scripts/build-web.js`, which also verifies the inlined `apiBaseUrl` matches the variant. Bundle scans must not use `grep -v` on minified output — one filtered line hides the whole bundle; scan token-by-token with context instead.
 
-**Rule:** Verify browser API access separately from static build success.
+Production clients running outside their canonical web domain require backend approval for those exact origins.
 
-**Why:** A successful export and rendered login page do not prove CORS, authentication callbacks, or signed-in API access. Backend origin approval is independent of the client target.
+**Why:** The production API's CORS response can reject a Replit/local preview even when the build correctly targets production. Static exports and a rendered login page do not prove authenticated API access.
 
-**How to apply:** Check the actual published frontend origin and the request's credentials mode; never suggest wildcard credentialed CORS as a workaround. Keep public frontend origins distinct from IIS's internal backend upstream to avoid self-proxy loops.
+**How to apply:** Verify allowed origins separately, keep production targeting unchanged, and never suggest wildcard credentialed CORS as a workaround.

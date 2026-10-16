@@ -1,6 +1,6 @@
 # Deploying the VMS web app to IIS (https://vms.dallah.com)
 
-IIS web and native builds use the production API. Replit web publishing uses QA.
+All client variants now use the production API, including QA/staging and previews.
 `VMS_BACKEND_ORIGIN` is different: it must be the actual backend listener reachable
 from IIS. Never use `https://vms.dallah.com` as that upstream, since it would proxy
 back to this frontend. The build rejects this self-loop and old Replit backend hosts.

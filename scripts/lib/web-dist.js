@@ -148,8 +148,8 @@ function snippet(content, index) {
  */
 function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
   const errors = [];
-  if (webBackendUrl && webBackendUrl !== environment.apiBaseUrl) {
-    throw new Error(`Web backend must match the ${environment.variant} environment`);
+  if (webBackendUrl && webBackendUrl !== 'https://vms.dallah.com') {
+    throw new Error('Web backend must be https://vms.dallah.com');
   }
   if (webBackendUrl && (!webBackendUrl.startsWith('https://') || new URL(webBackendUrl).origin !== webBackendUrl)) {
     throw new Error('Web backend must be an HTTPS origin without a path or credentials');
@@ -197,12 +197,7 @@ function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
     }
 
     if (!isProduction) {
-      if (relative.startsWith('_expo/') && content.includes('https://vms.dallah.com')) {
-        errors.push(`${relative}: production backend leaked into the QA bundle`);
-      }
-      for (const host of QA_HOSTS.filter(
-        host => host !== hostnameOf(environment.appDomain) && host !== requiredHost,
-      )) {
+      for (const host of QA_HOSTS.filter(host => host !== hostnameOf(environment.appDomain))) {
         if (content.includes(host)) errors.push(`${relative}: forbidden QA backend "${host}"`);
       }
       continue;
