@@ -1,0 +1,136 @@
+Manager approval expiry: frontend handoff
+Scope and rollout
+Applies to:
+
+POST /api/v1/visits/:id/approve
+POST /api/v1/approvals/bulk/approve
+This change is staged in the workspace, not published. No live-connected backend restart, live approvals, production mutations or reader activation were performed. The response structures are checked with isolated service and Nest HTTP tests. Examples below are illustrative and sanitized, not extracted from live records. IDs/names are placeholders; QR/token values are omitted.
+
+Approval deadline
+For scheduled requests awaiting manager approval, approval is permitted only while authoritative server time is strictly before the stored meeting end. Started-but-unfinished meetings remain eligible. Local schedule fields are interpreted in Asia/Riyadh, independently of the employee or server timezone.
+
+The current request model stores the visit date, local start/end and duration, not a separate absolute scheduled-end column. Its stored endTime takes precedence; otherwise the existing start-plus-duration contract resolves the deadline. Invalid/unresolved schedules, including absent end and duration, are rejected. No QR fields participate: retained access, qrExpiresAt and isExpired:false cannot extend the approval deadline.
+
+Authorization is checked before status/schedule details. Eligibility is checked after the transactional write lock is acquired, and the conditional SQL update also checks UTC server time at statement execution. Allocation, QR generation, notifications and calendar/reader operations are outside the approval transaction and run only for the committed winner. Specialized walk-in policies are unchanged.
+
+Single-approval HTTP contract
+The established global error envelope is preserved, with an additional code:
+
+HTTP	code	Meaning / frontend action
+200	No failure code	Approval committed; render the returned status and refresh the row/detail.
+409	VISIT_APPROVAL_EXPIRED	The pending scheduled meeting has ended. Show message and refresh; do not automatically retry.
+422	VISIT_APPROVAL_INVALID_SCHEDULE	Stored schedule is invalid/unresolved. Show message; schedule needs correction before approval.
+422	VISIT_APPROVAL_ALREADY_PROCESSED	No longer awaiting manager approval, or approval/rejection already recorded. Refresh the request.
+401 / 403 / 404	Existing contract; code not guaranteed	Existing authentication, authorization and not-found handling.
+Expiry is checked after workflow checks: an already-completed/cancelled request can therefore return the already-processed result rather than the pending-expiry result. Do not infer permission from a QR countdown or client clock.
+
+Single approval: success (HTTP 200)
+{
+  "id": "<visit-id>",
+  "status": "visitor_pending",
+  "approvedBy": "<manager-id>",
+  "approverName": "<redacted>",
+  "approvedAt": "2026-08-21T10:30:00.000Z",
+  "reminderSchedule": {
+    "firstReminderAt": "2026-08-21T10:45:00.000Z",
+    "secondReminderAt": "2026-08-21T10:55:00.000Z",
+    "autoCancelAt": "2026-08-21T11:00:00.000Z"
+  }
+}
+This is a direct response object, not wrapped in data or success. The optional comment/qrCode fields are omitted here. Reminder timestamps are illustrative; actual offsets depend on reminder configuration. The runtime field is reminderSchedule, not reminders, and it can be omitted when not applicable.
+
+Single approval: expired (HTTP 409)
+{
+  "success": false,
+  "error": "Conflict",
+  "code": "VISIT_APPROVAL_EXPIRED",
+  "message": "This meeting has ended and can no longer be approved.",
+  "timestamp": "2026-08-21T11:00:00.000Z",
+  "path": "/api/v1/visits/<visit-id>/approve",
+  "statusCode": 409
+}
+Single approval: invalid schedule (HTTP 422)
+{
+  "success": false,
+  "error": "Unprocessable Entity",
+  "code": "VISIT_APPROVAL_INVALID_SCHEDULE",
+  "message": "This visit has an invalid or unresolved meeting schedule.",
+  "timestamp": "2026-08-21T10:30:00.000Z",
+  "path": "/api/v1/visits/<visit-id>/approve",
+  "statusCode": 422
+}
+Bulk-approval HTTP contract
+An accepted batch returns HTTP 200, even when some or all items fail. Invalid batch input and authentication/role failures retain existing HTTP errors. The maximum remains 50 IDs.
+
+The outer fields remain successCount, failedCount, failedIds and results. Each result retains id, success and optional error. New code and warning fields are optional. A failed item's code does not change the batch's HTTP status.
+
+Every submitted position has a result. Repeated IDs cannot approve twice; subsequent positions normally fail with VISIT_APPROVAL_ALREADY_PROCESSED. Counts describe committed approvals, not attempts or number of QR codes issued. Unauthorized IDs return safe errors without revealing status or schedule.
+
+Mixed eligible/expired batch (HTTP 200)
+{
+  "successCount": 1,
+  "failedCount": 1,
+  "failedIds": ["<expired-id>"],
+  "results": [
+    {
+      "id": "<eligible-id>",
+      "success": true
+    },
+    {
+      "id": "<expired-id>",
+      "success": false,
+      "error": "This meeting has ended and can no longer be approved.",
+      "code": "VISIT_APPROVAL_EXPIRED"
+    }
+  ]
+}
+All-expired batch (HTTP 200; no approval effects)
+{
+  "successCount": 0,
+  "failedCount": 1,
+  "failedIds": ["<expired-id>"],
+  "results": [
+    {
+      "id": "<expired-id>",
+      "success": false,
+      "error": "This meeting has ended and can no longer be approved.",
+      "code": "VISIT_APPROVAL_EXPIRED"
+    }
+  ]
+}
+Committed approval versus follow-up provisioning
+External effects cannot be committed atomically with SQL Server. Approval is committed first, without holding database locks across network calls. Therefore a subsequent QR/allocation failure is not reported as an uncommitted approval. This includes resource reallocation failures after an eligible rescheduled request's approval commits.
+
+Single approval can return HTTP 200 with provisioningPending: true:
+
+{
+  "id": "<visit-id>",
+  "status": "approved",
+  "approvedBy": "<manager-id>",
+  "approverName": "<redacted>",
+  "approvedAt": "2026-08-21T10:30:00.000Z",
+  "provisioningPending": true
+}
+Bulk counts that committed item as a success, with an optional warning:
+
+{
+  "successCount": 1,
+  "failedCount": 0,
+  "failedIds": [],
+  "results": [
+    {
+      "id": "<visit-id>",
+      "success": true,
+      "code": "VISIT_APPROVAL_PROVISIONING_PENDING",
+      "warning": "Approval committed, but follow-up provisioning did not complete."
+    }
+  ]
+}
+Show the warning and refresh the row; do not automatically resubmit approval. This response flag does not promise an automatic retry worker. It is distinct from movement-history qrValidity.revocationPending, which describes pending device removal, not pending approval provisioning.
+
+Cancellation that wins during QR I/O is not overwritten by the approval's later status updates. The single response can consequently contain status cancelled with provisioningPending true: it describes an approval that committed before the later cancellation. Render its returned status rather than assuming 200 means the visit is currently approved.
+
+Host cancellation can now return HTTP 409 if already cancelled or a concurrent workflow change defeats its guarded update. Refresh rather than blindly retrying; the losing cancellation does not release resources or dispatch revocation.
+
+Verification boundaries
+Tests use in-memory transaction serialization and mocked SQL update results, not a real SQL Server concurrency harness. Real multiworker lock/clock behavior, external resource providers and physical readers remain unverified. Approval provisioning has one committed caller, not a new durable outbox or automatic recovery service; process failure after commit requires operational recovery. These are controlled-QA/operations follow-ups, not permission to mutate live data.
