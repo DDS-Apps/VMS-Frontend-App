@@ -88,6 +88,39 @@ describe.each(['web', 'ios', 'android'] as const)('Receptionist detail scope on 
     jest.restoreAllMocks();
   });
 
+  it.each([false, true])('wraps host department below the name, RTL=%s', rtl => {
+    mockRTL = rtl;
+    const department = rtl
+      ? 'مكتب نائب الرئيس التنفيذي للموارد البشرية والعلاقات المؤسسية'
+      : 'Human Resources and International Corporate Relations';
+    mockDetails = {
+      id: 'visit', status: 'approved', visitor: { fullName: 'Visitor', company: 'Company' },
+      employeeName: 'Test Host', employeeDepartment: department,
+      employeeBusinessPhone: '+580 0',
+      visitDate: '2026-10-20', visitTime: '10:00', endTime: '11:00',
+    };
+    act(() => {
+      tree = create(<VisitorDetailScreen
+        navigation={{ navigate: jest.fn() } as any}
+        route={{ params: { visitId: 'visit' } } as any}
+      />);
+    });
+    const texts = tree!.root.findAllByType('ThemedText' as any);
+    const name = texts.find(node => node.props.children === 'Test Host');
+    const departmentText = texts.find(node => node.props.children === department);
+    expect(name).toBeDefined();
+    expect(departmentText).toBeDefined();
+    const containerOf = (node: NonNullable<typeof name>) => {
+      let parent = node.parent;
+      while (parent && parent.props.style?.minWidth !== 0) parent = parent.parent;
+      return parent;
+    };
+    const container = containerOf(name!);
+    expect(container !== null && container === containerOf(departmentText!)).toBe(true);
+    expect(container!.props.style).toMatchObject({ flex: 1, minWidth: 0 });
+    expect(departmentText!.props.numberOfLines).toBeUndefined();
+  });
+
   it.each(
     [false, true].flatMap(rtl => [false, true].flatMap(isWalkIn =>
       ['visitId', 'visitor', 'legacyFallback'].flatMap(entry =>

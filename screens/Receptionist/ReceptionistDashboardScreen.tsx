@@ -455,7 +455,8 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       <VisitorRequestCard
         key={item.id}
         request={toTodayVisitorRequest(item)}
-        hostName={item.hostDepartment ? `${item.hostName} - ${item.hostDepartment}` : item.hostName}
+        hostName={item.hostName}
+        hostDepartment={item.hostDepartment}
         isExpired={isExpired}
         showExpiredState={true}
         onPress={() => handleVisitorPress(item)}

@@ -1913,7 +1913,7 @@ export default function RequestDetailsScreen({
                     >
                       <DDIcon name="user" size={18} color={theme.text} />
                     </View>
-                    <View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
                       <ThemedText
                         style={[Typography.body, { fontWeight: "600", fontSize: 15 }]}
                       >
@@ -1926,8 +1926,12 @@ export default function RequestDetailsScreen({
                         ]}
                       >
                         {request.employeeName}
-                        {request.employeeDepartment ? ` (${request.employeeDepartment})` : ''}
                       </ThemedText>
+                      {request.employeeDepartment ? (
+                        <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+                          {request.employeeDepartment}
+                        </ThemedText>
+                      ) : null}
                     </View>
                   </DirectionalRow>
                   {!isWebLayout && <Spacer height={Spacing.md} />}

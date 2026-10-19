@@ -40,6 +40,7 @@ interface VisitorRequestCardProps {
   accentColor?: string;
   showRequestedBy?: boolean;
   hostName?: string;
+  hostDepartment?: string;
   location?: string;
   style?: ViewStyle;
   variant?: CardVariant;
@@ -139,6 +140,7 @@ export function VisitorRequestCard({
   accentColor,
   showRequestedBy = false,
   hostName,
+  hostDepartment,
   location,
   style,
   variant = 'default',
@@ -401,23 +403,28 @@ export function VisitorRequestCard({
 
   const renderRequestedBy = () => {
     if (!showRequestedBy || !request.employeeName) return null;
+    const department = request.employeeDepartment;
     
     return (
       <>
         <Spacer height={Spacing.sm} />
         <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
-          <DDIcon name="user" size={12} variant="muted" />
-          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+          <View style={styles.infoIcon}>
+            <DDIcon name="user" size={12} variant="muted" />
+          </View>
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {t('dashboard.requestedBy')}
           </ThemedText>
-          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
-            {request.employeeName}
-          </ThemedText>
-          {request.employeeDepartment ? (
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
-              ({request.employeeDepartment})
+          <View style={styles.infoPerson}>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={1}>
+              {request.employeeName}
             </ThemedText>
-          ) : null}
+            {department ? (
+              <ThemedText style={[styles.infoDepartment, { color: theme.textSecondary }]}>
+                ({department})
+              </ThemedText>
+            ) : null}
+          </View>
         </DirectionalRow>
       </>
     );
@@ -425,18 +432,28 @@ export function VisitorRequestCard({
 
   const renderHost = () => {
     if (!hostName || hostName.toLowerCase() === 'unknown host' || hostName.trim() === '') return null;
+    const department = hostDepartment ?? request.employeeDepartment;
     
     return (
       <>
         <Spacer height={Spacing.xs} />
         <DirectionalRow style={styles.infoRow} gap={Spacing.xs}>
-          <DDIcon name="user" size={12} variant="muted" />
-          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+          <View style={styles.infoIcon}>
+            <DDIcon name="user" size={12} variant="muted" />
+          </View>
+          <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {t('reception.hostName')}:
           </ThemedText>
-          <ThemedText style={[styles.infoValue, { color: theme.text }]}>
-            {hostName}
-          </ThemedText>
+          <View style={styles.infoPerson}>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={1}>
+              {hostName}
+            </ThemedText>
+            {department ? (
+              <ThemedText style={[styles.infoDepartment, { color: theme.textSecondary }]}>
+                ({department})
+              </ThemedText>
+            ) : null}
+          </View>
         </DirectionalRow>
       </>
     );
@@ -592,15 +609,42 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   infoRow: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: Spacing.xs,
   },
   infoLabel: {
     fontSize: 11,
+    lineHeight: 16,
+    flexShrink: 0,
+  },
+  infoIcon: {
+    width: 12,
+    height: 16,
+    flexShrink: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoValue: {
     fontSize: 11,
     fontWeight: '600',
+    lineHeight: 16,
+    maxWidth: '100%',
+    flexShrink: 1,
+  },
+  infoPerson: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+    columnGap: Spacing.xs,
+    rowGap: 0,
+  },
+  infoDepartment: {
+    fontSize: 11,
+    lineHeight: 16,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
   dateTimeRow: {
     alignItems: 'center',

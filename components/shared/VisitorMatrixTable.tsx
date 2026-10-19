@@ -286,14 +286,16 @@ function MatrixRow({
               {t("dashboard.requestedBy").toUpperCase()}
             </ThemedText>
             <Spacer height={10} />
-            <ThemedText style={styles.colValue} numberOfLines={2}>
-              {item.hostName}
+            <View style={styles.matrixHostIdentity}>
+              <ThemedText style={[styles.colValue, styles.hostNameValue]} numberOfLines={2}>
+                {item.hostName}
+              </ThemedText>
               {item.hostDepartment ? (
-                <ThemedText style={{ color: theme.textSecondary }}>
-                  {" "}({item.hostDepartment})
+                <ThemedText style={[styles.hostDepartmentValue, { color: theme.textSecondary }]}>
+                  {item.hostDepartment}
                 </ThemedText>
               ) : null}
-            </ThemedText>
+            </View>
           </View>
         ) : null}
 
@@ -900,12 +902,16 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ThemedText style={styles.matrixCellValue} numberOfLines={2}>
-              {item.hostName || "—"}
+            <View style={styles.matrixHostIdentity}>
+              <ThemedText style={[styles.matrixCellValue, styles.hostNameValue]} numberOfLines={2}>
+                {item.hostName || "—"}
+              </ThemedText>
               {item.hostName && item.hostDepartment ? (
-                <ThemedText style={{ color: theme.textSecondary }}> ({item.hostDepartment})</ThemedText>
+                <ThemedText style={[styles.matrixHostDepartmentValue, { color: theme.textSecondary }]}>
+                  {item.hostDepartment}
+                </ThemedText>
               ) : null}
-            </ThemedText>
+            </View>
           </View>
 
           {showPurposeColumn ? (
@@ -1160,6 +1166,34 @@ const styles = StyleSheet.create({
   colValue: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  matrixHostIdentity: {
+    alignSelf: "stretch",
+    width: "100%",
+    minWidth: 0,
+    flexShrink: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    columnGap: Spacing.xs,
+    rowGap: 0,
+  },
+  hostNameValue: {
+    lineHeight: 20,
+    maxWidth: "100%",
+    flexShrink: 1,
+  },
+  hostDepartmentValue: {
+    fontSize: 12,
+    lineHeight: 18,
+    flexShrink: 1,
+    maxWidth: "100%",
+  },
+  matrixHostDepartmentValue: {
+    fontSize: 12,
+    lineHeight: 18,
+    flexShrink: 1,
+    maxWidth: "100%",
   },
   servicePill: {
     width: 28,

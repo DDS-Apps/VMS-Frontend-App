@@ -555,7 +555,7 @@ describe("rendered Receptionist dashboard service icons", () => {
       data: [{
         ...mockParkingVisitor,
         hostName: "Waleed Alahdal",
-        hostDepartment: "DDs",
+        hostDepartment: "Long department name that should wrap below the host name",
         visitDate: "2026-09-12",
         visitTime: "09:00",
         endTime: "10:00",
@@ -572,6 +572,7 @@ describe("rendered Receptionist dashboard service icons", () => {
     const output = renderedText(renderer);
     expect(output).toContain("Host Name");
     expect(output).toContain("Waleed Alahdal");
+    expect(output).toContain("Long department name that should wrap below the host name");
     expect(output).toContain("12, Sep 2026");
     expect(output).toContain("visitor.duration");
     expect(output).toContain("1 time.hour");
@@ -583,6 +584,58 @@ describe("rendered Receptionist dashboard service icons", () => {
     expect(output).toContain("visitor.actualOut");
     expect(output).not.toContain("15:17:00Z");
 
+    const textNodes = renderer.root.findAllByType("ThemedText");
+    const hostNameNode = textNodes.find((node) => node.props.children === "Waleed Alahdal");
+    const departmentNode = textNodes.find((node) =>
+      String(node.props.children).includes("Long department name that should wrap below the host name"),
+    );
+    expect(hostNameNode).toBeDefined();
+    expect(departmentNode).toBeDefined();
+    const containerOf = (node: NonNullable<typeof hostNameNode>) => {
+      let parent = node.parent;
+      while (parent && parent.type !== "View") parent = parent.parent;
+      return parent;
+    };
+    const container = containerOf(hostNameNode!);
+    expect(container === containerOf(departmentNode!)).toBe(true);
+    expect(container!.props.style).toMatchObject({
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+    });
+
+    act(() => renderer.unmount());
+  });
+
+  it.each([false, true])("allows short departments inline and top-aligns host metadata, RTL=%s", rtl => {
+    mockIsRTL = rtl;
+    mockLocaleCode = rtl ? "ar-SA" : "en-US";
+    mockTodayResponse = {
+      ...mockTodayData,
+      data: [{ ...mockNoParkingVisitor, hostName: "John Manager", hostDepartment: "Operations" }],
+    };
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    pressCardViewToggle(renderer);
+    const texts = renderer.root.findAllByType("ThemedText" as any);
+    const host = texts.find(node => node.props.children === "John Manager")!;
+    const department = texts.find(node =>
+      Array.isArray(node.props.children) && node.props.children.join("") === "(Operations)",
+    )!;
+    expect(host).toBeDefined();
+    expect(department).toBeDefined();
+    let container = host.parent;
+    while (container && container.type !== "View") container = container.parent;
+    expect(container!.props.style).toMatchObject({
+      flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", rowGap: 0,
+    });
+    const flatten = (style: unknown) => require("react-native").StyleSheet.flatten(style);
+    expect(flatten(host.props.style).lineHeight).toBe(16);
+    expect(flatten(department.props.style).lineHeight).toBe(16);
+    expect(flatten(department.props.style).maxWidth).toBe("100%");
+    expect(department.props.numberOfLines).toBeUndefined();
     act(() => renderer.unmount());
   });
 

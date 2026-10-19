@@ -650,14 +650,18 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
                   <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                     <DDIcon name="user" size={18} color={theme.text} />
                   </View>
-                  <View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                       {t('visitor.hostName')}
                     </ThemedText>
                     <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
                       {visitor.host}
-                      {visitor.hostDepartment ? ` (${visitor.hostDepartment})` : ''}
                     </ThemedText>
+                    {visitor.hostDepartment ? (
+                      <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
+                        {visitor.hostDepartment}
+                      </ThemedText>
+                    ) : null}
                   </View>
                 </DirectionalRow>
                 {!isWebLayout && <Spacer height={Spacing.md} />}

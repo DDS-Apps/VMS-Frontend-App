@@ -536,6 +536,7 @@ export default function AllVisitorsTodayScreen({ navigation }: AllVisitorsTodayS
         key={item.id}
         request={toVisitorRequest(item)}
         hostName={item.hostName}
+        hostDepartment={item.hostDepartment}
         width={cardWidth}
         isExpired={isExpired}
         showExpiredState={true}

@@ -409,6 +409,48 @@ describe("VisitorMatrixTable purpose labels", () => {
   );
 });
 
+describe("VisitorMatrixTable host department wrapping", () => {
+  it.each(["card", "matrix"] as const)(
+    "renders host and long department in separate wrapping text blocks for %s rows",
+    (variant) => {
+      const department = "Corporate Services and International Guest Relations";
+      const renderer = renderTable(variant, [{
+        ...baseVisitor,
+        hostName: "Noura Al-Harbi",
+        hostDepartment: department,
+      }], "ar");
+      const host = renderer.root.findAllByType("ThemedText").find((node) =>
+        textContent(node.props.children) === "Noura Al-Harbi",
+      );
+      const departmentText = renderer.root.findAllByType("ThemedText").find((node) =>
+        textContent(node.props.children).includes(department),
+      );
+
+      expect(host).toBeDefined();
+      expect(departmentText).toBeDefined();
+      const containerOf = (node: NonNullable<typeof host>) => {
+        let parent = node.parent;
+        while (parent && parent.type !== "View") parent = parent.parent;
+        return parent;
+      };
+      const container = containerOf(host!);
+      expect(container === containerOf(departmentText!)).toBe(true);
+      expect(StyleSheet.flatten(container!.props.style)).toMatchObject({
+        width: "100%",
+        minWidth: 0,
+        flexShrink: 1,
+        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "flex-start",
+      });
+      expect(departmentText!.props.numberOfLines).toBeUndefined();
+      expect(StyleSheet.flatten(departmentText!.props.style).lineHeight).toBe(18);
+
+      act(() => renderer.unmount());
+    },
+  );
+});
+
 describe("Manager dashboard table services", () => {
   const makeRow = (isMeetingRoom: boolean, isBuffet: boolean) => {
     const request = mapPendingApprovalToVisitorRequest({
