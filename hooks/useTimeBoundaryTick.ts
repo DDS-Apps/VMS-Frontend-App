@@ -9,6 +9,7 @@ const MAX_TIMEOUT_MS = 2_147_000_000;
  */
 export function useTimeBoundaryTick(
   boundaryTimes: Array<number | null | undefined>,
+  inclusive = false,
 ): number {
   const [tick, setTick] = useState(0);
   const boundaryKey = useMemo(
@@ -26,7 +27,7 @@ export function useTimeBoundaryTick(
     const nextBoundary = boundaryKey
       .split(",")
       .map(Number)
-      .find((value) => value >= now);
+      .find((value) => inclusive ? value > now : value >= now);
     const timer =
       nextBoundary === undefined
         ? undefined
@@ -34,7 +35,7 @@ export function useTimeBoundaryTick(
             refresh,
             Math.min(
               MAX_TIMEOUT_MS,
-              Math.max(1, nextBoundary - now + 1),
+              Math.max(1, nextBoundary - now + (inclusive ? 0 : 1)),
             ),
           );
     const subscription = AppState.addEventListener("change", (state) => {
@@ -45,7 +46,7 @@ export function useTimeBoundaryTick(
       if (timer) clearTimeout(timer);
       subscription.remove();
     };
-  }, [boundaryKey, tick]);
+  }, [boundaryKey, tick, inclusive]);
 
   return tick;
 }

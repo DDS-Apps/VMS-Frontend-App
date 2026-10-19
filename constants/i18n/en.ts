@@ -1,6 +1,15 @@
 import { TranslationKeys } from './types';
 
 export const en: TranslationKeys & { movementHistory: Record<string, string> } = {
+  approval: {
+    approveFailed: 'Unable to approve request',
+    conflict: 'The request can no longer be approved in its current state. Its meeting may have ended or the request may have changed. Refresh to check the latest details.',
+    expiredRequest: 'The meeting has ended. This request can no longer be approved.',
+    scheduleUnavailable: 'Approval unavailable. Refresh to verify the meeting schedule.',
+    skippedRequests: 'requests were skipped because they are no longer eligible for approval.',
+    bulkResult: 'Approval results',
+    failed: 'Failed',
+  },
   passwordRecovery: {
     requestTitle: 'Forgot your password?',
     requestSubtitle: 'Enter your email address to request a password reset link.',

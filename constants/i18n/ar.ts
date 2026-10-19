@@ -1,6 +1,15 @@
 import { TranslationKeys } from './types';
 
 export const ar: TranslationKeys & { movementHistory: Record<string, string> } = {
+  approval: {
+    approveFailed: 'تعذر الموافقة على الطلب',
+    conflict: 'لم يعد بالإمكان الموافقة على الطلب بحالته الحالية. ربما انتهى موعد الاجتماع أو تغير الطلب. يرجى التحديث للتحقق من آخر التفاصيل.',
+    expiredRequest: 'انتهى موعد الاجتماع. لم يعد بالإمكان الموافقة على هذا الطلب.',
+    scheduleUnavailable: 'الموافقة غير متاحة. يرجى التحديث للتحقق من موعد الاجتماع.',
+    skippedRequests: 'طلبات تم تجاوزها لأنها لم تعد مؤهلة للموافقة.',
+    bulkResult: 'نتائج الموافقة',
+    failed: 'فشلت',
+  },
   passwordRecovery: {
     requestTitle: 'هل نسيت كلمة المرور؟',
     requestSubtitle: 'أدخل عنوان بريدك الإلكتروني لطلب رابط إعادة تعيين كلمة المرور.',

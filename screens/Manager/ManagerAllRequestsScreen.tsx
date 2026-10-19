@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
 import {
   View,
   StyleSheet,
@@ -59,6 +60,7 @@ import {
   hasSameApprovalHistoryDateRange,
 } from "@/utils/managerApprovalHistoryFilters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
 import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
 import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 
@@ -457,6 +459,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     if (!displayedApprovalData?.pages) return [];
     return displayedApprovalData.pages.flatMap((page) => page.data || []);
   }, [displayedApprovalData, riyadhBusinessDateKey]);
+  const approvalPolicy = useManagerApprovalPolicy(items);
   const getItemIsExpired = useCallback((item: ApprovalHistoryItemDto) => {
     if (
       item.isWalkIn &&
@@ -566,7 +569,10 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
   const handleApprove = useCallback(
     (id: string) => {
       const item = items.find((candidate) => candidate.id === id);
-      if (!item || getItemIsExpired(item)) return;
+      if (!item || !approvalPolicy.canApprove(id)) {
+        Alert.alert(t("approval.approveFailed"), t(approvalPolicy.stateFor(id) === "expired" ? "approval.expiredRequest" : "approval.scheduleUnavailable"));
+        return;
+      }
       setApprovingRequestId(id);
       approveMutation.mutate(
         { id },
@@ -582,13 +588,13 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             setApprovingRequestId(null);
             Alert.alert(
               t("common.error"),
-              getLocalizedApiErrorMessage(error, t) || t("approval.approveFailed"),
+              getApprovalErrorMessage(error, t) || t("approval.approveFailed"),
             );
           },
         }
       );
     },
-    [approveMutation, getItemIsExpired, items, queryClient, t]
+    [approveMutation, approvalPolicy.canApprove, approvalPolicy.stateFor, items, queryClient, t]
   );
 
   // Reject handler
@@ -640,7 +646,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
 
   const toMatrixItem = useCallback((item: ApprovalHistoryItemDto): VisitorMatrixItem => {
     const request = mapHistoryToVisitorRequest(item);
-    const isExpired = getItemIsExpired(item);
+    const isExpired = isPendingManagerApprovalStatus(item.status)
+      ? approvalPolicy.stateFor(item.id) === "expired" : getItemIsExpired(item);
     const showExpiredStatus =
       item.isWalkIn &&
       isPendingManagerApprovalStatus(item.status) &&
@@ -650,6 +657,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       item.status?.toLowerCase() === "pending_host_approval";
     return {
       id: item.id,
+      approveDisabled: !approvalPolicy.canApprove(item.id),
+      approvalNotice: approvalPolicy.stateFor(item.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined,
       visitorName: request.visitor.fullName,
       company: request.visitor.company || undefined,
       visitDate: request.visitDate,
@@ -675,7 +684,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         isExpired &&
         (isPendingManagerApprovalStatus(item.status) || isPendingHost),
     };
-  }, [expirationTick, getItemIsExpired, riyadhBusinessDateKey]);
+  }, [expirationTick, approvalPolicy.tick, approvalPolicy.stateFor, approvalPolicy.canApprove, getItemIsExpired, riyadhBusinessDateKey, t]);
 
   const renderItem = useCallback(
     ({ item }: { item: ApprovalHistoryItemDto }) => {
@@ -685,7 +694,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         item.isWalkIn &&
         item.status?.toLowerCase() === "pending_host_approval";
       
-      const isExpired = getItemIsExpired(item);
+      const isExpired = isPending
+        ? approvalPolicy.stateFor(item.id) === "expired" : getItemIsExpired(item);
       const showExpiredStatus =
         item.isWalkIn &&
         isPendingManagerApprovalStatus(item.status) &&
@@ -711,6 +721,8 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
             onPress={() => handleViewDetails(item.id)}
             showRequestedBy
             showActions={showActions}
+            approveDisabled={!approvalPolicy.canApprove(item.id)}
+            approvalNotice={approvalPolicy.stateFor(item.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined}
             onApprove={canApproveReject ? () => handleApprove(item.id) : undefined}
             onReject={canApproveReject ? () => handleReject(item.id) : undefined}
             approveLoading={isApproving}
@@ -721,7 +733,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         </View>
       );
     },
-    [numColumns, viewMode, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId, expirationTick, getItemIsExpired, riyadhBusinessDateKey]
+    [numColumns, viewMode, handleViewDetails, handleApprove, handleReject, approvingRequestId, rejectingRequestId, expirationTick, approvalPolicy.tick, approvalPolicy.canApprove, approvalPolicy.stateFor, getItemIsExpired, riyadhBusinessDateKey, t]
   );
 
   const renderHeader = () => (
@@ -890,7 +902,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         <FlatList
           key={`list-${selectedTab}-${selectedStatus ?? "all"}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
           data={[]}
-          extraData={riyadhBusinessDateKey}
+          extraData={`${riyadhBusinessDateKey}|${approvalPolicy.tick}`}
           renderItem={() => null}
           keyExtractor={() => "_"}
           contentContainerStyle={[
@@ -943,7 +955,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         <FlatList
           key={`${viewMode}-${numColumns}-${selectedTab}-${selectedStatus ?? "all"}-${dateRange.startDate?.getTime() ?? "all"}-${dateRange.endDate?.getTime() ?? "all"}`}
           data={filteredItems}
-          extraData={riyadhBusinessDateKey}
+          extraData={`${riyadhBusinessDateKey}|${approvalPolicy.tick}`}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}

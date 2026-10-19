@@ -1,6 +1,15 @@
 export type SupportedLocale = 'en' | 'ar';
 
 export interface TranslationKeys {
+  approval: {
+    approveFailed: string;
+    conflict: string;
+    expiredRequest: string;
+    scheduleUnavailable: string;
+    skippedRequests: string;
+    bulkResult: string;
+    failed: string;
+  };
   passwordRecovery: {
     requestTitle: string;
     requestSubtitle: string;

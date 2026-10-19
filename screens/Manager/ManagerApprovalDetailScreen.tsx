@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
 import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { useQrClock } from '@/hooks/useActiveVisitView';
@@ -77,6 +78,7 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
+import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
 
 
 const LAYOUT = {
@@ -285,6 +287,7 @@ export default function ManagerApprovalDetailScreen({
     error,
     refetch,
   } = useVisitDetailsQuery(requestId);
+  const approvalPolicy = useManagerApprovalPolicy(visitData ? [visitData] : []);
 
   const qrNow = useQrClock();
   const initializeWalkInServices = (data: typeof visitData) => {
@@ -567,7 +570,12 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleApprove = () => {
-    if (isReadOnlyRole || computeCurrentVisitExpiration()) return;
+    if (isReadOnlyRole || isProcessing || !approvalPolicy.canApprove(requestId)) {
+      if (!isReadOnlyRole && !isProcessing) {
+        Alert.alert(t("approval.approveFailed"), t(approvalPolicy.stateFor(requestId) === "expired" ? "approval.expiredRequest" : "approval.scheduleUnavailable"));
+      }
+      return;
+    }
 
     // For walk-in requests where manager IS the host, show the end time modal with service selection
     // If manager is NOT the host, the employee already configured end time/services, so just approve directly
@@ -598,7 +606,7 @@ export default function ManagerApprovalDetailScreen({
           }, 1000);
         },
         onError: (error) => {
-          showToast(t("errors.somethingWentWrong"), "error");
+          Alert.alert(t("approval.approveFailed"), getApprovalErrorMessage(error, t) || t("errors.submitFailed"));
         },
       },
     );
@@ -655,6 +663,7 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleWalkInApprovalSubmit = () => {
+    if (!isWalkInEditMode && !approvalPolicy.canApprove(requestId)) return;
     if (isReadOnlyRole) return;
     if (isWalkInEditMode && hasVisitStarted) return;
     if (computeCurrentVisitExpiration()) return;
@@ -2064,7 +2073,7 @@ export default function ManagerApprovalDetailScreen({
               },
             ]}
           >
-            {isVisitExpired ? (
+            {approvalPolicy.stateFor(requestId) === "expired" ? (
               <View
                 style={{
                   alignItems: "center",
@@ -2111,6 +2120,8 @@ export default function ManagerApprovalDetailScreen({
               </View>
             ) : (
               <ApprovalActionGroup
+                approveDisabled={!approvalPolicy.canApprove(requestId)}
+                approveLabel={approvalPolicy.stateFor(requestId) === "unavailable" ? t("approval.scheduleUnavailable") : undefined}
                 onApprove={handleApprove}
                 onReject={() => setShowRejectModal(true)}
                 approveLoading={approveMutation.isPending}

@@ -43,6 +43,9 @@ interface VisitorRequestCardProps {
   style?: ViewStyle;
   variant?: CardVariant;
   showActions?: boolean;
+  approveDisabled?: boolean;
+  approvalNotice?: string;
+  selectionDisabled?: boolean;
   onApprove?: () => void;
   onReject?: () => void;
   isProcessing?: boolean;
@@ -139,6 +142,9 @@ export function VisitorRequestCard({
   style,
   variant = 'default',
   showActions = false,
+  approveDisabled = false,
+  approvalNotice,
+  selectionDisabled = false,
   onApprove,
   onReject,
   isProcessing = false,
@@ -440,7 +446,9 @@ export function VisitorRequestCard({
     return (
       <View style={styles.actionsContainer}>
         <Spacer height={Spacing.md} />
+        {approvalNotice ? <ThemedText>{approvalNotice}</ThemedText> : null}
         <ApprovalActionGroup
+          approveDisabled={approveDisabled}
           onApprove={() => { if (onApprove) onApprove(); }}
           onReject={() => { if (onReject) onReject(); }}
           disabled={isProcessing}
@@ -453,7 +461,7 @@ export function VisitorRequestCard({
   };
 
   const renderSelectionCheckbox = () => {
-    if (!isSelectionMode) return null;
+    if (!isSelectionMode || selectionDisabled) return null;
     return (
       <View style={styles.checkboxContainer}>
         <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection || (() => {})} />

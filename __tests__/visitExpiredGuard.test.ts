@@ -144,7 +144,7 @@ describe('RequestDetailsScreen — visitExpiredGuard wiring', () => {
 
   it('preserves the manager pending-approval expired notice condition', () => {
     expect(screenSource).toMatch(
-      /showInlineExpiredVisitNotice\s*=[\s\S]{0,80}!request\.isWalkIn[\s\S]{0,100}PENDING_APPROVAL[\s\S]{0,80}userRole === ["']manager["']/,
+      /showInlineExpiredVisitNotice\s*=[\s\S]*?!request\.isWalkIn[\s\S]{0,100}PENDING_APPROVAL[\s\S]{0,80}userRole === ["']manager["']/,
     );
     expect(screenSource).toContain(
       "{showInlineExpiredVisitNotice ? expiredVisitNotice : null}",

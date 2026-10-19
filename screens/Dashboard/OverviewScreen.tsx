@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, useState, useEffect } from "react";
+import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
 import {
   View,
   StyleSheet,
@@ -63,6 +64,7 @@ import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -92,6 +94,12 @@ export default function OverviewScreen({
     error: pendingError,
     refetch: refetchPending,
   } = usePendingApprovalsQuery({ limit: 10 }, userRole === "manager");
+  // The pending-approvals endpoint guarantees the workflow stage but its DTO
+  // does not include status. Never fill missing schedule fields from UI defaults.
+  const approvalRecords = useMemo(() =>
+    pendingData?.data.map(record => ({ status: "pending_approval", ...record })) ?? [],
+    [pendingData]);
+  const approvalPolicy = useManagerApprovalPolicy(approvalRecords);
   const {
     data: awaitingData,
     isLoading: awaitingLoading,
@@ -130,6 +138,10 @@ export default function OverviewScreen({
 
   const handleApprove = useCallback((requestId: string) => {
     if (isProcessing) return;
+    if (userRole !== "manager" || !approvalPolicy.canApprove(requestId)) {
+      Alert.alert(t("approval.approveFailed"), t(approvalPolicy.stateFor(requestId) === "expired" ? "approval.expiredRequest" : "approval.scheduleUnavailable"));
+      return;
+    }
     setApprovingRequestId(requestId);
     approveMutation.mutate(
       { id: requestId, payload: {} },
@@ -142,12 +154,12 @@ export default function OverviewScreen({
           setApprovingRequestId(null);
           Alert.alert(
             t('errors.somethingWentWrong'),
-            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            getApprovalErrorMessage(error, t) || t('errors.submitFailed'),
           );
         },
       }
     );
-  }, [isProcessing, approveMutation, refetchPending, t]);
+  }, [isProcessing, approveMutation, refetchPending, t, userRole, approvalPolicy.canApprove, approvalPolicy.stateFor]);
 
   const handleReject = useCallback((requestId: string) => {
     if (isProcessing) return;
@@ -207,11 +219,12 @@ export default function OverviewScreen({
   }, [pendingData]);
 
   const pendingApprovalTableItems = useMemo<VisitorMatrixItem[]>(
-    () => pendingApprovals.slice(0, 5).map((request) => mapOverviewRequestToMatrixItem(
-      request,
-      isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration),
-    )),
-    [pendingApprovals],
+    () => pendingApprovals.slice(0, 5).map((request) => ({
+      ...mapOverviewRequestToMatrixItem(request, approvalPolicy.stateFor(request.id) === "expired"),
+      approveDisabled: !approvalPolicy.canApprove(request.id),
+      approvalNotice: approvalPolicy.stateFor(request.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined,
+    })),
+    [pendingApprovals, approvalPolicy.tick, approvalPolicy.stateFor, approvalPolicy.canApprove, t],
   );
 
   const awaitingVisitorAcceptance = useMemo(() => {
@@ -767,7 +780,7 @@ export default function OverviewScreen({
                   scrollEventThrottle={16}
                 >
                   {pendingApprovals.slice(0, 5).map((request, index) => {
-                    const expired = isVisitExpired(request.visitDate, request.visitTime, request.endTime, request.duration);
+                    const expired = approvalPolicy.stateFor(request.id) === "expired";
                     return (
                       <VisitorRequestCard
                         key={request.id}
@@ -783,6 +796,8 @@ export default function OverviewScreen({
                         showRequestedBy={true}
                         showActions={true}
                         onApprove={() => handleApprove(request.id)}
+                        approveDisabled={!approvalPolicy.canApprove(request.id)}
+                        approvalNotice={approvalPolicy.stateFor(request.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined}
                         onReject={() => handleReject(request.id)}
                         isProcessing={isProcessing}
                         approveLoading={approvingRequestId === request.id}

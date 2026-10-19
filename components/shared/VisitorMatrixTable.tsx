@@ -64,6 +64,9 @@ export interface VisitorMatrixItem {
   phone?: string;
   /** Whether this pending request's approval window has expired */
   isExpired?: boolean;
+  approveDisabled?: boolean;
+  approvalNotice?: string;
+  selectionDisabled?: boolean;
   /** Explicit permission to show approval actions, overriding status-name inference */
   canApproveReject?: boolean;
   /** Location label, used by non-visitor listings (e.g. buffet requests) when columns="simple" */
@@ -650,7 +653,7 @@ function MatrixTable({
               ]}
             >
               <DirectionalRow style={{ alignItems: "center", gap: Spacing.xs }}>
-                {isSelectionMode ? (
+                {isSelectionMode && !item.selectionDisabled ? (
                   <SelectionCheckbox
                     isSelected={!!selectedIds?.has(item.id)}
                     onToggle={() => onToggleSelection?.(item.id)}
@@ -985,15 +988,19 @@ function MatrixDataRowCells({
             <ExpiredVisitBadge />
           </View>
         ) : canApproveReject ? (
-          <ApprovalActionGroup
-            onApprove={() => onApprove!(item.id)}
-            onReject={() => onReject!(item.id)}
-            approveLoading={isApproveLoading}
-            rejectLoading={isRejectLoading}
-            size="small"
-            showIcons={false}
-            fullWidth={false}
-          />
+          <>
+            {item.approvalNotice ? <ThemedText>{item.approvalNotice}</ThemedText> : null}
+            <ApprovalActionGroup
+              approveDisabled={item.approveDisabled}
+              onApprove={() => onApprove!(item.id)}
+              onReject={() => onReject!(item.id)}
+              approveLoading={isApproveLoading}
+              rejectLoading={isRejectLoading}
+              size="small"
+              showIcons={false}
+              fullWidth={false}
+            />
+          </>
         ) : showReadOnlyExpiredBanner ? (
           <View style={{ gap: Spacing.xs }}>
             <RequestStatusBadge status={item.status} />

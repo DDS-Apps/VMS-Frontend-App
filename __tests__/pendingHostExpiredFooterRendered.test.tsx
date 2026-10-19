@@ -16,6 +16,7 @@ let mockPendingApprovalData:
 let mockUser: Record<string, unknown> = { id: "manager", role: "manager" };
 let mockRequest: Record<string, any>;
 const mockApproveMutate = jest.fn();
+const mockBulkApproveMutate = jest.fn();
 const mockRejectMutate = jest.fn();
 
 const mockTheme = {
@@ -51,10 +52,15 @@ const mockHost = (name: string) => {
   Component.displayName = name;
   return Component;
 };
+const mockFlatList = (props: Record<string, any>) =>
+  React.createElement("FlatList", props, props.ListHeaderComponent,
+    props.data?.map((item: unknown, index: number) => props.renderItem?.({ item, index })),
+    props.ListFooterComponent);
 
 jest.mock("react-native", () => {
   return {
     ActivityIndicator: mockHost("ActivityIndicator"),
+    FlatList: mockFlatList,
     Alert: { alert: jest.fn() },
     Dimensions: {
       get: () => ({ width: mockWidth, height: 800, scale: 1, fontScale: mockFontScale }),
@@ -103,9 +109,18 @@ jest.mock("@react-navigation/native", () => ({
   useFocusEffect: () => undefined,
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
+jest.mock("@tanstack/react-query", () => ({
+  useQueryClient: () => ({ removeQueries: jest.fn(), invalidateQueries: jest.fn() }),
+}));
 
 jest.mock("@/components/ScreenScrollView", () => ({
   ScreenScrollView: mockHost("ScreenScrollView"),
+}));
+jest.mock("@/hooks/useScreenInsets", () => ({
+  useScreenInsets: () => ({ paddingTop: 0, paddingBottom: 34 }),
+}));
+jest.mock("@/components/CalendarDatePicker", () => ({
+  CalendarDatePicker: mockHost("CalendarDatePicker"),
 }));
 
 jest.mock("@/components/DDIcon", () => ({
@@ -146,6 +161,14 @@ jest.mock("@/components/shared", () => ({
   RTLHorizontalScrollView: mockHost("RTLHorizontalScrollView"),
   FilterChip: mockHost("FilterChip"),
   VisitorMatrixTable: mockHost("VisitorMatrixTable"),
+  SelectionCheckbox: mockHost("SelectionCheckbox"),
+  ServiceIcons: mockHost("ServiceIcons"),
+  StatusAccent: mockHost("StatusAccent"),
+  SkeletonDashboard: mockHost("SkeletonDashboard"),
+  LoadingSpinner: mockHost("LoadingSpinner"),
+  ApprovalActionGroup: mockHost("ApprovalActionGroup"),
+  ListLoadingFooter: mockHost("ListLoadingFooter"),
+  StatusDropdown: mockHost("StatusDropdown"),
 }));
 
 jest.mock("@/components/SearchInput", () => ({
@@ -244,8 +267,26 @@ jest.mock("@/hooks/useRiyadhBusinessDateKey", () => ({
 jest.mock("@/hooks/useTimeBoundaryTick", () => ({
   useTimeBoundaryTick: () => mockBoundaryTick,
 }));
+jest.mock("@/hooks/useActiveVisitView", () => ({
+  useQrClock: () => Date.now(),
+  useActiveVisitView: () => true,
+}));
 
 jest.mock("@/hooks/queries/useApprovalQueries", () => ({
+  requestKeys: { visitDetail: (id: string) => ["requests", "visit-detail", id] },
+  approvalHistoryKeys: { all: ["approval-history"] },
+  useInfiniteApprovalHistoryQuery: () => ({
+    data: { pages: [mockPendingApprovalData ?? { data: [] }] },
+    isLoading: false, isFetching: false, refetch: jest.fn(),
+    hasNextPage: false, fetchNextPage: jest.fn(),
+  }),
+  useInfinitePendingApprovalsQuery: () => ({
+    data: { pages: [mockPendingApprovalData ?? { data: [] }] },
+    isLoading: false, isFetching: false, refetch: jest.fn(),
+    hasNextPage: false, fetchNextPage: jest.fn(),
+  }),
+  useBulkApproveRequestsMutation: () => ({ isPending: false, mutate: mockBulkApproveMutate }),
+  useBulkRejectRequestsMutation: () => ({ isPending: false, mutate: jest.fn() }),
   usePendingApprovalsQuery: () => ({
     data: mockPendingApprovalData,
     isLoading: false,
@@ -299,6 +340,7 @@ jest.mock("@/hooks/useRetainedDatedData", () => ({
   ) => ({
     data: input,
     isRetained: false,
+    dateKey: _key,
   }),
 }));
 
@@ -351,6 +393,8 @@ const UpcomingVisitorsListScreen = require(
   "@/screens/Receptionist/UpcomingVisitorsListScreen",
 ).default;
 const OverviewScreen = require("@/screens/Dashboard/OverviewScreen").default;
+const ManagerDashboardScreen = require("@/screens/Manager/ManagerDashboardScreen").default;
+const ManagerAllRequestsScreen = require("@/screens/Manager/ManagerAllRequestsScreen").default;
 
 function pendingHostVisitor() {
   return {
@@ -843,8 +887,7 @@ describe("pending-host expired detail footer rendering", () => {
       );
     });
 
-    let table = renderer.root.findByType("VisitorMatrixTable");
-    expect(table.props.showExpiredState).toBe(true);
+    let table = renderer.root.findAllByType("VisitorMatrixTable").find(node => node.props.showApproveReject)!;
     expect(table.props.visitors[0]).toMatchObject({
       status: "pending_approval",
       isExpired: false,
@@ -865,7 +908,7 @@ describe("pending-host expired detail footer rendering", () => {
       );
     });
 
-    table = renderer.root.findByType("VisitorMatrixTable");
+    table = renderer.root.findAllByType("VisitorMatrixTable").find(node => node.props.showApproveReject)!;
     expect(table.props.visitors[0]).toMatchObject({
       status: "pending_approval",
       isExpired: true,
@@ -874,5 +917,130 @@ describe("pending-host expired detail footer rendering", () => {
       table.props.onApprove("manager-pending-approval");
     });
     expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+  });
+
+  describe("scheduled Manager dashboard approvals", () => {
+    let dashboard: ReturnType<typeof create>;
+    const named = (name: string) => dashboard.root.find(node =>
+      typeof node.type === "function" && node.type.name === name);
+    const table = () => dashboard.root.findByType("VisitorMatrixTable");
+    const mount = () => {
+      act(() => {
+        dashboard = create(React.createElement(ManagerDashboardScreen, {
+          navigation: { navigate: jest.fn() },
+        }));
+      });
+    };
+    beforeEach(() => {
+      configureScreen("manager", "en", 390);
+      jest.setSystemTime(new Date("2026-09-12T08:59:59Z"));
+      mockBulkApproveMutate.mockReset();
+      mockPendingApprovalData = { data: [
+        { ...pendingManagerApprovalRequest(), id: "soon", isWalkIn: false },
+        { ...pendingManagerApprovalRequest(), id: "later", isWalkIn: false, endTime: "13:00" },
+        { ...pendingManagerApprovalRequest(), id: "expired", isWalkIn: false, endTime: "11:30" },
+      ] };
+    });
+    afterEach(() => { act(() => dashboard?.unmount()); });
+
+    it("blocks a captured single handler at the exact end without waiting for a render", () => {
+      mount();
+      const approve = table().props.onApprove;
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      act(() => approve("soon"));
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+    });
+    it("accepts a pending-endpoint row without a status field", () => {
+      const row = { ...pendingManagerApprovalRequest(), id: "dto", isWalkIn: false };
+      delete row.status;
+      mockPendingApprovalData = { data: [row] };
+      mount();
+      act(() => table().props.onApprove("dto"));
+      expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+    });
+    it("selects eligible rows only and excludes expired requests from bulk payloads", () => {
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      act(() => named("SelectAllBar").props.onToggleAll());
+      expect([...table().props.selectedIds]).toEqual(["soon", "later"]);
+      act(() => named("BulkActionBar").props.onApprove());
+      expect(mockBulkApproveMutate.mock.calls[0][0]).toEqual({ ids: ["soon", "later"] });
+    });
+    it("rechecks a stale bulk selection and reports skipped requests", () => {
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      act(() => named("SelectAllBar").props.onToggleAll());
+      const approve = named("BulkActionBar").props.onApprove;
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      act(() => approve());
+      expect(mockBulkApproveMutate.mock.calls[0][0]).toEqual({ ids: ["later"] });
+      expect([...table().props.selectedIds]).toEqual(["later"]);
+    });
+    it("makes no API call when every selected request has expired", () => {
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      const approve = named("BulkActionBar").props.onApprove;
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      act(() => approve());
+      expect(mockBulkApproveMutate).not.toHaveBeenCalled();
+    });
+    it("keeps eligible failures selected and shows mixed backend results", () => {
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      act(() => named("SelectAllBar").props.onToggleAll());
+      act(() => named("BulkActionBar").props.onApprove());
+      act(() => mockBulkApproveMutate.mock.calls[0][1].onSuccess({
+        successCount: 1, failedCount: 1, failedIds: ["later"],
+        results: [{ id: "soon", success: true }, { id: "later", success: false, error: "Request changed" }],
+      }));
+      expect([...table().props.selectedIds]).toEqual(["later"]);
+      expect(named("BulkActionBar").props.selectedCount).toBe(1);
+    });
+    it("removes an expiring selection and updates row expiry after a boundary render", () => {
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      mockBoundaryTick = 1;
+      act(() => dashboard.update(React.createElement(ManagerDashboardScreen, { navigation: { navigate: jest.fn() } })));
+      expect([...table().props.selectedIds]).toEqual([]);
+      expect(table().props.visitors.find((item: any) => item.id === "soon").isExpired).toBe(true);
+    });
+    it("blocks expired requests on All Requests, including a captured handler", () => {
+      act(() => {
+        dashboard = create(React.createElement(ManagerAllRequestsScreen, {
+          navigation: { navigate: jest.fn() }, route: { params: {} },
+        }));
+      });
+      const approve = table().props.onApprove;
+      expect(table().props.visitors.find((item: any) => item.id === "expired").isExpired).toBe(true);
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      act(() => approve("soon"));
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+    });
+    it("blocks Manager Details at the scheduled cutoff, independently of QR retention", () => {
+      mockQueryData = { ...pendingManagerApprovalDetails(), isWalkIn: false, isExpired: false };
+      mockRequest = { ...pendingManagerApprovalRequest(), isWalkIn: false };
+      act(() => {
+        dashboard = create(React.createElement(ManagerApprovalDetailScreen, {
+          navigation: { goBack: jest.fn() }, route: { params: { requestId: "manager-pending-approval" } },
+        }));
+      });
+      const approve = dashboard.root.findByType("ApprovalActionGroup").props.onApprove;
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      act(() => approve());
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+    });
+    it("marks a missing scheduled end unavailable rather than silently using UI defaults", () => {
+      mockPendingApprovalData = { data: [
+        { ...pendingManagerApprovalRequest(), id: "unknown", isWalkIn: false, endTime: undefined, duration: undefined },
+      ] };
+      mount();
+      const item = table().props.visitors[0];
+      expect(item.approveDisabled).toBe(true);
+      expect(item.isExpired).toBe(false);
+      expect(item.approvalNotice).toBe("approval.scheduleUnavailable");
+      act(() => table().props.onApprove("unknown"));
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+    });
   });
 });

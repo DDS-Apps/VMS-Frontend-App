@@ -14,6 +14,7 @@ interface ApprovalActionGroupProps {
   approveLoading?: boolean;
   rejectLoading?: boolean;
   disabled?: boolean;
+  approveDisabled?: boolean;
   approveLabel?: string;
   rejectLabel?: string;
   approveLoadingText?: string;
@@ -31,6 +32,7 @@ export const ApprovalActionGroup = ({
   approveLoading = false,
   rejectLoading = false,
   disabled = false,
+  approveDisabled = false,
   approveLabel,
   rejectLabel,
   approveLoadingText,
@@ -75,7 +77,7 @@ export const ApprovalActionGroup = ({
     <LoadingButton
       onPress={onApprove}
       loading={approveLoading}
-      disabled={isDisabled && !approveLoading}
+      disabled={approveDisabled || (isDisabled && !approveLoading)}
       variant="success"
       size={size}
       icon={showIcons ? "check-circle" : undefined}

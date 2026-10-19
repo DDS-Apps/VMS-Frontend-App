@@ -195,7 +195,7 @@ function parseClockTime(timeStr: string): {
   return { hours, minutes, seconds };
 }
 
-function parseRiyadhDateTimeMs(dateStr: string, timeStr: string): number | null {
+export function parseRiyadhDateTimeMs(dateStr: string, timeStr: string): number | null {
   if (!isCanonicalDateKey(dateStr)) return null;
 
   if (

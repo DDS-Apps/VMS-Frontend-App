@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
 import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, ActivityIndicator } from "react-native";
 import { ROUTES } from "@/constants";
 import { useRefetchOnRefocus } from "@/hooks/useRefetchOnRefocus";
@@ -42,6 +43,7 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -484,6 +486,20 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     if (!displayedPendingApprovalsData?.pages) return [];
     return displayedPendingApprovalsData.pages.flatMap(page => page.data.map(mapPendingApprovalToVisitorRequest));
   }, [displayedPendingApprovalsData?.pages]);
+  const approvalRecords = useMemo(() =>
+    displayedPendingApprovalsData?.pages.flatMap(page => page.data.map(record => ({
+      status: "pending_approval", ...record,
+    }))) ?? [],
+    [displayedPendingApprovalsData]);
+  const approvalPolicy = useManagerApprovalPolicy(approvalRecords);
+  useEffect(() => {
+    if (isBulkProcessing) return;
+    const eligible = new Set([...selectedIds].filter(approvalPolicy.canApprove));
+    if (eligible.size !== selectedIds.size) {
+      setSelectedIds(eligible);
+      Alert.alert(t("approval.approveFailed"), `${selectedIds.size - eligible.size} — ${t("approval.skippedRequests")}`);
+    }
+  }, [approvalRecords, approvalPolicy.tick, approvalPolicy.canApprove, selectedIds, isBulkProcessing, t]);
   const expirationBoundaries = useMemo(
     () =>
       pendingApprovals.map((request) =>
@@ -543,7 +559,8 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     (request.visitor.company && request.visitor.company.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const allSelected = filteredRequests.length > 0 && filteredRequests.every(r => selectedIds.has(r.id));
+  const selectableRequests = filteredRequests.filter(r => approvalPolicy.canApprove(r.id));
+  const allSelected = selectableRequests.length > 0 && selectableRequests.every(r => selectedIds.has(r.id));
 
   const toggleSelectionMode = () => {
     if (isSelectionMode) {
@@ -553,6 +570,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   };
 
   const toggleSelection = (id: string) => {
+    if (!approvalPolicy.canApprove(id) && !selectedIds.has(id)) return;
     const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) {
       newSelected.delete(id);
@@ -566,11 +584,12 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredRequests.map(r => r.id)));
+      setSelectedIds(new Set(filteredRequests.filter(r => approvalPolicy.canApprove(r.id)).map(r => r.id)));
     }
   };
 
   const handleLongPress = (id: string) => {
+    if (!approvalPolicy.canApprove(id)) return;
     if (!isSelectionMode) {
       setIsSelectionMode(true);
       setSelectedIds(new Set([id]));
@@ -579,6 +598,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
 
   const handleApprove = (requestId: string) => {
     if (isProcessing) return;
+    if (!approvalPolicy.canApprove(requestId)) {
+      Alert.alert(t("approval.approveFailed"), t(approvalPolicy.stateFor(requestId) === "expired" ? "approval.expiredRequest" : "approval.scheduleUnavailable"));
+      return;
+    }
     const request = pendingApprovals.find((candidate) => candidate.id === requestId);
     if (!request || isPendingApprovalWalkInExpired(request)) return;
     setApprovingRequestId(requestId);
@@ -595,7 +618,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
           setApprovingRequestId(null);
           Alert.alert(
             t('errors.somethingWentWrong'),
-            getLocalizedApiErrorMessage(error, t) || t('errors.submitFailed'),
+            getApprovalErrorMessage(error, t) || t('errors.submitFailed'),
           );
         },
       }
@@ -615,19 +638,28 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     if (selectedIds.size === 0 || isBulkProcessing) return;
     const eligibleIds = Array.from(selectedIds).filter((id) => {
       const request = pendingApprovals.find((candidate) => candidate.id === id);
-      return request && !isPendingApprovalWalkInExpired(request);
+      return request && approvalPolicy.canApprove(id);
     });
     if (eligibleIds.length !== selectedIds.size) {
       setSelectedIds(new Set(eligibleIds));
+      Alert.alert(t("approval.approveFailed"), `${selectedIds.size - eligibleIds.length} — ${t("approval.skippedRequests")}`);
     }
     if (eligibleIds.length === 0) return;
     
     bulkApproveMutation.mutate(
       { ids: eligibleIds },
       {
-        onSuccess: () => {
-          setIsSelectionMode(false);
-          setSelectedIds(new Set());
+        onSuccess: (response) => {
+          const failed = response.results.filter(result => !result.success);
+          const failedIds = new Set([...response.failedIds, ...failed.map(result => result.id)]);
+          const retryIds = eligibleIds.filter(id => failedIds.has(id) && approvalPolicy.canApprove(id));
+          setSelectedIds(new Set(retryIds));
+          setIsSelectionMode(retryIds.length > 0);
+          Alert.alert(
+            t("approval.bulkResult"),
+            `${t("status.approved")}: ${response.successCount}\n${t("approval.failed")}: ${response.failedCount}` +
+              failed.map(result => `\n${pendingApprovals.find(request => request.id === result.id)?.visitor.fullName || result.id}: ${result.error || t("approval.approveFailed")}`).join(""),
+          );
         },
         onError: (error) => {
           Alert.alert(
@@ -724,8 +756,13 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const toMatrixItem = useCallback((request: VisitorRequest): VisitorMatrixItem => {
     const pv = normalizePurposeValue(request.purpose || '');
     const purposeLabel = PURPOSE_VALUE_TO_KEY[pv] ? t(PURPOSE_VALUE_TO_KEY[pv] as any) : request.purpose;
-    return mapManagerRequestToMatrixItem(request, purposeLabel, isRequestExpired(request));
-  }, [expirationTick, isRequestExpired, t]);
+    return {
+      ...mapManagerRequestToMatrixItem(request, purposeLabel, approvalPolicy.stateFor(request.id) === "expired"),
+      approveDisabled: !approvalPolicy.canApprove(request.id),
+      selectionDisabled: !approvalPolicy.canApprove(request.id),
+      approvalNotice: approvalPolicy.stateFor(request.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined,
+    };
+  }, [expirationTick, approvalPolicy.tick, approvalPolicy.stateFor, approvalPolicy.canApprove, t]);
 
   const renderStickyHeader = () => (
     <View style={[styles.stickyHeader, { backgroundColor: theme.backgroundRoot }]}>
@@ -887,7 +924,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         
         <FlatList
           data={[]}
-          extraData={expirationTick}
+          extraData={`${expirationTick}|${approvalPolicy.tick}`}
           keyExtractor={() => '_'}
           renderItem={() => null}
           ListHeaderComponent={
@@ -965,7 +1002,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       <FlatList
         key={`flatlist-${numColumns}`}
         data={filteredRequests}
-        extraData={expirationTick}
+        extraData={`${expirationTick}|${approvalPolicy.tick}`}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
         renderItem={({ item }) => (
@@ -975,14 +1012,17 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
               onPress={() => handleViewDetails(item.id)}
               onLongPress={() => handleLongPress(item.id)}
               showRequestedBy
-              showActions={!isSelectionMode && !isPendingApprovalWalkInExpired(item)}
+              showActions={!isSelectionMode}
+              approveDisabled={!approvalPolicy.canApprove(item.id)}
+              selectionDisabled={!approvalPolicy.canApprove(item.id)}
+              approvalNotice={approvalPolicy.stateFor(item.id) === "unavailable" ? t("approval.scheduleUnavailable") : undefined}
               onApprove={() => handleApprove(item.id)}
               onReject={() => handleReject(item.id)}
               isProcessing={isProcessing}
               approveLoading={approvingRequestId === item.id}
               rejectLoading={rejectingRequestId === item.id}
-              isExpired={isRequestExpired(item)}
-              showExpiredState={isPendingApprovalWalkInExpired(item)}
+              isExpired={approvalPolicy.stateFor(item.id) === "expired"}
+              showExpiredState={approvalPolicy.stateFor(item.id) === "expired"}
               isSelectionMode={isSelectionMode}
               isSelected={selectedIds.has(item.id)}
               onToggleSelection={() => toggleSelection(item.id)}

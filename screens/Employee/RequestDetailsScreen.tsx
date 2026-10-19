@@ -1,4 +1,5 @@
 import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
+import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
 import React, {
   useState,
   useMemo,
@@ -100,6 +101,7 @@ import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
+import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
 
 
 export default function RequestDetailsScreen({
@@ -197,6 +199,7 @@ export default function RequestDetailsScreen({
     error,
     refetch,
   } = useVisitDetailsQuery(requestId);
+  const approvalPolicy = useManagerApprovalPolicy(visitData ? [visitData] : []);
   const initializeEditServices = (data: typeof visitData) => {
     const requiresBuffet = !!data?.buffet;
     setEditRequiresMeetingRoom(!!data?.meetingRoom || requiresBuffet);
@@ -687,7 +690,10 @@ export default function RequestDetailsScreen({
   };
 
   const handleManagerApprove = () => {
-    if (isVisitExpired) return;
+    if (userRole !== "manager" || isProcessing || !approvalPolicy.canApprove(requestId)) {
+      if (!isProcessing) Alert.alert(t("approval.approveFailed"), t(approvalPolicy.stateFor(requestId) === "expired" ? "approval.expiredRequest" : "approval.scheduleUnavailable"));
+      return;
+    }
     managerApproveMutation.mutate(
       { id: requestId, payload: {} },
       {
@@ -698,7 +704,7 @@ export default function RequestDetailsScreen({
         onError: (error) => {
           Alert.alert(
             t("errors.somethingWentWrong"),
-            getLocalizedApiErrorMessage(error, t) || t("errors.submitFailed"),
+            getApprovalErrorMessage(error, t) || t("errors.submitFailed"),
           );
         },
       },
@@ -1173,9 +1179,10 @@ export default function RequestDetailsScreen({
     request.canApprove === true &&
     userRole === "manager" &&
     !canHostApproveWalkIn &&
-    !isVisitExpired;
+    !isVisitExpired &&
+    approvalPolicy.stateFor(requestId) !== "expired";
   const showInlineExpiredVisitNotice =
-    isVisitExpired &&
+    (isVisitExpired || approvalPolicy.stateFor(requestId) === "expired") &&
     !request.isWalkIn &&
     request.status === REQUEST_STATUS.PENDING_APPROVAL &&
     userRole === "manager";
@@ -3995,6 +4002,8 @@ export default function RequestDetailsScreen({
         >
           <ApprovalActionGroup
             onApprove={handleManagerApprove}
+            approveDisabled={!approvalPolicy.canApprove(requestId)}
+            approveLabel={approvalPolicy.stateFor(requestId) === "unavailable" ? t("approval.scheduleUnavailable") : undefined}
             onReject={handleManagerRejectOpen}
             approveLoading={managerApproveMutation.isPending}
             rejectLoading={managerRejectMutation.isPending}

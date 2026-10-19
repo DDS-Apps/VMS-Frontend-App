@@ -42,6 +42,7 @@ import type {
 } from '@/types/api.types';
 import type { VisitorRequest } from '@/types/vms.types';
 import { invitationKeys } from './useInvitationQueries';
+import { useSingleFlightApprovalMutation } from '@/hooks/useSingleFlightApprovalMutation';
 
 export const mapPendingHostWalkInToVisitorRequest = (walkIn: PendingHostWalkInDto): VisitorRequest => {
   return {
@@ -185,9 +186,15 @@ export function useCancelRequestMutation() {
 export function useBulkApproveRequestsMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<BulkApprovalResponse, Error, BulkApprovePayload>({
+  return useSingleFlightApprovalMutation<BulkApprovalResponse, BulkApprovePayload>({
+    retry: false,
     mutationFn: (payload) => requestApiService.bulkApprove(payload),
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: requestKeys.all });
+      queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ 
         queryKey: ['requests', 'pending-approvals'],
@@ -219,9 +226,15 @@ export function useBulkRejectRequestsMutation() {
 export function useApproveVisitMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<ApproveVisitResponse, Error, { id: string; payload?: ApproveVisitPayload }>({
+  return useSingleFlightApprovalMutation<ApproveVisitResponse, { id: string; payload?: ApproveVisitPayload }>({
+    retry: false,
     mutationFn: ({ id, payload }) => requestApiService.approveVisit(id, payload),
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: requestKeys.all });
+      queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ 
         queryKey: ['requests', 'pending-approvals'],

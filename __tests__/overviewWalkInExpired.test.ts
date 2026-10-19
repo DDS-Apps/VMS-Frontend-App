@@ -46,14 +46,13 @@ describe("Manager dashboard walk-in expiration", () => {
   });
 
   it("uses the shared expiration helper for both walk-in table and card paths", () => {
-    expect(overviewSource).toContain(
-      "computeIsPendingApprovalWalkInExpired({",
-    );
+    // Manager-pending approval now delegates to the shared policy; Host-pending
+    // walk-ins still use their date-only path. Rendered cutoff tests are in
+    // pendingHostExpiredFooterRendered.test.tsx.
+    expect(overviewSource).toContain("useManagerApprovalPolicy(approvalRecords)");
+    expect(overviewSource).toContain("!approvalPolicy.canApprove(requestId)");
     expect(overviewSource).toMatch(
-      /computeIsPendingApprovalWalkInExpired\(\{[\s\S]*?isWalkIn:\s*request\.isWalkIn[\s\S]*?status:\s*request\.status/,
-    );
-    expect(overviewSource).toMatch(
-      /walkInVisitorTableItems[\s\S]*?isExpired:\s*isPendingApprovalRequestExpired\(request\)/,
+      /walkInVisitorTableItems[\s\S]*?computeIsVisitExpired\([\s\S]*?isWalkIn:\s*request\.isWalkIn/,
     );
     expect(overviewSource).toMatch(
       /walkInVisitors\.slice\(0,\s*5\)[\s\S]*?const expired =[\s\S]*?computeIsVisitExpired[\s\S]*?isWalkIn:\s*request\.isWalkIn[\s\S]*?showExpiredState=\{true\}[\s\S]*?isExpired=\{expired\}/,
@@ -61,12 +60,11 @@ describe("Manager dashboard walk-in expiration", () => {
     expect(overviewSource).toMatch(
       /visitors=\{walkInVisitorTableItems\}[\s\S]{0,80}showExpiredState=\{true\}/,
     );
-    expect(overviewSource).toMatch(
-      /const approvalExpirationTick = useTimeBoundaryTick\(/,
+    const policySource = fs.readFileSync(
+      path.resolve(__dirname, "../hooks/useManagerApprovalPolicy.ts"), "utf8",
     );
-    expect(overviewSource).toMatch(
-      /walkInVisitorTableItems[\s\S]*?status:\s*request\.status[\s\S]*?isExpired:\s*isPendingApprovalRequestExpired\(request\)/,
-    );
+    expect(policySource).toContain("useTimeBoundaryTick(records.map");
+    expect(overviewSource).toContain("approvalPolicy.tick");
   });
 
   it("keeps the pending-host status unchanged in walk-in cards", () => {
@@ -93,13 +91,17 @@ describe("Manager dashboard walk-in expiration", () => {
       "utf8",
     );
 
-    expect(cardSource).toMatch(/t\(["']visitor\.visitExpired["']\)/);
-    expect(tableSource).toMatch(/t\(["']visitor\.visitExpired["']\)/);
+    const badgeSource = fs.readFileSync(
+      path.resolve(__dirname, "../components/shared/ExpiredVisitBadge.tsx"), "utf8",
+    );
+    expect(cardSource).toContain("<ExpiredVisitBadge");
+    expect(tableSource).toContain("<ExpiredVisitBadge");
+    expect(badgeSource).toContain('t("status.visitExpired")');
     expect(tableSource).toMatch(
-      /showApprovalExpiredBanner \|\| showReadOnlyExpiredBanner[\s\S]*?t\("visitor\.visitExpired"\)/,
+      /showApprovalExpiredBanner \|\| showReadOnlyExpiredBanner[\s\S]*?t\("status\.visitExpired"\)/,
     );
     expect(tableSource).toMatch(
-      /showReadOnlyExpiredBanner \? \([\s\S]*?<RequestStatusBadge status=\{item\.status\} \/>[\s\S]*?visitor\.visitExpired/,
+      /showReadOnlyExpiredBanner \? \([\s\S]*?<RequestStatusBadge status=\{item\.status\} \/>[\s\S]*?<ExpiredVisitBadge/,
     );
   });
 });
