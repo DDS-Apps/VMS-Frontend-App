@@ -7,4 +7,16 @@ Employee and Manager dashboard visitor totals count only the current user’s vi
 
 **Why:** The Total Visitors KPI is defined as visits approved in the current month, including records that advanced to visitor acceptance; Employees and Managers should compare it with their own requests, while Receptionists are responsible for the complete building visitor picture.
 
-**How to apply:** Keep `myRequestsOnly: true` for Employee/Manager monthly dashboard queries and `myRequestsOnly: false` for Receptionist monthly dashboard queries. Count records with `approvedAt`, or fall back to `status === 'approved'` or `status === 'visitor_accepted'` when that timestamp is absent.
+**How to apply:** Preserve the backend's authenticated role-specific KPI scope; do not rebuild counts from frontend lists just to change their labels.
+
+Only Employee and Manager monthly KPI labels should append the reporting month
+in parentheses, such as `(Oct)`; daily cards and other roles stay unchanged.
+
+**Why:** The user requested a month abbreviation immediately after monthly
+dashboard KPI labels. Using the device's current month can mislabel cached
+counts from another reporting period.
+
+**How to apply:** Use the backend month period (or its generation timestamp
+when the optional period is absent), in the reporting timezone. Localize the
+month with the Gregorian calendar in English and Arabic, without changing KPI
+values, scopes, API requests, or the required two-column phone layout.

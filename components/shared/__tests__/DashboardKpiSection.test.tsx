@@ -2,6 +2,8 @@ import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 const mockUseDashboardKpisQuery = jest.fn();
+let mockRole = 'manager';
+let mockLocale = 'en';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -10,7 +12,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     isAuthenticated: true,
-    user: { id: 'user-1', role: 'manager' },
+    user: { id: 'user-1', role: mockRole },
   }),
 }));
 
@@ -32,7 +34,7 @@ jest.mock('@/hooks/useTheme', () => ({
 
 jest.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => ({
-    locale: 'en',
+    locale: mockLocale,
     t: (key: string) => ({
       'dashboard.totalVisitors': 'Localized Total Visitors',
       'dashboard.kpiToday': 'Today',
@@ -108,6 +110,8 @@ const renderSection = () => {
 describe('DashboardKpiSection mounted states', () => {
   beforeEach(() => {
     mockUseDashboardKpisQuery.mockReset();
+    mockRole = 'manager';
+    mockLocale = 'en';
   });
 
   it('suppresses cached protected values after a warm 403', () => {
@@ -168,12 +172,85 @@ describe('DashboardKpiSection mounted states', () => {
     const cards = renderer.root.findAllByType('KPICard');
 
     expect(cards).toHaveLength(2);
-    expect(cards[0].props.title).toBe('Localized Total Visitors');
+    expect(cards[0].props.title).toBe('Localized Total Visitors (Sep)');
     expect(cards[0].props.subtitle).toBeUndefined();
     expect(cards[1].props.title).toBe('New Backend Metric');
     expect(cards[1].props.value).toBe('1,234');
     expect(cards[1].props.subtitle).toBeUndefined();
     expect(cards[1].props.icon).toBe('bar-chart-2');
+  });
+
+  it.each(['employee', 'manager'])('adds the reported month only to monthly cards for %s', role => {
+    mockRole = role;
+    mockUseDashboardKpisQuery.mockReturnValue(queryResult({
+      data: {
+        ...cachedKpiData, role,
+        periods: { month: { start: '2026-10-01', end: '2026-10-31' } },
+        kpis: [
+          { ...cachedKpiData.kpis[0], duration: 'monthly' },
+          { key: 'todaysVisitors', label: "Today's Visitors", value: 3, duration: 'today' },
+          { key: 'pendingRequests', label: 'Pending Requests', value: 2, duration: 'monthly' },
+        ],
+      },
+    }));
+    const renderer = renderSection();
+    const cards = renderer.root.findAllByType('KPICard');
+    expect(cards.map(card => card.props.title)).toEqual([
+      'Localized Total Visitors (Oct)', 'dashboard.todaysVisitors', 'dashboard.pendingRequests (Oct)',
+    ]);
+    expect(cards.map(card => card.props.value)).toEqual(['27', '3', '2']);
+    act(() => renderer.unmount());
+  });
+
+  it.each(['receptionist', 'security', 'buffet_admin', 'valet_admin', 'building_admin'])(
+    'does not change KPI labels for %s', role => {
+      mockRole = role;
+      mockUseDashboardKpisQuery.mockReturnValue(queryResult());
+      const renderer = renderSection();
+      expect(renderer.root.findByType('KPICard').props.title).toBe('Localized Total Visitors');
+      act(() => renderer.unmount());
+    },
+  );
+
+  it('localizes the reporting month using the Gregorian calendar in Arabic', () => {
+    mockLocale = 'ar';
+    mockUseDashboardKpisQuery.mockReturnValue(queryResult({
+      data: {
+        ...cachedKpiData,
+        periods: { month: { start: '2026-10-01', end: '2026-10-31' } },
+      },
+    }));
+    const renderer = renderSection();
+    expect(renderer.root.findByType('KPICard').props.title).toBe('Localized Total Visitors (أكتوبر)');
+    act(() => renderer.unmount());
+  });
+
+  it('uses the backend period in Riyadh even when its UTC timestamp is in the previous month', () => {
+    mockUseDashboardKpisQuery.mockReturnValue(queryResult({
+      data: {
+        ...cachedKpiData,
+        periods: { month: { start: '2026-09-30T21:00:00.000Z', end: '2026-10-31' } },
+      },
+    }));
+    const renderer = renderSection();
+    expect(renderer.root.findByType('KPICard').props.title).toBe('Localized Total Visitors (Oct)');
+    act(() => renderer.unmount());
+  });
+
+  it('uses the backend generation month when the optional month period is missing', () => {
+    mockUseDashboardKpisQuery.mockReturnValue(queryResult({ data: { ...cachedKpiData, periods: {} } }));
+    const renderer = renderSection();
+    expect(renderer.root.findByType('KPICard').props.title).toBe('Localized Total Visitors (Sep)');
+    act(() => renderer.unmount());
+  });
+
+  it('does not invent a reporting month when the backend dates are invalid', () => {
+    mockUseDashboardKpisQuery.mockReturnValue(queryResult({
+      data: { ...cachedKpiData, periods: {}, generatedAt: 'invalid' },
+    }));
+    const renderer = renderSection();
+    expect(renderer.root.findByType('KPICard').props.title).toBe('Localized Total Visitors');
+    act(() => renderer.unmount());
   });
 
   it('renders no section for a successful empty KPI array', () => {

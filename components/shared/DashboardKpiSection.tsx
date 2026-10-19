@@ -93,15 +93,28 @@ export function DashboardKpiSection({ singleCardWidth }: { singleCardWidth?: num
   if (kpis.length === 0) return null;
 
   const localeTag = locale === 'ar' ? 'ar-SA' : 'en-US';
+  const showReportingMonth = user?.role === 'employee' || user?.role === 'manager';
+  const reportingStart = query.data?.periods.month?.start || query.data?.generatedAt;
+  const reportingDate = reportingStart
+    ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(reportingStart) ? `${reportingStart}T12:00:00Z` : reportingStart)
+    : undefined;
+  const reportingMonth = showReportingMonth && reportingDate && !Number.isNaN(reportingDate.getTime())
+    ? new Intl.DateTimeFormat(localeTag, {
+        month: 'short',
+        calendar: 'gregory',
+        timeZone: query.data?.timezone ?? 'Asia/Riyadh',
+      }).format(reportingDate)
+    : undefined;
   return (
     <KPICardRow singleCardWidth={singleCardWidth}>
       {kpis.map((kpi: DashboardKpi) => {
         const presentation = KPI_PRESENTATION[kpi.key] ?? { icon: 'bar-chart-2' as IconName, color: 'primary' as const };
         const translationKey = KPI_TRANSLATION_KEYS[kpi.key];
+        const title = translationKey ? t(translationKey) : kpi.label;
         return (
           <KPICard
             key={kpi.key}
-            title={translationKey ? t(translationKey) : kpi.label}
+            title={kpi.duration === 'monthly' && reportingMonth ? `${title} (${reportingMonth})` : title}
             value={kpi.value.toLocaleString(localeTag)}
             icon={presentation.icon}
             color={theme[presentation.color]}
