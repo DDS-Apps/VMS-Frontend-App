@@ -1,10 +1,11 @@
 # Environment configuration
 
-**Production is the default** for publishing, web builds and every configured
-Android/iOS EAS profile, including preview and development binaries. They target
-`https://vms.dallah.com`. QA requires an explicit `qa`/`staging` variant and is
-not selected by any standard build command. Missing or unrecognized variants
-default to production, and production rejects non-production or HTTP targets.
+**This Replit project's Publish command explicitly builds QA**, targeting
+`https://vms-backend-app-qa.replit.app`. Production remains the default for
+`npm run build:web` and every configured Android/iOS EAS profile, including
+preview and development binaries. Those target `https://vms.dallah.com`.
+Missing or unrecognized variants default to production, and production rejects
+non-production or HTTP targets.
 
 Production targeting does not grant cross-origin access: the production API
 currently permits the canonical `https://vms.dallah.com` web origin. A local or
@@ -38,7 +39,8 @@ device registration, deliberate crash or remote native build is part of this wor
 
 The workspace preview now uses `APP_VARIANT=qa`. Explicit QA/staging builds use
 `https://vms-backend-app-qa.replit.app` for both API requests and Microsoft sign-in.
-Production builds retain `https://vms.dallah.com`, including standard publishing
+This project's Replit Publish command explicitly selects QA as well.
+Production builds retain `https://vms.dallah.com`, including `npm run build:web`
 and all existing EAS profiles. Firebase is unchanged.
 
 Web and native consume the resolved Expo `extra` through `api/backendEnvironment.ts`.
@@ -133,7 +135,8 @@ FIREBASE_APP_ID_WEB, FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS, FIREBASE_VAPI
 
 | Target | Command |
 |--------|---------|
-| Production web (Replit publishing) | `npm run build:web` |
+| QA web (this project's Replit publishing) | `node scripts/build-web.js --variant qa --no-web-config --precompress` |
+| Production web (explicit export) | `npm run build:web` |
 | Production web (IIS) | `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` |
 | Production iOS / Android | `npm run build:ios` / `npm run build:android` (EAS `production` profile) |
 | Internal iOS / Android (production backend) | `npm run build:preview:ios` / `npm run build:preview:android` |

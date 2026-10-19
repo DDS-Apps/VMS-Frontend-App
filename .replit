@@ -31,7 +31,7 @@ PORT = "5000"
 [deployment]
 deploymentTarget = "autoscale"
 run = ["node", "server.js"]
-build = ["bash", "-c", "bash scripts/build-and-verify.sh"]
+build = ["node", "scripts/build-web.js", "--variant", "qa", "--no-web-config", "--precompress"]
 
 [workflows]
 runButton = "Project"

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Entry point used by the Replit deployment (.replit [deployment] build).
-# Builds the production web bundle for Replit Publishing and local web preview.
+# Explicit production build helper; this project's Replit deployment instead
+# calls scripts/build-web.js directly with --variant qa.
 # All the work happens in scripts/build-web.js so the same steps run on
 # Windows/macOS for the IIS production build (`npm run build:web:production`).
 set -e

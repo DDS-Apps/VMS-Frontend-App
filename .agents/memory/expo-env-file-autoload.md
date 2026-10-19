@@ -3,16 +3,19 @@ name: Expo variant isolation and dotenv loading
 description: Why variants resolve explicitly, how QA stays isolated, and why existing exports need rebuilding.
 ---
 
-Production remains the default for standard publishing and existing EAS profiles.
-Explicit QA/staging and the workspace preview use the user-confirmed QA backend,
-including Microsoft sign-in. Firebase must remain unchanged.
+This project's Replit publishing and workspace preview must target the confirmed
+QA backend, including Microsoft sign-in. Explicit production exports and existing
+EAS profiles remain production. Firebase must remain unchanged.
 
 **Why:** On 2026-10-19 the user confirmed the QA origin
-`https://vms-backend-app-qa.replit.app` for preview and QA builds, superseding the
-previous rule that every variant used production. Production builds remain live.
+`https://vms-backend-app-qa.replit.app` for preview and QA builds, then clarified
+that publishing this QA frontend must also use QA after publishing still reached
+production. This supersedes the earlier standard-publishing production scope.
 
 **How to apply:** Preserve the per-variant split and isolate cached authentication
-by backend. Never reuse production sessions for QA or silently fall back to live
+by backend. Select QA explicitly in this project's deployment build command;
+changing workspace APP_VARIANT alone cannot override a hardcoded production
+build command. Never reuse production sessions for QA or silently fall back to live
 APIs when QA metadata is invalid. Existing published exports/binaries require a
 separate rebuild and publish; changing workspace variables does not update them.
 
