@@ -111,7 +111,7 @@ interface VisitorMatrixTableProps {
   variant?: "card" | "matrix";
   /**
    * "visitor" (default) — the full visitor-domain column set (schedule, actual in/out, company, etc).
-   * "simple" — Date + Location + Status/Actions, for compact listings (e.g. buffet requests) that
+   * "simple" — Date + Scheduled Time + Location + Status/Actions, for compact listings (e.g. buffet requests) that
    * don't have visitor-specific fields. Only supported with variant="matrix".
    */
   columns?: "visitor" | "simple";
@@ -573,7 +573,7 @@ function MatrixTable({
   const [tableWidth, setTableWidth] = useState(0);
   // Include the frozen name column; retain minimum widths and horizontal
   // scrolling on phones, but fill the viewport when the columns would be short.
-  const columnCount = isSimple ? 4 : 9 + Number(showPurposeColumn) + Number(showContactColumn);
+  const columnCount = isSimple ? 5 : 9 + Number(showPurposeColumn) + Number(showContactColumn);
   const LAYOUT = {
     ...MATRIX_LAYOUT,
     matrixColWidth: Math.max(MATRIX_LAYOUT.matrixColWidth, (tableWidth - 3) / columnCount),
@@ -689,6 +689,7 @@ function MatrixTable({
               {isSimple ? (
                 <>
                   <MatrixHeaderCell label={t("visitor.date").toUpperCase()} width={LAYOUT.matrixColWidth} />
+                  <MatrixHeaderCell label={t("visitor.scheduledTime").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   <MatrixHeaderCell label={t("invitation.location").toUpperCase()} width={LAYOUT.matrixColWidth} />
                 </>
               ) : (
@@ -861,6 +862,11 @@ function MatrixDataRowCells({
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
             <ThemedText style={styles.matrixCellValue} numberOfLines={1}>
               {item.visitDate ? formatVisitDateLabel(item.visitDate, localeCode) : "—"}
+            </ThemedText>
+          </View>
+          <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
+            <ThemedText style={[styles.matrixCellValue, styles.matrixCellValueBold]} numberOfLines={1}>
+              {formatScheduleRange(item, formatTimeFromString, t("visitor.timeRangeTo"))}
             </ThemedText>
           </View>
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>

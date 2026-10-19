@@ -18,7 +18,7 @@ import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 
 describe("Matrix table viewport widths", () => {
   it.each((["en", "ar"] as const).flatMap(locale => [
-    { locale, columns: "simple" as const, optional: false, count: 4 },
+    { locale, columns: "simple" as const, optional: false, count: 5 },
     { locale, columns: "visitor" as const, optional: false, count: 9 },
     { locale, columns: "visitor" as const, optional: true, count: 11 },
   ]))("fills $columns tables in $locale (optional columns=$optional) and preserves phone scrolling", ({ locale, columns, optional, count }) => {
@@ -205,13 +205,14 @@ function renderTable(
   variant: "card" | "matrix",
   visitors: VisitorMatrixItem[],
   locale: Locale = "en",
+  columns: "visitor" | "simple" = "visitor",
 ) {
   let renderer: ReturnType<typeof create> | undefined;
 
   act(() => {
     renderer = create(
       <LanguageContext.Provider value={localeContextValue(locale)}>
-        <VisitorMatrixTable visitors={visitors} variant={variant} />
+        <VisitorMatrixTable visitors={visitors} variant={variant} columns={columns} />
       </LanguageContext.Provider>,
     );
   });
@@ -256,6 +257,31 @@ const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
   visitorName: key,
   purpose,
 }));
+
+describe("Buffet request table scheduled time", () => {
+  it.each(["en", "ar"] as const)("shows the existing scheduled time in the simple table in %s", locale => {
+    const renderer = renderTable("matrix", [{
+      id: "buffet", visitorName: "Host", visitDate: "2026-10-18",
+      plannedInTime: "09:00", status: "completed", location: "Lotus",
+    }], locale, "simple");
+    const values = themedTexts(renderer);
+    expect(values).toContain(getTranslation(locale, "visitor.scheduledTime").toUpperCase());
+    expect(values).toContain("09:00");
+    expect(values).toContain("Lotus");
+    expect(values).not.toContain(getTranslation(locale, "visitor.actualIn").toUpperCase());
+    act(() => renderer.unmount());
+  });
+
+  it("shows a complete time range when supplied and a dash when no time exists", () => {
+    const renderer = renderTable("matrix", [
+      { id: "range", visitorName: "Host", plannedInTime: "09:00", plannedOutTime: "10:00", status: "approved" },
+      { id: "missing", visitorName: "Host", plannedInTime: "", status: "approved" },
+    ], "en", "simple");
+    expect(themedTexts(renderer)).toContain(`09:00 ${getTranslation("en", "visitor.timeRangeTo")} 10:00`);
+    expect(themedTexts(renderer)).toContain("—");
+    act(() => renderer.unmount());
+  });
+});
 
 describe("VisitorMatrixTable purpose labels", () => {
   it.each(["en", "ar"] as const)(
