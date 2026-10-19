@@ -24,6 +24,21 @@ const event = (id: string, occurredAt: string, extra = {}): VisitMovementEvent =
 });
 
 describe('backend-owned QR presentation', () => {
+  it.each(['en', 'ar'])('hides only the pre-activation notice when requested (%s)', language => {
+    mockRTL = language === 'ar';
+    let tree: ReturnType<typeof create>;
+    act(() => { tree = create(<QrAccessNotice source={meeting} now={at('07:30')} hideNotActive />); });
+    expect(tree!.toJSON()).toBeNull();
+    expect(getQrAccessState(meeting, at('07:30'))).toBe('notActive');
+    expect(canDisplayQr(meeting, at('07:30'))).toBe(true);
+    act(() => tree!.update(<QrAccessNotice source={meeting} now={at('07:30')} />));
+    expect(tree!.root.findByProps({ testID: 'qr-access-notActive' })).toBeTruthy();
+    act(() => tree!.update(<QrAccessNotice source={{ ...meeting, isExpired: true }} now={at('07:30')} hideNotActive />));
+    expect(tree!.root.findByProps({ testID: 'qr-access-expired' })).toBeTruthy();
+    act(() => tree!.update(<QrAccessNotice source={meeting} now={at('10:30')} hideNotActive />));
+    expect(tree!.root.findByProps({ testID: 'qr-access-retained' })).toBeTruthy();
+    act(() => tree!.unmount());
+  });
   it.each([undefined, null, '', '   '])('never claims validity for an unissued QR (%s)', qrCode => {
     const source = { ...meeting, status: 'pending', qrCode };
     expect(getQrAccessState(source, at('09:30'))).toBe('unissued');

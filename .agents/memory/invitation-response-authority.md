@@ -16,3 +16,12 @@ presence, contradicting the Manager dashboard.
 Cover pending-with-QR responses explicitly when testing the public invitation
 page. Diagnose live state with read-only GET requests; do not accept or reject
 a user's invitation merely to verify presentation.
+
+Hide the pre-activation “Not active yet” notice on the public invitation page
+in both languages, without changing activation or QR validity.
+
+**Why:** The user requested removing this message from the invitation display,
+not changing when entry becomes valid.
+
+**How to apply:** Keep expiration, revocation, and other access warnings intact;
+do not extend this display-only suppression to other screens without a request.

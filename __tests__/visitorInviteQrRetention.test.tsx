@@ -48,6 +48,14 @@ it('shows the returned QR after meeting end, including completed visits', () => 
   expect(qrNodes()).toHaveLength(1);
   expect(qrNodes()[0].props.value).toBe('current-qr');
 });
+it('keeps the future accepted QR visible without the Not active yet message', () => {
+  mockInvite = { ...mockInvite, visitDate: '2026-10-20', expiresAt: '2026-10-20T18:00:00Z' };
+  act(() => { tree = create(renderScreen()); });
+  expect(qrNodes()).toHaveLength(1);
+  expect(JSON.stringify(tree.toJSON())).not.toContain('Not active yet');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('qr-access-notActive');
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+});
 it.each([403, 410])('a later HTTP %s supersedes an accepted cached QR', status => {
   act(() => { tree = create(renderScreen()); });
   mockError = { response: { status } };

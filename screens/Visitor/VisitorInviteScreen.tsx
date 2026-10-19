@@ -634,7 +634,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             </ThemedText>
           </View>
 
-          <QrAccessNotice source={displayInvite} now={now} />
+          <QrAccessNotice source={displayInvite} now={now} hideNotActive />
           {actionCompleted === 'accepted' && qrCodeValue ? (
             <>
               <GlassCard style={styles.qrCardContainer}>
@@ -926,7 +926,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
             {/* QR Code Section */}
             <GlassCard style={styles.qrCardContainer}>
               <ThemedText style={styles.qrCardTitle}>{t('invitation.accessCode')}</ThemedText>
-              <QrAccessNotice source={invite} now={now} />
+              <QrAccessNotice source={invite} now={now} hideNotActive />
               <Spacer height={Spacing.lg} />
               {qrCodeValue ? (
                 <View style={styles.qrCodeWrapper}>
@@ -1175,7 +1175,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
       <Spacer height={Spacing.xl * 1.5} />
 
       {/* Action Buttons - Reject on left, Accept on right */}
-      {hasInvalidQrSchedule(invite) ? <QrAccessNotice source={invite} now={now} /> : null}
+      {hasInvalidQrSchedule(invite) ? <QrAccessNotice source={invite} now={now} hideNotActive /> : null}
       <View style={styles.actionButtons}>
         <LoadingButton
           onPress={() => setShowRejectModal(true)}

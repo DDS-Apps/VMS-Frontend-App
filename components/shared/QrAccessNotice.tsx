@@ -27,9 +27,14 @@ export const qrAccessCopy = {
   },
 };
 
-export function QrAccessNotice({ source, now }: { source: QrAccessSource; now?: number }) {
+export function QrAccessNotice({ source, now, hideNotActive = false }: {
+  source: QrAccessSource;
+  now?: number;
+  hideNotActive?: boolean;
+}) {
   const { isRTL } = useLanguage();
   const state = getQrAccessState(source, now);
+  if (hideNotActive && state === 'notActive') return null;
   return (
     <View style={{ paddingVertical: 8 }} accessibilityLiveRegion="polite">
       <ThemedText testID={`qr-access-${state}`} style={{ fontSize: 13, textAlign: isRTL ? 'right' : 'left' }}>
