@@ -1,9 +1,11 @@
 ---
-name: Mobile KPI column requirement
-description: Preserve two KPI cards per row on iPhone 14 and newer phones.
+name: Mobile KPI layout requirement
+description: Preserve two phone KPI columns, including iPhone 11, with content-driven heights and compact mobile labels.
 ---
 
-The user explicitly requires two KPI cards per row on iPhone 14 and newer phones. Do not silently replace this with a single-column layout to address text clipping.
+The user explicitly requires two KPI cards per row on phones, including
+iPhone 11 and iPhone 14 and newer. Do not silently replace this with a
+single-column layout to address text clipping.
 
 **Why:** The user reiterated on 2026-10-08 that this was already requested; a shared text-clipping fix had overridden the required layout.
 
@@ -19,3 +21,15 @@ requested responsive growth, not a fixed or increased height.
 **How to apply:** Stretch row wrappers and card surfaces, top-align their
 contents, and allow wrapping without fixed height or minimum-height patches.
 Keep shorter rows compact instead of imposing one height on every grid row.
+
+On mobile only, place at most the first label word beside the number when
+their measured widths fit. Otherwise retain the full label below the number.
+
+**Why:** The user requested a compact layout such as “28 Total” with the
+remaining label below, conditional on available space, and reported one-column
+rendering on iPhone 11.
+
+**How to apply:** Account for actual content width, text scaling, localized
+labels, and changing counts. Do not truncate words, shrink fonts, change
+desktop label placement, or infer physical-device verification from mocked
+layout events.

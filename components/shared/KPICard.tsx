@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
@@ -17,7 +17,24 @@ export interface KPICardProps {
 
 export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
   const { theme } = useTheme();
-  
+  const { isRTL } = useLanguage();
+  const { width, fontScale } = useWindowDimensions();
+  const isMobile = width < 768;
+  const [contentWidth, setContentWidth] = useState(0);
+  const [valueMeasurement, setValueMeasurement] = useState({ key: '', width: 0 });
+  const [wordMeasurement, setWordMeasurement] = useState({ key: '', width: 0 });
+  const words = title.trim().split(/\s+/);
+  const firstWord = words[0] ?? '';
+  const remainingTitle = words.slice(1).join(' ');
+  const valueKey = `${fontScale}:${value}`;
+  const wordKey = `${fontScale}:${firstWord}`;
+  const inlineFirstWord = isMobile
+    && firstWord.length > 0
+    && valueMeasurement.key === valueKey
+    && wordMeasurement.key === wordKey
+    && valueMeasurement.width + Spacing.xs + wordMeasurement.width < contentWidth;
+  const label = inlineFirstWord ? remainingTitle : title;
+
   return (
     <ThemedView
       style={[
@@ -37,31 +54,69 @@ export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
         <DDIcon name={icon} size={18} color="#FFFFFF" />
       </View>
 
-      <View style={styles.textContainer}>
-        <ThemedText
-          variant="h3"
-          style={[
-            styles.value,
-            { color: theme.text },
-          ]}
+      <View
+        testID="kpi-content"
+        style={styles.textContainer}
+        onLayout={isMobile ? event => setContentWidth(event.nativeEvent.layout.width) : undefined}
+      >
+        <View
+          testID="kpi-value-header"
+          style={[styles.valueHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
         >
-          {value}
-        </ThemedText>
+          <ThemedText
+            testID="kpi-value"
+            variant="h3"
+            onLayout={isMobile ? event => setValueMeasurement({
+              key: valueKey,
+              width: event.nativeEvent.layout.width,
+            }) : undefined}
+            style={[
+              styles.value,
+              { color: theme.text },
+            ]}
+          >
+            {value}
+          </ThemedText>
+          {inlineFirstWord ? (
+            <ThemedText testID="kpi-inline-word" style={[styles.label, { color, flexShrink: 0 }]}>
+              {firstWord}
+            </ThemedText>
+          ) : null}
+        </View>
 
-        <ThemedText
-          style={[
-            styles.label,
-            { color: color },
-          ]}
-        >
-          {title}
-        </ThemedText>
+        {label ? (
+          <ThemedText testID="kpi-label" style={[styles.label, { color }]}>
+            {label}
+          </ThemedText>
+        ) : null}
         {subtitle ? (
           <ThemedText
             style={[styles.subtitle, { color: theme.textSecondary }]}
           >
             {subtitle}
           </ThemedText>
+        ) : null}
+        {isMobile && firstWord ? (
+          <View
+            pointerEvents="none"
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={styles.wordMeasurement}
+          >
+            <ThemedText
+              testID="kpi-first-word-measure"
+              accessible={false}
+              numberOfLines={1}
+              style={styles.label}
+              onLayout={event => setWordMeasurement({
+                key: wordKey,
+                width: event.nativeEvent.layout.width,
+              })}
+            >
+              {firstWord}
+            </ThemedText>
+          </View>
         ) : null}
       </View>
     </ThemedView>
@@ -87,10 +142,50 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
     return null;
   }
 
+  // Explicit phone rows avoid percentage widths + gaps wrapping a second card
+  // onto its own line in narrow native containers.
+  if (isMobile) {
+    return (
+      <View style={{ gap: Spacing.sm }}>
+        {Array.from({ length: Math.ceil(childCount / 2) }, (_, rowIndex) => {
+          const rowChildren = visibleChildren.slice(rowIndex * 2, rowIndex * 2 + 2);
+          return (
+            <View
+              key={rowIndex}
+              testID="kpi-mobile-row"
+              style={[styles.row, {
+                flexWrap: 'nowrap',
+                flexDirection: isRTL ? 'row-reverse' : 'row',
+                gap: Spacing.sm,
+              }]}
+            >
+              {rowChildren.map((child, index) => (
+                <View
+                  key={React.isValidElement(child) ? child.key ?? index : index}
+                  testID="kpi-mobile-cell"
+                  style={styles.mobileCell}
+                >
+                  {child}
+                </View>
+              ))}
+              {rowChildren.length === 1 && childCount > 1 ? (
+                <View
+                  testID="kpi-empty-cell"
+                  accessible={false}
+                  importantForAccessibility="no-hide-descendants"
+                  style={styles.mobileCell}
+                />
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
+
   const effectiveColumns = Math.min(columnsPerRow, childCount);
-  const fullWidth = isMobile && effectiveColumns === 1;
-  const customSingleWidth = !isMobile && effectiveColumns === 1 && singleCardWidth !== undefined;
-  const flexBasisPercent = fullWidth ? '100%' : effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
+  const customSingleWidth = effectiveColumns === 1 && singleCardWidth !== undefined;
+  const flexBasisPercent = effectiveColumns === 2 ? '46%' : effectiveColumns === 3 ? '30%' : '22%';
   
   const childrenWithWidth = React.Children.map(visibleChildren, (child) => {
     if (React.isValidElement(child)) {
@@ -99,7 +194,7 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
           flexBasis: customSingleWidth ? singleCardWidth : flexBasisPercent,
           flexGrow: customSingleWidth ? 0 : 1,
           flexShrink: customSingleWidth ? 1 : 0,
-          maxWidth: fullWidth || customSingleWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
+          maxWidth: customSingleWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
           alignSelf: 'stretch',
           marginBottom: Spacing.md,
         }}>
@@ -111,7 +206,8 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
   });
   
   return (
-    <View 
+    <View
+      testID="kpi-desktop-row"
       style={[
         styles.row, 
         { 
@@ -129,6 +225,12 @@ const styles = StyleSheet.create({
   row: {
     flexWrap: 'wrap',
     alignItems: 'stretch',
+  },
+  mobileCell: {
+    flex: 1,
+    minWidth: 0,
+    alignSelf: 'stretch',
+    marginBottom: Spacing.md,
   },
   card: {
     padding: Spacing.sm,
@@ -155,6 +257,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
+  valueHeader: {
+    alignSelf: 'stretch',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    columnGap: Spacing.xs,
+  },
+  wordMeasurement: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    opacity: 0,
+    alignItems: 'flex-start',
+  },
   label: {
     ...Typography.bodySmall,
     fontSize: 12,
@@ -167,6 +283,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: '700',
     textAlign: 'left',
+    flexShrink: 1,
   },
   subtitle: {
     ...Typography.caption,

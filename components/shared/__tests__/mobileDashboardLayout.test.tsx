@@ -15,9 +15,9 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
   const originalOS = Platform.OS;
   afterEach(() => { Platform.OS = originalOS; jest.restoreAllMocks(); });
 
-  it.each([320, 390, 393, 402, 428, 430, 440, 600, 767, 768, 1280].flatMap(width =>
+  it.each([320, 375, 390, 393, 402, 414, 428, 430, 440, 600, 767, 768, 1280].flatMap(width =>
     [1, 1.6].flatMap(fontScale => [false, true].flatMap(rtl =>
-      [1, 2, 4].map(count => ({ width, fontScale, rtl, count })),
+      [1, 2, 3, 4].map(count => ({ width, fontScale, rtl, count })),
     )),
   ))('sizes $count KPIs at $width, font scale $fontScale, RTL=$rtl', ({ width, fontScale, rtl, count }) => {
     Platform.OS = os;
@@ -30,27 +30,38 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
           value="12,345" icon="users" color="#ff8800" />,
       )}</KPICardRow>);
     });
-    const wrappers = tree.root.findAllByType(View).filter(node => node.props.style?.flexBasis);
+    const mobile = width < 768;
+    const wrappers = tree.root.findAllByType(View).filter(node => mobile
+      ? node.props.testID === 'kpi-mobile-cell'
+      : node.props.style?.flexBasis);
     expect(wrappers).toHaveLength(count);
     for (const wrapper of wrappers) {
-      const full = width < 768 && count === 1;
-      expect(wrapper.props.style.maxWidth).toBe(full ? '100%' : width < 768 || count === 2 ? '49%' : '24%');
-      expect(wrapper.props.style.flexBasis).toBe(full ? '100%' : width < 768 || count === 2 ? '46%' : '22%');
-      expect(wrapper.props.style.alignSelf).toBe('stretch');
-      expect(wrapper.props.style.height).toBeUndefined();
-      expect(wrapper.props.style.minHeight).toBeUndefined();
-      expect(wrapper.props.style.height).toBeUndefined();
+      const style = StyleSheet.flatten(wrapper.props.style);
+      if (mobile) {
+        expect(style).toMatchObject({ flex: 1, minWidth: 0 });
+        expect(style.flexBasis).toBeUndefined();
+      } else {
+        expect(style.maxWidth).toBe(count === 2 ? '49%' : count === 3 ? '32%' : '24%');
+        expect(style.flexBasis).toBe(count === 2 ? '46%' : count === 3 ? '30%' : '22%');
+      }
+      expect(style.alignSelf).toBe('stretch');
+      expect(style.height).toBeUndefined();
+      expect(style.minHeight).toBeUndefined();
     }
-    const row = tree.root.findAllByType(View).find(node => StyleSheet.flatten(node.props.style)?.flexWrap === 'wrap');
-    expect(StyleSheet.flatten(row!.props.style).flexDirection).toBe(rtl ? 'row-reverse' : 'row');
-    // Include the dashboard's horizontal padding and row gap when checking
-    // that two bases fit but a third cannot. This checks styles, not native layout.
-    if (width < 768 && count >= 2) {
-      const availableWidth = width - 48;
-      const gap = StyleSheet.flatten(row!.props.style).gap as number;
-      const basis = parseFloat(wrappers[0].props.style.flexBasis) / 100 * availableWidth;
-      expect(2 * basis + gap).toBeLessThanOrEqual(availableWidth);
-      expect(3 * basis + 2 * gap).toBeGreaterThan(availableWidth);
+    const rows = tree.root.findAllByType(View).filter(node =>
+      node.props.testID === (mobile ? 'kpi-mobile-row' : 'kpi-desktop-row'));
+    expect(rows).toHaveLength(mobile ? Math.ceil(count / 2) : 1);
+    for (const row of rows) {
+      expect(StyleSheet.flatten(row.props.style)).toMatchObject({
+        flexDirection: rtl ? 'row-reverse' : 'row',
+        alignItems: 'stretch',
+        flexWrap: mobile ? 'nowrap' : 'wrap',
+      });
+      if (mobile) {
+        const cells = row.findAllByType(View).filter(node =>
+          ['kpi-mobile-cell', 'kpi-empty-cell'].includes(node.props.testID));
+        expect(cells).toHaveLength(count === 1 ? 1 : 2);
+      }
     }
     for (const card of tree.root.findAllByType('ThemedView' as any)) {
       const style = StyleSheet.flatten(card.props.style);
@@ -59,7 +70,8 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
       expect(style.minHeight).toBeUndefined();
       expect(style.maxHeight).toBeUndefined();
     }
-    for (const text of tree.root.findAllByType('ThemedText' as any)) {
+    for (const text of tree.root.findAllByType('ThemedText' as any).filter(node =>
+      node.props.testID !== 'kpi-first-word-measure')) {
       expect(text.props.numberOfLines).toBeUndefined();
       expect(StyleSheet.flatten(text.props.style).height).toBeUndefined();
     }
