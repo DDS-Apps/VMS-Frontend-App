@@ -70,7 +70,7 @@ describe('backend dashboard KPIs', () => {
   it('uses API KPIs on supported role homes and no KPI section on empty/unsupported homes', () => {
     expect(overviewSource).toContain('<DashboardKpiSection');
     expect(receptionSource).toContain('<DashboardKpiSection />');
-    expect(buffetAdminSource).toContain('<DashboardKpiSection />');
+    expect(buffetAdminSource).toContain('<DashboardKpiSection singleCardWidth={240} />');
     expect(securitySource).toContain('<DashboardKpiSection />');
     expect(valetAdminSource).toContain('<DashboardKpiSection />');
     expect(valetAdminSource).toContain("user?.role === 'valet_admin'");
