@@ -14,3 +14,9 @@ Do not treat HTTP response arrival order as the version of backend access state.
 **Why:** Independently polling endpoints may settle in either order; using their client arrival times as server revisions can restore logically revoked access or falsely show no movements.
 
 **How to apply:** Merge by stable event identity and recorded revision, retain the dedicated validity decision, and test the combined result in both response orders and on separate-endpoint permission errors.
+
+Manager approval of a managee's scheduled request must be blocked once the meeting has ended, for both single and bulk approval. QR retention does not extend this approval deadline.
+
+**Why:** On 2026-10-19 the user explicitly requested consistent prevention of expired Manager approvals after discovering different guards across single and bulk paths.
+
+**How to apply:** Keep approval eligibility distinct from access validity, enforce it again on submission, and require server-side enforcement as well as frontend guards. Preserve the distinct existing Host/Manager walk-in policies.
