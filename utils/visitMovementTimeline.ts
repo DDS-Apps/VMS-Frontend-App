@@ -4,8 +4,9 @@ import { reconcileMovementEvents, movementEventLabel, movementEffectText } from 
 import { getVisitTimelinePresentation, isHiddenMovementEffect, timelinePresentationLabel, type TimelinePresentationSource } from './visitTimelinePresentation';
 
 /**
- * The movement feed is authoritative when present. Presentation-aware responses
- * may also need recorded legacy attendance missing from the feed.
+ * History is authoritative whenever present (including an empty history).
+ * Legacy timestamps render only when history is absent. They still protect
+ * the No-show evidence guard, but never append physical movements.
  */
 export function mergeVisitMovementTimeline(
   steps: TimelineStep[],
@@ -14,7 +15,20 @@ export function mergeVisitMovementTimeline(
   visitStatus?: string,
   presentationSource?: TimelinePresentationSource,
 ): TimelineStep[] {
-  if (history === undefined) return steps;
+  const legacyMovementIds = new Set([
+    'checked_in', 'checked_out', 'checked-in', 'checked-out',
+    'verified', 'entry', 'exit',
+  ]);
+  if (history === undefined) {
+    // Legacy fallback is evidence-based too: status/icon colour never invents
+    // a movement or completion timestamp. Keep permitted controls separately.
+    return steps.filter(step =>
+      (!legacyMovementIds.has(step.id) && step.id !== 'completed') ||
+      step.status === 'error' || !!step.timestamp || !!step.actions?.length,
+    ).map(step => legacyMovementIds.has(step.id) && !step.timestamp && step.actions?.length
+      ? { ...step, id: ['checked_out', 'checked-out', 'exit'].includes(step.id) ? 'pending-check-out' : 'pending-check-in' }
+      : step);
+  }
 
   const events = reconcileMovementEvents(history.data);
   const legacyIn = steps.find(step => ['checked_in', 'checked-in', 'verified', 'entry'].includes(step.id) && step.status !== 'error' && step.timestamp);
@@ -29,31 +43,35 @@ export function mergeVisitMovementTimeline(
   const finalEvent = rules?.finalTimelineEvent;
   // The replacement uses the same source ID; never display both versions.
   if (finalEvent) hiddenIds.add(finalEvent.sourceEventId);
-  const legacyMovementIds = new Set([
-    'checked_in', 'checked_out', 'checked-in', 'checked-out',
-    'verified', 'entry', 'exit',
-  ]);
   const remaining = steps.filter((step) => {
     if (hiddenIds.has(step.id) || (step.sourceEventId && hiddenIds.has(step.sourceEventId)) ||
       [...hiddenIds].some(id => step.id === `movement-${id}`)) return false;
     // Errors are recorded lifecycle outcomes, not unfulfilled movement steps.
-    if (legacyMovementIds.has(step.id) && step.status !== 'error') {
-      // With presentation rules, preserve real legacy evidence absent from the feed.
-      const type = ['checked_out', 'checked-out', 'exit'].includes(step.id) ? 'checked_out' : 'checked_in';
-      return !!rules && !!step.timestamp && !events.some(event => event.eventType === type);
-    }
+    if (legacyMovementIds.has(step.id) && step.status !== 'error') return false;
     if (rules?.hideUnrecordedSteps && !step.timestamp && step.status !== 'error' &&
       ['visitor_response', 'visitor_accepted', 'accepted', 'next_steps'].includes(step.id)) return false;
     return true;
   }).map(step => rules && step.id === 'visitor_response' && step.timestamp && step.status !== 'error'
     ? { ...step, label: t('movementHistory.visitorAccepted') } : step);
-  const completion = rules?.hideVisitCompleted ? [] : remaining.filter((step) => step.id === 'completed');
+  // Only an explicitly identified cutoff may fill a missing completion time.
+  // Neither a physical departure nor status alone supplies that timestamp.
+  const cutoff = rules && visitStatus === 'completed'
+    ? events.find(event => hiddenIds.has(event.id) && event.eventType === 'administrative_completion' && event.completionReason === 'daily_cutoff')
+    : undefined;
+  const completedAt = presentationSource?.timeline?.completedAt ||
+    presentationSource?.completedAt || remaining.find(step => step.id === 'completed')?.timestamp ||
+    cutoff?.occurredAt;
+  const completion = rules?.hideVisitCompleted || visitStatus !== 'completed' || !completedAt
+    ? [] : remaining.filter(step => step.id === 'completed').map((step): TimelineStep => ({
+      ...step, status: 'completed', timestamp: completedAt, timezone: history.timezone,
+    }));
   const preceding = remaining.filter((step) =>
     step.id !== 'completed' && (step.id !== 'next_steps' || history.data.length === 0),
   );
 
   const movements = events.filter(event => !hiddenIds.has(event.id)).map((event): TimelineStep => ({
       id: `movement-${event.id}`,
+      sourceEventId: event.id,
       label: movementEventLabel(event, t),
       timestamp: event.occurredAt,
       timezone: history.timezone,
@@ -63,53 +81,37 @@ export function mergeVisitMovementTimeline(
       metadata: [
          ...(!isHiddenMovementEffect(history, event.qrEffect) && movementEffectText(event, t) ? [movementEffectText(event, t)!] : []),
         ...(event.actor?.name ? [`${t('movementHistory.actor')}: ${event.actor.name}`] : []),
-        ...(event.gate?.name ? [`${t('movementHistory.gate')}: ${event.gate.name}`] : []),
       ],
     }));
 
-  // These are planned milestones, not fabricated movement events. The feed
-  // determines which physical movements actually happened, including repeats.
+  // Retain existing permitted actions, never empty future movement milestones.
+  // The renderer keeps these action controls separate from recorded history.
   const checkInActionStep = steps.find(step => ['checked_in', 'verified'].includes(step.id) && step.actions?.length);
   const checkOutActionStep = steps.find(step => ['checked_out', 'exit'].includes(step.id) && step.actions?.length);
-  const pendingCheckIn: TimelineStep[] = !rules?.hideUnrecordedSteps && (completion.length || checkInActionStep) && !events.some(event => event.eventType === 'checked_in' && event.movementBoundary !== 'parking' && event.displayLabel !== 'Parking arrival')
+  const pendingCheckIn: TimelineStep[] = checkInActionStep && !events.some(event =>
+    event.eventType === 'checked_in' && event.movementBoundary !== 'parking' && event.displayLabel !== 'Parking arrival')
     ? [{
         id: 'pending-check-in',
-        label: completion.length ? t('timeline.visitorCheckedIn') : checkInActionStep!.label,
+        label: checkInActionStep.label,
         status: 'pending',
         icon: 'log-in',
-        ...(checkInActionStep?.actions ? { actions: checkInActionStep.actions } : {}),
+        actions: checkInActionStep.actions,
       }]
     : [];
-  const pendingCheckOut: TimelineStep[] = !rules?.hideUnrecordedSteps && (completion.length || checkOutActionStep) && !events.some(event => event.eventType === 'checked_out')
+  const pendingCheckOut: TimelineStep[] = checkOutActionStep && !events.some(event => event.eventType === 'checked_out')
     ? [{
         id: 'pending-check-out',
-        label: completion.length ? t('timeline.visitorCheckedOut') : checkOutActionStep!.label,
+        label: checkOutActionStep.label,
         status: 'pending',
         icon: 'log-out',
-        ...(checkOutActionStep?.actions ? { actions: checkOutActionStep.actions } : {}),
+        actions: checkOutActionStep.actions,
       }]
     : [];
 
-  // A recorded physical departure (or an administrative closure) does not
-  // itself confirm the visit's lifecycle completion.
-  const cutoff = rules && visitStatus === 'completed'
-    ? events.find(event => hiddenIds.has(event.id) && event.eventType === 'administrative_completion' && event.completionReason === 'daily_cutoff')
-    : undefined;
   const result: TimelineStep[] = [
     ...preceding,
-    ...pendingCheckIn,
     ...movements,
-    ...pendingCheckOut,
-    ...completion.map((step): TimelineStep =>
-       visitStatus === 'completed' ? {
-         ...step,
-         timestamp: presentationSource?.timeline?.completedAt || presentationSource?.completedAt || step.timestamp || cutoff?.occurredAt,
-         timezone: history.timezone,
-       } : step.status !== 'completed' ? step : {
-        ...step,
-        status: 'pending',
-        timestamp: undefined,
-      }),
+    ...completion,
     ...(finalEvent ? [{
       id: `movement-${finalEvent.sourceEventId}`,
       sourceEventId: finalEvent.sourceEventId,
@@ -120,11 +122,13 @@ export function mergeVisitMovementTimeline(
       icon: 'check-circle' as const,
     }] : []),
   ];
-  if (!rules) return result;
-  // Sort recorded events without moving untimed lifecycle milestones or using
-  // status/icon colour as evidence that an event occurred.
-  const recorded = result.filter(step => step.timestamp)
-    .sort((a, b) => Date.parse(a.timestamp!) - Date.parse(b.timestamp!));
-  let index = 0;
-  return result.map(step => step.timestamp ? recorded[index++] : step);
+  // Insert the backend's replacement chronologically without re-sorting the
+  // returned movement sequence (different boundaries may share timestamps).
+  if (finalEvent) {
+    const final = result.pop()!;
+    const before = result.findIndex(step => step.timestamp &&
+      Date.parse(step.timestamp) > Date.parse(finalEvent.occurredAt));
+    result.splice(before < 0 ? result.length : before, 0, final);
+  }
+  return [...result, ...pendingCheckIn, ...pendingCheckOut];
 }

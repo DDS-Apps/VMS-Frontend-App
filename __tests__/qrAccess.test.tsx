@@ -131,15 +131,15 @@ describe('backend-owned QR presentation', () => {
 });
 
 describe('corrected reader movements', () => {
-  it('keeps reception check-in pending for parking-only arrival', () => {
+  it('shows parking-only arrival without inventing a reception check-in placeholder', () => {
     const steps = mergeVisitMovementTimeline([
       { id: 'completed', label: 'Completed', icon: 'check-circle', status: 'pending' },
     ], { requestId: 'v1', timezone: 'Asia/Riyadh',
       data: [event('parking', '2026-10-16T09:00:00Z', { movementBoundary: 'parking', displayLabel: 'Parking arrival' })],
     }, key => key);
-    expect(steps.some(step => step.id === 'pending-check-in')).toBe(true);
+    expect(steps.map(step => step.id)).toEqual(['movement-parking']);
   });
-  it('replaces a provisional row by stable ID and sorts by corrected time', () => {
+  it('replaces a provisional row by stable ID while preserving response order', () => {
     const provisional = event('same', '2026-10-16T09:30:00Z');
     const corrected = event('same', '2026-10-16T08:00:00Z', { recordedAt: '2026-10-16T10:30:00Z' });
     const middle = event('other', '2026-10-16T09:00:00Z');

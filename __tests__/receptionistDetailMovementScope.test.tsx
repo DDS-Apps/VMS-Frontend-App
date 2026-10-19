@@ -121,6 +121,35 @@ describe.each(['web', 'ios', 'android'] as const)('Receptionist detail scope on 
     expect(departmentText!.props.numberOfLines).toBeUndefined();
   });
 
+  it.each([false, true])('wraps Visitor Details host metadata within the card, RTL=%s', rtl => {
+    mockRTL = rtl;
+    const department = rtl
+      ? 'مكتب نائب الرئيس التنفيذي للموارد البشرية والعلاقات المؤسسية'
+      : 'Human Resources and International Corporate Relations';
+    mockDetails = {
+      id: 'visit', status: 'approved', visitor: { fullName: 'Visitor', company: 'Company' },
+      employeeName: 'Test Host', employeeDepartment: department,
+      visitDate: '2026-10-20', visitTime: '10:00', endTime: '11:00',
+    };
+    act(() => {
+      tree = create(<VisitorDetailScreen
+        navigation={{ navigate: jest.fn() } as any}
+        route={{ params: { visitId: 'visit' } } as any}
+      />);
+    });
+    const identity = tree!.root.findAllByType('ThemedText' as any).find(node =>
+      Array.isArray(node.props.children) &&
+      node.props.children.join('') === `Test Host - ${department}`,
+    );
+    expect(identity).toBeDefined();
+    let container = identity!.parent;
+    while (container && container.props.style?.minWidth !== 0) container = container.parent;
+    expect(container).not.toBeNull();
+    expect(container!.props.style).toMatchObject({ flex: 1, minWidth: 0 });
+    expect(identity!.props.numberOfLines).toBeUndefined();
+    expect(identity!.props.ellipsizeMode).toBeUndefined();
+  });
+
   it.each(
     [false, true].flatMap(rtl => [false, true].flatMap(isWalkIn =>
       ['visitId', 'visitor', 'legacyFallback'].flatMap(entry =>

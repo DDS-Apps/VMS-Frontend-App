@@ -23,8 +23,9 @@ export function getVisitTimelinePresentation(
 ): VisitTimelinePresentation | undefined {
   const history = source.movementHistory;
   const rules = history?.presentation;
-  if (!rules || status !== 'completed') return undefined;
+  if (!rules) return undefined;
   if (rules.statusLabelOverride === 'No-show' || rules.finalTimelineEvent?.displayLabel === 'No-show') {
+    if (status !== 'completed') return undefined;
     const closure = history?.data.find(event =>
       event.id === rules.finalTimelineEvent?.sourceEventId &&
       event.eventType === 'administrative_completion');

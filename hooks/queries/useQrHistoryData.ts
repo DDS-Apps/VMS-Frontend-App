@@ -29,7 +29,9 @@ export function useQrHistoryData<T extends QrAccessSource & { movementHistory?: 
         ...embedded,
         ...history,
         qrValidity: { ...embedded?.qrValidity, ...history.qrValidity },
-        data: reconcileMovementEvents([...(embedded?.data ?? []), ...history.data]),
+        // This endpoint returns a complete, ordered history snapshot, not a
+        // delta. Never prepend stale embedded rows or change backend ordering.
+        data: reconcileMovementEvents(history.data),
       },
     };
   }, [detail, history, error, historyUpdatedAt, detailUpdatedAt]);

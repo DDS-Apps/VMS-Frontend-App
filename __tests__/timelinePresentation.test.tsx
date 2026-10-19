@@ -65,6 +65,64 @@ describe.each([false, true])('rendered timeline presentation RTL=%s', rtl => {
   const texts = () => tree!.root.findAllByType('ThemedText' as any).map(node => node.props.children);
 
   it.each(['employee', 'manager', 'receptionist', 'security'] as const)(
+    'renders the active parking-only contract without movement/completion placeholders for %s', role => {
+      const source: TimelineData = {
+        ...data, status: 'visitor_accepted', completedAt: undefined,
+        timeline: { visitorAcceptedAt: '2026-10-19T10:41:00Z' },
+      };
+      const history: VisitMovementHistory = {
+        ...feed,
+        presentation: {
+          hideUnrecordedSteps: true, hideVisitCompleted: false, statusLabelOverride: null,
+          hiddenEventIds: [], hiddenQrEffects: ['arrival_recorded'], finalTimelineEvent: null,
+        },
+        data: [{
+          ...feed.data[0], id: 'parking', eventType: 'checked_in', movementBoundary: 'parking',
+          displayLabel: 'Check In', occurredAt: '2026-10-19T11:38:56.000Z',
+          qrEffect: 'arrival_recorded', completionReason: undefined,
+        }],
+      };
+      const original = JSON.stringify({ source, history });
+      act(() => { tree = create(<Detail role={role} source={source} history={history} />); });
+      const rendered = texts();
+      expect(rendered.filter(text => text === dictionary.movementHistory.checkIn)).toHaveLength(1);
+      for (const label of [
+        dictionary.timeline.visitorCheckedIn, dictionary.timeline.visitorCheckedOut,
+        dictionary.timeline.visitCompleted, dictionary.movementHistory.noShow,
+        dictionary.movementHistory.arrival_recorded,
+      ]) expect(rendered).not.toContain(label);
+      const stamp = formatTimestamp(history.data[0].occurredAt, rtl, 'Asia/Riyadh');
+      expect(rendered).toContain(stamp.isToday ? stamp.time : `${stamp.time} · ${stamp.date}`);
+      if (!rtl) expect(stamp.time).toMatch(/0?2:38 PM/i);
+      expect(JSON.stringify({ source, history })).toBe(original);
+      expect(source.status).toBe('visitor_accepted');
+    },
+  );
+
+  it('renders future movement actions outside recorded history without changing handlers', () => {
+    const onPress = jest.fn();
+    const history: VisitMovementHistory = {
+      ...feed, data: [],
+      presentation: { hideUnrecordedSteps: true },
+    };
+    act(() => {
+      tree = create(<RequestTimeline visitStatus="approved" movementHistory={history} steps={[
+        { id: 'submitted', label: 'Submitted', timestamp: data.createdAt, status: 'completed', icon: 'check' },
+        { id: 'checked_in', label: 'Arrival action', status: 'current', icon: 'log-in',
+          actions: [{ type: 'check_in', label: 'Allowed action', onPress }] },
+      ]} />);
+    });
+    const recorded = tree!.root.find(node => node.props.testID === 'timeline-recorded-events');
+    const actions = tree!.root.find(node => node.props.testID === 'timeline-next-actions');
+    expect(recorded.findAllByType('ThemedText' as any).map(node => node.props.children)).not.toContain('Arrival action');
+    expect(actions.findAllByType('ThemedText' as any).map(node => node.props.children)).toContain('Allowed action');
+    const button = actions.findAll(node => node.props.onPress === onPress)[0];
+    expect(button).toBeDefined();
+    act(() => button.props.onPress());
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['employee', 'manager', 'receptionist', 'security'] as const)(
     'renders localized No-show once and detail override for %s, keeping acceptance', role => {
       act(() => { tree = create(<Detail role={role} />); });
       expect(tree!.root.findByType('StatusLabelBadge' as any).props.label).toBe(dictionary.movementHistory.noShow);

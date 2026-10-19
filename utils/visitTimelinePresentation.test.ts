@@ -37,6 +37,35 @@ const base: TimelineStep[] = [
 ];
 
 describe('backend timeline presentation contract', () => {
+  it('applies generic presentation rules to active visits without a No-show override', () => {
+    const feed = history([event('parking', 'checked_in', 11, { movementBoundary: 'parking' })], false);
+    expect(getVisitTimelinePresentation('visitor_accepted', { movementHistory: feed })).toBe(feed.presentation);
+    const steps = base.map(step => step.id === 'completed' ? { ...step, timestamp: undefined } : step);
+    const result = mergeVisitMovementTimeline(steps, feed, t, 'visitor_accepted');
+    expect(result.map(step => step.id)).toEqual(['submitted', 'approval', 'movement-parking']);
+  });
+
+  it('keeps parking and reception arrivals distinct even with identical labels and timestamps', () => {
+    const parking = event('parking', 'checked_in', 11, { movementBoundary: 'parking', displayLabel: 'Check In' });
+    const reception = { ...parking, id: 'building', movementBoundary: 'reception' as const };
+    const exit = event('exit', 'checked_out', 12, { movementBoundary: 'reception', displayLabel: 'Checkout' });
+    const feed = history([parking, reception, exit], false);
+    const steps = base.map(step => ['checked_in', 'checked_out'].includes(step.id)
+      ? { ...step, timestamp: parking.occurredAt } : step);
+    expect(mergeVisitMovementTimeline(steps, feed, t, 'completed')
+      .filter(step => step.sourceEventId).map(step => step.sourceEventId)).toEqual(['parking', 'building', 'exit']);
+    expect(feed.data).toEqual([parking, reception, exit]);
+  });
+
+  it('requires a real completion time even when the backend does not hide completion', () => {
+    const feed = history([], false);
+    const steps = base.map(step => step.id === 'completed' ? { ...step, timestamp: undefined } : step);
+    const result = mergeVisitMovementTimeline(steps, feed, t, 'completed', {
+      timeline: { completedAt: null, checkedInAt: null, checkedOutAt: null },
+    });
+    expect(result.map(step => step.id)).toEqual(['submitted', 'approval']);
+  });
+
   it('replaces no-attendance closure exactly once without modifying audit data or status', () => {
     const feed = history([closure]);
     const snapshot = JSON.stringify(feed);
@@ -102,7 +131,8 @@ describe('backend timeline presentation contract', () => {
   it('requires recorded closure evidence; completed or empty history alone is insufficient', () => {
     expect(getVisitTimelinePresentation('completed', {})).toBeUndefined();
     expect(getVisitTimelinePresentation('completed', { movementHistory: history([]) })).toBeUndefined();
-    expect(mergeVisitMovementTimeline(base, undefined, t, 'completed')).toEqual(base);
+    expect(mergeVisitMovementTimeline(base, undefined, t, 'completed'))
+      .toEqual(base.filter(step => !['checked_in', 'checked_out'].includes(step.id)));
     const feed = history([closure]);
     delete feed.presentation;
     expect(mergeVisitMovementTimeline(base, feed, t, 'completed').some(step => step.label === 'movementHistory.noShow')).toBe(false);
@@ -153,11 +183,11 @@ describe('backend timeline presentation contract', () => {
     expect(result.map(step => step.id)).toEqual(['submitted', 'approval', 'movement-in-1', 'movement-out-1', 'movement-in-2', 'completed']);
   });
 
-  it('preserves real legacy attendance when the movement feed only has cutoff evidence', () => {
+  it('uses legacy attendance for evidence guards, not extra rows alongside history', () => {
     const steps = base.map(step => step.id === 'checked_in'
       ? { ...step, timestamp: '2026-10-18T11:00:00.000Z' } : step);
     const result = mergeVisitMovementTimeline(steps, history([{ ...closure, completionReason: 'daily_cutoff' }], false), t, 'completed');
-    expect(result.map(step => step.id)).toEqual(['submitted', 'approval', 'checked_in', 'completed']);
+    expect(result.map(step => step.id)).toEqual(['submitted', 'approval', 'completed']);
   });
 
   it.each(['parking-only', 'scheduled-end', 'actual-checkout'])(

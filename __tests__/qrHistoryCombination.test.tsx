@@ -66,3 +66,16 @@ it('preserves additive timeline instructions from the history endpoint without c
   expect(getQrAccessState(result!, now)).toBe('revocationPending');
   expect(canDisplayQr(result!, now)).toBe(false);
 });
+
+it('uses the complete ordered history snapshot instead of prepending stale embedded events', () => {
+  const parking = { ...corrected, id: 'parking', eventType: 'checked_in' as const, movementBoundary: 'parking' as const };
+  const reception = { ...parking, id: 'reception', movementBoundary: 'reception' as const };
+  const feed = { ...history, data: [parking, reception] };
+  act(() => { tree = create(<Probe detailAt={200} historyAt={300} feed={feed} />); });
+  expect(result!.movementHistory!.data).toEqual([parking, reception]);
+  expect(detail.movementHistory.data).toEqual([oldEvent]);
+  expect(getQrAccessState(result!, now)).toBe('revocationPending');
+  act(() => tree.update(<Probe detailAt={200} historyAt={400} feed={{ ...feed, data: [] }} />));
+  expect(result!.movementHistory!.data).toEqual([]);
+  expect(canDisplayQr(result!, now)).toBe(false);
+});

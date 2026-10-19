@@ -8,7 +8,9 @@ export function reconcileMovementEvents(data: VisitMovementEvent[]): VisitMoveme
     const previous = byId.get(event.id);
     if (!previous || !(Date.parse(previous.recordedAt) > Date.parse(event.recordedAt))) byId.set(event.id, event);
   }
-  return [...byId.values()].sort((a, b) => (Date.parse(a.occurredAt) || 0) - (Date.parse(b.occurredAt) || 0));
+  // The backend owns ordering. Replacing a corrected ID retains its response
+  // position; different boundaries/cycles must never collapse by type or time.
+  return [...byId.values()];
 }
 
 const labelKeys: Record<string, string> = {

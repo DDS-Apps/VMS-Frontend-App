@@ -192,10 +192,16 @@ export function RequestTimeline({
         </ThemedText>
       ) : null}
 
-      {displaySteps.map((step, index) => {
-        const isLast = index === displaySteps.length - 1;
+      {[
+        displaySteps.filter(step => !step.id.startsWith('pending-check-')),
+        displaySteps.filter(step => step.id.startsWith('pending-check-')),
+      ].map((group, groupIndex) => group.length ? (
+      <View key={groupIndex} testID={groupIndex === 0 ? 'timeline-recorded-events' : 'timeline-next-actions'}
+        style={groupIndex === 1 ? { marginTop: Spacing.lg } : undefined}>
+      {group.map((step, index) => {
+        const isLast = index === group.length - 1;
         const stepColor = getStepColor(step.status);
-        const lineColor = !isLast ? getLineColor(step.status, displaySteps[index + 1]?.status) : theme.border;
+        const lineColor = !isLast ? getLineColor(step.status, group[index + 1]?.status) : theme.border;
         const isCompleted = step.status === 'completed';
         const isCurrent = step.status === 'current';
         const isError = step.status === 'error';
@@ -364,6 +370,8 @@ export function RequestTimeline({
           </View>
         );
       })}
+      </View>
+      ) : null)}
     </ThemedView>
   );
 }

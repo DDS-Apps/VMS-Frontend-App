@@ -13,4 +13,4 @@ Keep host names and departments as separate display values. In cards and tables,
 
 **Why:** The user supplied card and table examples where concatenated mixed-language host metadata collapsed the label and overlapped text. They subsequently clarified that short departments such as Operations should stay inline when space permits.
 
-**How to apply:** Preserve separate name/department fields through card and table mappings, use bounded wrapping rows, and keep labels non-shrinking with consistent first-line heights. Request Detail Host Details retains the separately requested department line below the name. Check English and Arabic.
+**How to apply:** Preserve separate name/department fields through card and table mappings, use bounded wrapping rows, and keep labels non-shrinking with consistent first-line heights. Request Detail Host Details retains the separately requested department line below the name; its Visitor Details host row wraps inline metadata within the available width instead of overflowing. Check English and Arabic.

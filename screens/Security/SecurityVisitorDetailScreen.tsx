@@ -355,15 +355,15 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
           {/* Host Name */}
           <View style={isWebLayout ? { width: gridItemWidth } : undefined}>
-            <DirectionalRow style={styles.serviceRowNew}>
+            <DirectionalRow style={[styles.serviceRowNew, { alignItems: 'flex-start' }]}>
               <View style={[styles.serviceIcon, { backgroundColor: applyOpacity(theme.textSecondary, '15') }]}>
                 <DDIcon name="user" size={18} color={theme.text} />
               </View>
-              <View>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <ThemedText style={[Typography.body, { fontWeight: '600', fontSize: 15 }]}>
                   {t('reception.hostName')}
                 </ThemedText>
-                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13 }]}>
+                <ThemedText style={[Typography.caption, { color: theme.textSecondary, marginTop: 2, fontSize: 13, lineHeight: 20 }]}>
                   {visitorData.hostName}{visitorData.hostDepartment ? ` - ${visitorData.hostDepartment}` : ''}
                 </ThemedText>
               </View>
