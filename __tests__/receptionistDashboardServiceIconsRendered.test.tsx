@@ -84,10 +84,12 @@ jest.mock("@/hooks/useTranslation", () => ({
         ? {
             "parking.needsParking": "موقف مطلوب",
             "parking.noParking": "لا يُشترط موقف",
+            "reception.hostName": "اسم المضيف",
           }
         : {
             "parking.needsParking": "Parking Required",
             "parking.noParking": "Parking Not Required",
+            "reception.hostName": "Host Name",
           };
       return translations[key] ?? key;
     },
@@ -96,7 +98,9 @@ jest.mock("@/hooks/useTranslation", () => ({
 
 jest.mock("@/hooks/useFormatters", () => ({
   useFormatters: () => ({
+    formatDateShort: (value: Date) => value.toISOString(),
     formatTimeFromString: (value: string) => value,
+    toLocalNumerals: (value: string) => value,
   }),
 }));
 
@@ -155,6 +159,10 @@ jest.mock("@/components/shared/DashboardKpiSection", () => ({
   DashboardKpiSection: () => null,
 }));
 
+jest.mock("@/components/shared/ApprovalActionGroup", () => ({
+  ApprovalActionGroup: () => null,
+}));
+
 jest.mock("@/components/shared", () => {
   const React = require("react");
 
@@ -164,7 +172,7 @@ jest.mock("@/components/shared", () => {
     FilterChip: jest.requireActual("@/components/shared/FilterChip").FilterChip,
     RequestStatusBadge: () => null,
     VisitorMatrixTable: (props: object) => React.createElement("VisitorMatrixTable", props),
-    VisitorRequestCard: () => null,
+    VisitorRequestCard: jest.requireActual("@/components/shared/VisitorRequestCard").VisitorRequestCard,
     SkeletonCard: () => null,
     SkeletonDashboard: () => null,
     WalkInBadge: () => null,
@@ -279,6 +287,10 @@ jest.mock("react-native", () => {
     LayoutAnimation: { configureNext: jest.fn(), Presets: { easeInEaseOut: {} } },
     StyleSheet: {
       create: (styles: Record<string, unknown>) => styles,
+      flatten: (styles: unknown): Record<string, unknown> => {
+        if (Array.isArray(styles)) return Object.assign({}, ...styles.map((style) => style ? (Array.isArray(style) ? Object.assign({}, ...style) : style) : {}));
+        return (styles || {}) as Record<string, unknown>;
+      },
       hairlineWidth: 1,
     },
     useWindowDimensions: () => ({
@@ -535,5 +547,64 @@ describe("rendered Receptionist dashboard service icons", () => {
     act(() => {
       renderer!.unmount();
     });
+  });
+
+  it("shows host, calendar date, duration and the scheduled/actual movement sections on cards", () => {
+    mockTodayResponse = {
+      ...mockTodayData,
+      data: [{
+        ...mockParkingVisitor,
+        hostName: "Waleed Alahdal",
+        hostDepartment: "DDs",
+        visitDate: "2026-09-12",
+        visitTime: "09:00",
+        endTime: "10:00",
+        checkedInAt: "2026-09-12T09:30:00Z",
+        checkedOutAt: "2026-09-12T12:17:00Z",
+        // A lifecycle completion timestamp must never be presented as physical checkout.
+        completedAt: "2026-09-12T15:17:00Z",
+      }],
+    };
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    pressCardViewToggle(renderer);
+
+    const output = renderedText(renderer);
+    expect(output).toContain("Host Name");
+    expect(output).toContain("Waleed Alahdal");
+    expect(output).toContain("12, Sep 2026");
+    expect(output).toContain("visitor.duration");
+    expect(output).toContain("1 time.hour");
+    expect(output).toContain("visitor.scheduledTime");
+    const textValues = renderer.root.findAllByType("ThemedText" as any)
+      .map((node) => node.children.filter((child) => typeof child === "string").join(""));
+    expect(textValues).toContain("09:00 visitor.timeRangeTo 10:00");
+    expect(output).toContain("visitor.actualIn");
+    expect(output).toContain("visitor.actualOut");
+    expect(output).not.toContain("15:17:00Z");
+
+    act(() => renderer.unmount());
+  });
+
+  it("keeps the shared card's omission behavior when no actual movements or schedule end exist", () => {
+    mockTodayResponse = {
+      ...mockTodayData,
+      data: [{
+        ...mockNoParkingVisitor,
+        visitTime: "10:00",
+        endTime: undefined,
+        scheduledEndTime: undefined,
+      }],
+    };
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    pressCardViewToggle(renderer);
+
+    const output = renderedText(renderer);
+    expect(output).not.toContain("visitor.actualIn");
+    expect(output).not.toContain("visitor.actualOut");
+    expect(output).not.toContain("visitor.scheduledTime");
+
+    act(() => renderer.unmount());
   });
 });

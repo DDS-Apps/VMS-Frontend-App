@@ -28,6 +28,7 @@ import {
 } from "@/constants/requestConstants";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { getVisitorCardMetadataFlexWrap } from "@/utils/visitorCardLayout";
+import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 
 type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
@@ -160,7 +161,7 @@ export function VisitorRequestCard({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
-  const { isRTL } = useLanguage();
+  const { isRTL, localeCode } = useLanguage();
   const displayedStatus = statusOverride ?? request.status;
   const statusConfig = getStatusStyle(theme, displayedStatus, t);
   const borderColor = accentColor || statusConfig.borderColor;
@@ -175,8 +176,20 @@ export function VisitorRequestCard({
   });
 
   const formatDate = (dateString: string): string => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split("-").map(Number);
+      const calendarDate = new Date(Date.UTC(year, month - 1, day));
+      if (
+        calendarDate.getUTCFullYear() === year &&
+        calendarDate.getUTCMonth() === month - 1 &&
+        calendarDate.getUTCDate() === day
+      ) {
+        return formatVisitDateLabel(dateString, localeCode);
+      }
+      return "—";
+    }
     const date = new Date(dateString);
-    return formatDateShort(date);
+    return Number.isNaN(date.getTime()) ? "—" : formatDateShort(date);
   };
 
   const formatTime = (timeString: string): string => {

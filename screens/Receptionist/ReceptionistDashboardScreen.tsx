@@ -1,8 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useUpcomingIndicator } from "@/hooks/useUpcomingVisitTimer";
-import { UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES, isUpcomingIndicatorEligibleStatus } from "@/constants/requestConstants";
-import { View, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager, ActivityIndicator, useWindowDimensions } from "react-native";
-import { TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
+import { View, StyleSheet, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ROUTES } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
@@ -11,10 +8,9 @@ import Spacer from "@/components/Spacer";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DDIcon, IconName } from "@/components/DDIcon";
-import { applyOpacity, getStatusConfig as getSharedStatusConfig } from "@/utils/statusStyles";
+import { applyOpacity } from "@/utils/statusStyles";
 import { DirectionalRow, getFlexDirection, getPhysicalToggleStyle } from '@/components/DirectionalRow';
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,7 +23,7 @@ import {
 } from "@/utils/groupVisitsByDate";
 import type { TodayVisitorDto } from "@/types";
 import type { VisitListItemDto } from "@/types/api.types";
-import { SkeletonCard, SkeletonDashboard, WalkInBadge, RTLHorizontalScrollView, RequestStatusBadge, VisitorMatrixTable, FilterChip, VisitorRequestCard } from "@/components/shared";
+import { SkeletonCard, SkeletonDashboard, RTLHorizontalScrollView, VisitorMatrixTable, FilterChip, VisitorRequestCard } from "@/components/shared";
 import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
 import type { VisitorMatrixItem } from "@/components/shared";
 import type { ReceptionistDashboardScreenProps } from "@/types/receptionistNavigation.types";
@@ -45,14 +41,8 @@ import {
   getPendingApprovalWalkInScheduledEndMs,
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
-import { getInitials } from "@/utils/formatters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { StatusDropdown } from "@/components/shared/RequestStatusDropdown";
-import { ExpiredVisitBadge } from "@/components/shared/ExpiredVisitBadge";
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 /**
  * Parse a time string to minutes since midnight for sorting.
@@ -126,87 +116,9 @@ function QuickActionButton({ icon, label, iconBgColor, iconColor, onPress }: Qui
   );
 }
 
-const ReceptionistUpcomingAlertIcon = React.memo(({ visitDate, visitTime, status, visitStartAt }: { visitDate: string; visitTime: string; status: string; visitStartAt?: string }) => {
-  const { theme } = useTheme();
-  const { t } = useTranslation();
-  const eligible = isUpcomingIndicatorEligibleStatus(status);
-  const isUpcoming = useUpcomingIndicator({
-    visitDate,
-    visitTime,
-    visitStartAt,
-    eligible,
-    thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
-  });
-  if (!isUpcoming) return null;
-  return (
-    <View
-      accessibilityLabel="Visit starts soon"
-      accessibilityRole="image"
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: applyOpacity(theme.error, '15'),
-        borderWidth: 1,
-        borderColor: theme.error,
-        borderRadius: 100,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        marginEnd: 6,
-      }}
-    >
-      <DDIcon name="alert-circle" size={12} color={theme.error} />
-      <ThemedText style={{ color: theme.error, fontSize: 11, fontWeight: '700', lineHeight: 16 }}>
-        {t('admin.upcoming')}
-      </ThemedText>
-    </View>
-  );
-});
-
-const ServiceIconsRow = ({ visitor, size = 14 }: { visitor: TodayVisitorDto; size?: number }) => {
-  const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-  
-  const showParking = resolveParkingDisplayDecision({
-    parkingDecision: (visitor as any).parkingDecision,
-    visitorNeedsParking: visitor.visitorNeedsParking,
-    isVisitorNeedsParking: visitor.isVisitorNeedsParking,
-    hasParking: visitor.hasParking,
-  }) === 'required';
-  const showMeetingRoom = visitor.isMeetingRoom === true || visitor.hasMeetingRoom === true || !!visitor.meetingRoom;
-  const showBuffet = visitor.isBuffet === true || visitor.hasBuffet === true;
-  
-  const hasServices = showParking || showMeetingRoom || showBuffet;
-  
-  if (!hasServices) {
-    return <View />;
-  }
-
-  return (
-    <DirectionalRow style={styles.servicesRow}>
-      {showBuffet ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.warning, '20') }]}>
-          <DDIcon name="cloche" size={size} color={theme.warning} />
-        </View>
-      ) : null}
-      {showMeetingRoom ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.secondary, '20') }]}>
-          <DDIcon name="meeting-room" size={size} color={theme.secondary} />
-        </View>
-      ) : null}
-      {showParking ? (
-        <View style={[styles.servicePill, { backgroundColor: applyOpacity(theme.info, '20') }]}>
-          <DDIcon name="parking" size={size} color={theme.info} />
-        </View>
-      ) : null}
-    </DirectionalRow>
-  );
-};
-
 export default function ReceptionistDashboardScreen({ navigation }: ReceptionistDashboardScreenProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatTime, formatTimeFromString } = useFormatters();
   const { isRTL, localeCode } = useLanguage();
   const insets = useSafeAreaInsets();
   const riyadhBusinessDateKey = useRiyadhBusinessDateKey();
@@ -220,7 +132,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
   const cardWidthPercent: `${number}%` | undefined =
     numColumns === 3 ? '33.33%' : numColumns === 2 ? '50%' : undefined;
 
-  const [expandedVisitors, setExpandedVisitors] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [visitorFilter, setVisitorFilter] =
     useState<'all' | 'to_be_checked' | 'checked_in' | 'checked_out'>('all');
@@ -384,25 +295,6 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     paddingBottom: insets.bottom + Spacing.xl + 80
   };
 
-  const toggleVisitorExpanded = (visitorId: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedVisitors(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(visitorId)) {
-        newSet.delete(visitorId);
-      } else {
-        newSet.add(visitorId);
-      }
-      return newSet;
-    });
-  };
-
-
-  const getStatusConfig = (status: string) => {
-    const config = getSharedStatusConfig(theme, status, t);
-    return { label: config.label, bg: config.bg, text: config.text, border: config.borderColor || config.text };
-  };
-
   const handleVisitorPress = (visitor: TodayVisitorDto) => {
     const today = new Date().toISOString().split('T')[0];
     const legacyVisitor = {
@@ -489,8 +381,63 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
     } as any);
   };
 
+  const toTodayVisitorRequest = (item: TodayVisitorDto) => {
+    const parkingDecision = (item as any).parkingDecision;
+    const hasParking = resolveParkingDisplayDecision({
+      parkingDecision,
+      visitorNeedsParking: item.visitorNeedsParking,
+      isVisitorNeedsParking: item.isVisitorNeedsParking,
+      hasParking: item.hasParking,
+    }) === 'required';
+    const hasMeetingRoom =
+      item.isMeetingRoom === true ||
+      item.hasMeetingRoom === true ||
+      !!item.meetingRoom;
+    const hasBuffet = item.isBuffet === true || item.hasBuffet === true;
+
+    const request = mapVisitListItemToVisitorRequest({
+      movementSummary: item.movementSummary,
+      movementSummaryAvailability: item.movementSummaryAvailability,
+      movementSummaryError: item.movementSummaryError,
+      id: item.id,
+      employeeName: item.hostName,
+      visitor: {
+        fullName: item.visitor.fullName,
+        company: item.visitor.company,
+        phone: item.visitor.phone,
+        email: item.visitor.email,
+      },
+      visitDate: item.visitDate ?? '',
+      visitTime: item.visitTime,
+      visitStartAt: item.visitStartAt,
+      timezone: item.timezone,
+      endTime: item.endTime ?? item.scheduledEndTime ?? undefined,
+      checkedInAt: item.checkedInAt,
+      checkedOutAt: item.checkedOutAt,
+      status: item.status,
+      purpose: item.purpose ?? '',
+      isWalkIn: item.isWalkIn ?? false,
+      createdAt: item.visitDate ?? '',
+      hasParking,
+      hasMeetingRoom,
+      hasBuffet,
+      hasValet: item.hasValet === true,
+      meetingRoom: item.meetingRoom,
+      isBuffet: item.isBuffet,
+      isMeetingRoom: item.isMeetingRoom,
+      isVisitorNeedsParking: item.isVisitorNeedsParking,
+      visitorNeedsParking: item.visitorNeedsParking,
+      parkingDecision,
+    } as VisitListItemDto & { meetingRoom?: TodayVisitorDto['meetingRoom'] });
+
+    return {
+      ...request,
+      visitor: { ...request.visitor, id: item.visitor.id },
+      employeeDepartment: item.hostDepartment,
+    };
+  };
+
   const renderVisitorCard = (item: TodayVisitorDto) => {
-    const statusConfig = getStatusConfig(item.status);
     const isExpired = computeIsPendingHostWalkInExpired({
       isWalkIn: item.isWalkIn,
       status: item.status,
@@ -500,119 +447,19 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       status: item.status,
       visitDate: item.visitDate,
       visitTime: item.visitTime,
-      endTime: item.endTime,
+      endTime: item.endTime ?? item.scheduledEndTime,
       duration: (item as any).duration,
     });
-    const visitorName = item.visitor.fullName;
-    const initials = getInitials(visitorName);
-    const isExpanded = expandedVisitors.has(item.id);
-    const hasDetails = item.visitor.phone;
-    
+
     return (
-      <GHTouchableOpacity 
+      <VisitorRequestCard
         key={item.id}
+        request={toTodayVisitorRequest(item)}
+        hostName={item.hostDepartment ? `${item.hostName} - ${item.hostDepartment}` : item.hostName}
+        isExpired={isExpired}
+        showExpiredState={true}
         onPress={() => handleVisitorPress(item)}
-        activeOpacity={0.9}
-        style={[
-          styles.visitorCard,
-          { 
-            backgroundColor: theme.surface,
-            borderStartColor: statusConfig.border,
-          },
-        ]}
-      >
-        <DirectionalRow style={styles.visitorCardHeader}>
-          <View style={[styles.avatar, { backgroundColor: applyOpacity(theme.primary, '12') }]}>
-            <ThemedText
-              style={[styles.avatarText, { color: theme.primary }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.5}
-            >
-              {initials}
-            </ThemedText>
-          </View>
-          <View style={[styles.visitorHeaderInfo, { marginStart: isRTL ? 0 : Spacing.sm, marginEnd: isRTL ? Spacing.sm : 0, flex: 1 }]}>
-            <DirectionalRow style={[styles.nameRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
-              <DirectionalRow style={{ flex: 1, alignItems: 'center', gap: Spacing.xs, marginEnd: Spacing.xs }}>
-                <ThemedText style={[styles.visitorName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
-                  {visitorName}
-                </ThemedText>
-                {item.isWalkIn ? <WalkInBadge size="sm" /> : null}
-              </DirectionalRow>
-              <DirectionalRow style={{ alignItems: 'center' }}>
-                <ReceptionistUpcomingAlertIcon visitDate={item.visitDate ?? ''} visitTime={item.visitTime} status={item.status} visitStartAt={item.visitStartAt} />
-                <RequestStatusBadge status={item.status} />
-              </DirectionalRow>
-            </DirectionalRow>
-            <ThemedText style={[styles.visitorCompany, { color: theme.textSecondary }]} numberOfLines={1}>
-              {item.visitor.company ?? ''}
-            </ThemedText>
-          </View>
-        </DirectionalRow>
-
-        <Spacer height={Spacing.md} />
-
-        <DirectionalRow style={styles.visitorMetaRow}>
-          <DDIcon name="clock" size={14} color={theme.textSecondary} />
-          <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]}>
-            {formatTimeFromString(item.visitTime)}
-          </ThemedText>
-          <View style={styles.metaDot} />
-          <DDIcon name="user" size={14} color={theme.textSecondary} />
-          <ThemedText style={[styles.visitorMetaText, { color: theme.textSecondary }]} numberOfLines={1}>
-            {t('reception.hostName')}: {item.hostName}{item.hostDepartment ? ` - ${item.hostDepartment}` : ''}
-          </ThemedText>
-        </DirectionalRow>
-
-        {(item.endTime || item.scheduledEndTime) ? (
-          <>
-            <Spacer height={Spacing.xs} />
-            <View style={{
-              flexDirection: 'row',
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: theme.border,
-              paddingTop: Spacing.sm,
-              gap: Spacing.md,
-            }}>
-              <View style={{ minWidth: 70 }}>
-                <ThemedText style={{ fontSize: 10, fontWeight: '500', color: theme.textSecondary, marginBottom: 2 }}>
-                  {t('visitor.plannedOut')}
-                </ThemedText>
-                <ThemedText style={{ fontSize: 12, fontWeight: '600', color: theme.text }}>
-                  {formatTimeFromString(item.endTime ?? item.scheduledEndTime ?? '')}
-                </ThemedText>
-              </View>
-            </View>
-          </>
-        ) : null}
-
-        <Spacer height={Spacing.md} />
-
-        <DirectionalRow style={styles.servicesStatusRow}>
-          <ServiceIconsRow visitor={item} />
-        </DirectionalRow>
-
-        {isExpanded && hasDetails ? (
-          <View style={styles.expandedSection}>
-            {item.visitor.phone ? (
-              <DirectionalRow style={styles.detailRow}>
-                <DDIcon name="phone" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.detailText, { color: theme.text, writingDirection: 'ltr' }]} numberOfLines={1}>
-                  {item.visitor.phone}
-                </ThemedText>
-              </DirectionalRow>
-            ) : null}
-          </View>
-        ) : null}
-
-        {isExpired ? (
-          <View style={{ marginTop: Spacing.sm }}>
-            <ExpiredVisitBadge />
-          </View>
-        ) : null}
-
-      </GHTouchableOpacity>
+      />
     );
   };
 
@@ -1122,112 +969,6 @@ const styles = StyleSheet.create({
   dateGroupCount: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  visitorCard: {
-    borderRadius: 12,
-    padding: Spacing.md,
-    borderStartWidth: 4,
-  },
-  visitorCardHeader: {
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    includeFontPadding: false,
-  },
-  visitorHeaderInfo: {
-    flex: 1,
-    marginStart: Spacing.sm,
-  },
-  nameRow: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  visitorName: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  visitorCompany: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  companyRow: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginTop: 2,
-  },
-  visitorMetaRow: {
-    alignItems: 'center',
-    gap: 4,
-    flexWrap: 'wrap',
-  },
-  visitorMetaText: {
-    fontSize: 12,
-  },
-  metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#CBD5E1',
-    marginHorizontal: 4,
-  },
-  servicesStatusRow: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  servicesRow: {
-    gap: Spacing.sm,
-    alignItems: 'center',
-  },
-  servicePill: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  expandedSection: {
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  detailRow: {
-    alignItems: 'flex-start',
-    gap: Spacing.sm,
-  },
-  detailText: {
-    fontSize: 13,
-    flex: 1,
-  },
-  toggleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: Spacing.md,
-    gap: Spacing.xs,
-  },
-  toggleText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  visitorCardFooter: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  locationBadge: {
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
-    gap: 4,
   },
   emptyState: {
     padding: Spacing.xl,

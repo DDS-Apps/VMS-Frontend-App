@@ -219,6 +219,9 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     isVisitorNeedsParking: visit.isVisitorNeedsParking,
     hasParking: visit.hasParking,
   });
+  const meetingRoom = (visit as VisitListItemDto & {
+    meetingRoom?: { name: string; floor?: string };
+  }).meetingRoom;
   return {
     ...qrAccessFields(visit),
     movementSummary: visit.movementSummary,
@@ -250,7 +253,14 @@ export const mapVisitListItemToVisitorRequest = (visit: VisitListItemDto): Visit
     communicationChannels: DEFAULT_COMMUNICATION_CHANNELS,
     parkingType: parkingDecision === 'required' ? 'auto' : 'none',
     parkingSlot: visit.hasParking ? { ...DEFAULT_PARKING_SLOT } : undefined,
-    meetingRoom: visit.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: visit.visitTime || '' } : undefined,
+    meetingRoom: meetingRoom
+      ? {
+          ...DEFAULT_MEETING_ROOM,
+          name: meetingRoom.name,
+          floor: meetingRoom.floor || DEFAULT_MEETING_ROOM.floor,
+          timeSlot: visit.visitTime || '',
+        }
+      : visit.hasMeetingRoom ? { ...DEFAULT_MEETING_ROOM, timeSlot: visit.visitTime || '' } : undefined,
     buffet: visit.hasBuffet ? { ...DEFAULT_BUFFET } : undefined,
     valet: visit.hasValet ? { ...DEFAULT_VALET, pickupTime: visit.visitTime || '' } : undefined,
     qrCode: undefined,
