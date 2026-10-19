@@ -12,6 +12,10 @@ export function reconcileMovementEvents(data: VisitMovementEvent[]): VisitMoveme
 }
 
 const labelKeys: Record<string, string> = {
+  'Check In': 'checkIn',
+  'Checkout': 'checkOut',
+  'Admin closure': 'adminClosure',
+  'No-show': 'noShow',
   'Parking arrival': 'parkingArrival',
   'Reception check-in': 'receptionCheckIn',
   'Reception checkout': 'receptionCheckout',

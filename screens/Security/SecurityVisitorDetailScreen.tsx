@@ -231,7 +231,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
               </View>
 
               {/* Status Badge */}
-              <RequestStatusBadge status={visitorData.status} />
+              <RequestStatusBadge status={visitorData.status} presentationSource={visitorData} />
             </DirectionalRow>
 
             {/* Right group: Contact info */}
@@ -287,7 +287,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
               <Spacer height={Spacing.sm} />
 
-              <RequestStatusBadge status={visitorData.status} />
+              <RequestStatusBadge status={visitorData.status} presentationSource={visitorData} />
             </View>
 
             <Spacer height={Spacing.xl} />
@@ -704,6 +704,7 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
       <RequestTimeline
         steps={visitorData.movementHistory ? lifecycleSteps : timelineSteps}
         movementHistory={visitorData.movementHistory}
+        presentationSource={visitorData}
         visitStatus={visitorData.status}
         title={t('timeline.requestTimeline')}
         timezone={visitorData.timezone}

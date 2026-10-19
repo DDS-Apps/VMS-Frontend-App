@@ -1624,6 +1624,8 @@ export interface VisitMovementGate {
 }
 
 export interface VisitMovementEvent {
+  /** Administrative closure reason; never physical-departure evidence. */
+  completionReason?: string | null;
   movementBoundary?: string;
   displayLabel?: string;
   qrEffect?: string;
@@ -1642,7 +1644,21 @@ export interface VisitMovementEvent {
   departureEventId?: string | null;
 }
 
+export interface VisitTimelinePresentation {
+  statusLabelOverride?: string | null;
+  hideVisitCompleted?: boolean;
+  hideUnrecordedSteps?: boolean;
+  hiddenEventIds?: string[];
+  hiddenQrEffects?: string[];
+  finalTimelineEvent?: {
+    sourceEventId: string;
+    displayLabel: string;
+    occurredAt: string;
+  } | null;
+}
+
 export interface VisitMovementHistory extends importQrAccessFields {
+  presentation?: VisitTimelinePresentation;
   requestId: string;
   timezone: string;
   /** Events are returned oldest first. */

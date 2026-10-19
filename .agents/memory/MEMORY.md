@@ -47,3 +47,4 @@
 - [QR retention contract](qr-retention-contract.md) — backend validity governs retained QR access; meeting end, approval deadlines, and physical checkout remain distinct.
 - [Approval provisioning boundaries](approval-provisioning-contract.md) — committed approval can outlive failed provisioning or precede cancellation; warn and refresh, never resubmit to repair it.
 - [Test variant isolation](test-variant-isolation.md) — production Babel console stripping invalidates Jest log assertions; isolate the test variant, not production logging policy.
+- [Timeline display boundaries](timeline-display-contract.md) — No-show is backend-directed detail presentation; completion never establishes physical departure or a new stored status.

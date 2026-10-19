@@ -1560,7 +1560,7 @@ export default function RequestDetailsScreen({
                 </View>
 
                 {/* Status Badge */}
-                <RequestStatusBadge status={request.status} />
+                <RequestStatusBadge status={request.status} presentationSource={visitData} />
               </DirectionalRow>
 
               {/* Right group: Contact info */}
@@ -1637,7 +1637,7 @@ export default function RequestDetailsScreen({
                 <Spacer height={Spacing.sm} />
 
                 <View style={{ alignSelf: 'center' }}>
-                  <RequestStatusBadge status={request.status} />
+                  <RequestStatusBadge status={request.status} presentationSource={visitData} />
                 </View>
               </View>
 
@@ -2300,6 +2300,7 @@ export default function RequestDetailsScreen({
             <RequestTimeline
               steps={timelineSteps}
               movementHistory={visitData?.movementHistory}
+              presentationSource={visitData}
               visitStatus={visitData?.status}
               timezone={visitData?.timezone}
             />

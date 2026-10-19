@@ -1673,6 +1673,9 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     exitRecorded: 'تم تسجيل الخروج',
   },
   movementHistory: {
+    visitorAccepted: 'قبل الزائر الدعوة',
+    noShow: 'لم يحضر',
+    adminClosure: 'إغلاق إداري',
     parkingArrival: 'الوصول إلى موقف السيارات',
     receptionCheckIn: 'تسجيل الدخول في الاستقبال',
     receptionCheckout: 'تسجيل الخروج من الاستقبال',

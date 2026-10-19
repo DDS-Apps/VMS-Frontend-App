@@ -1143,7 +1143,7 @@ export default function ManagerApprovalDetailScreen({
                   {request.isWalkIn ? (
                     <WalkInVisitorBadge />
                   ) : null}
-                  <RequestStatusBadge status={request.status} />
+                  <RequestStatusBadge status={request.status} presentationSource={visitData} />
                 </DirectionalRow>
               </DirectionalRow>
 
@@ -1221,7 +1221,7 @@ export default function ManagerApprovalDetailScreen({
                   {request.isWalkIn ? (
                     <WalkInVisitorBadge />
                   ) : null}
-                  <RequestStatusBadge status={request.status} />
+                  <RequestStatusBadge status={request.status} presentationSource={visitData} />
                 </DirectionalRow>
               </View>
 
@@ -2041,6 +2041,7 @@ export default function ManagerApprovalDetailScreen({
         <RequestTimeline
           steps={timelineSteps}
           movementHistory={visitData?.movementHistory}
+          presentationSource={visitData}
           visitStatus={visitData?.status}
           timezone={visitData?.timezone}
         />

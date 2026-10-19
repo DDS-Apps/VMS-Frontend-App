@@ -53,3 +53,16 @@ it('accepts cleanup completion only when the authoritative history response chan
   expect(getQrAccessState(result!, now)).toBe('expired');
   expect(canDisplayQr(result!, now)).toBe(false);
 });
+
+it('preserves additive timeline instructions from the history endpoint without changing QR access', () => {
+  const presentation = {
+    statusLabelOverride: 'No-show', hideVisitCompleted: true, hideUnrecordedSteps: true,
+    hiddenEventIds: ['same'], hiddenQrEffects: ['arrival_recorded'],
+    finalTimelineEvent: { sourceEventId: 'same', displayLabel: 'No-show', occurredAt: corrected.occurredAt },
+  };
+  act(() => { tree = create(<Probe detailAt={200} historyAt={300} feed={{ ...history, presentation }} />); });
+  expect(result!.movementHistory!.presentation).toEqual(presentation);
+  expect(result!.movementHistory!.data).toEqual([corrected]);
+  expect(getQrAccessState(result!, now)).toBe('revocationPending');
+  expect(canDisplayQr(result!, now)).toBe(false);
+});

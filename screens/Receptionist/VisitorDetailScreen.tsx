@@ -354,7 +354,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
               </View>
 
               {/* Status Badge */}
-              <RequestStatusBadge status={visitor.status} />
+              <RequestStatusBadge status={visitDetails?.status ?? visitor.status} presentationSource={visitDetails} />
             </DirectionalRow>
 
             {/* Right group: Contact info */}
@@ -408,7 +408,7 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
 
               <Spacer height={Spacing.sm} />
 
-              <RequestStatusBadge status={visitor.status} />
+              <RequestStatusBadge status={visitDetails?.status ?? visitor.status} presentationSource={visitDetails} />
             </View>
 
             <Spacer height={Spacing.xl} />

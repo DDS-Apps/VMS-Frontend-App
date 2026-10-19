@@ -19,6 +19,7 @@ import { formatTimestamp, DEFAULT_SERVER_TIMEZONE } from "@/utils/dateTimeUtils"
 import { withCanonicalTimelineTimestamps } from "@/utils/timelineTimestamps";
 import type { VisitMovementHistory } from "@/types/api.types";
 import { mergeVisitMovementTimeline } from "@/utils/visitMovementTimeline";
+import type { TimelinePresentationSource } from "@/utils/visitTimelinePresentation";
 
 export type TimelineStepStatus = 'completed' | 'current' | 'pending' | 'error';
 
@@ -34,6 +35,7 @@ export interface TimelineAction {
 
 export interface TimelineStep {
   id: string;
+  sourceEventId?: string;
   label: string;
   timestamp?: string;
   status: TimelineStepStatus;
@@ -64,6 +66,7 @@ interface RequestTimelineProps {
   steps: TimelineStep[];
   movementHistory?: VisitMovementHistory;
   visitStatus?: string;
+  presentationSource?: TimelinePresentationSource;
   title?: string;
   showTitle?: boolean;
   /** IANA timezone for formatting absolute timestamps. Defaults to Asia/Riyadh. */
@@ -74,6 +77,7 @@ export function RequestTimeline({
   steps, 
   movementHistory,
   visitStatus,
+  presentationSource,
   title,
   showTitle = true,
   timezone,
@@ -81,7 +85,7 @@ export function RequestTimeline({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
-  const displaySteps = mergeVisitMovementTimeline(steps, movementHistory, t, visitStatus);
+  const displaySteps = mergeVisitMovementTimeline(steps, movementHistory, t, visitStatus, presentationSource);
 
   const getStepColor = (status: TimelineStepStatus) => {
     switch (status) {
@@ -429,6 +433,7 @@ export function ReceptionistVisitTimeline({ data, movementHistory, timezone }: R
       steps={displaySteps}
       movementHistory={movementHistory}
       visitStatus={data.status}
+      presentationSource={data}
       timezone={timezone}
     />
   );
