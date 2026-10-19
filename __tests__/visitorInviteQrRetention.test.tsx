@@ -29,6 +29,8 @@ const renderScreen = () => <VisitorInviteScreen route={{ params: { token: 'offli
 let tree: ReactTestRenderer;
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAccept.mutateAsync.mockReset();
+  mockReject.mutateAsync.mockReset();
   mockError = undefined;
   mockInvite = {
     id: 'v1', status: 'visitor_accepted', hostName: 'Fixture',
@@ -75,4 +77,183 @@ it('does not discard the valid QR when only canAccept is false', () => {
   act(() => { tree = create(renderScreen()); });
   expect(qrNodes()).toHaveLength(1);
   expect(mockAccept.mutateAsync).not.toHaveBeenCalled();
+});
+
+const action = (name: string) => tree.root.findAllByType('LoadingButton' as any)
+  .find(button => button.props.children === `actions.${name}`)!;
+const pendingInvite = (status = 'visitor_pending') => ({
+  ...mockInvite, status, visitorDecision: null, canAccept: true, canReject: true,
+});
+
+it.each(['pending', 'visitor_pending'])('keeps %s invitations unanswered even when a QR already exists', status => {
+  mockInvite = pendingInvite(status);
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationDeclined');
+  expect(qrNodes()).toHaveLength(0);
+  expect(action('accept').props.disabled).toBe(false);
+  expect(action('reject').props.disabled).toBe(false);
+  expect(mockAccept.mutateAsync).not.toHaveBeenCalled();
+  expect(mockReject.mutateAsync).not.toHaveBeenCalled();
+});
+
+it('also keeps pending invitations without a QR actionable', () => {
+  mockInvite = { ...pendingInvite(), qrCode: undefined };
+  act(() => { tree = create(renderScreen()); });
+  expect(action('accept').props.disabled).toBe(false);
+  expect(action('reject').props.disabled).toBe(false);
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('uses backend acceptance permission even when a pending invitation contains a QR', async () => {
+  mockInvite = { ...pendingInvite(), canAccept: false };
+  act(() => { tree = create(renderScreen()); });
+  expect(action('accept').props.disabled).toBe(true);
+  expect(action('reject').props.disabled).toBe(false);
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(mockAccept.mutateAsync).not.toHaveBeenCalled();
+});
+
+it('shows accepted only after the current query confirms the response, and uses its QR', async () => {
+  mockInvite = pendingInvite();
+  mockAccept.mutateAsync.mockImplementation(async () => {
+    mockInvite = { ...mockInvite, status: 'visitor_accepted', canAccept: false, canReject: false, qrCode: 'fresh-query-qr' };
+    return { status: 'visitor_accepted', qrCode: 'mutation-only-qr' };
+  });
+  act(() => { tree = create(renderScreen()); });
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(mockAccept.mutateAsync).toHaveBeenCalledTimes(1);
+  expect(mockAccept.mutateAsync).toHaveBeenCalledWith({ needsParking: false });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+  expect(qrNodes()[0].props.value).toBe('fresh-query-qr');
+});
+
+it('does not use a successful mutation or its QR to override a still-pending query', async () => {
+  mockInvite = pendingInvite();
+  mockAccept.mutateAsync.mockResolvedValue({ status: 'visitor_accepted', qrCode: 'mutation-only-qr' });
+  act(() => { tree = create(renderScreen()); });
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('lets a later cancellation override the acceptance result', async () => {
+  mockInvite = pendingInvite();
+  mockAccept.mutateAsync.mockImplementation(async () => {
+    mockInvite = { ...mockInvite, status: 'cancelled', canAccept: false, canReject: false };
+    return { status: 'visitor_accepted', qrCode: 'stale-mutation-qr' };
+  });
+  act(() => { tree = create(renderScreen()); });
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitorInvite.invitationCancelled');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it.each(['accepted', 'visitor_accepted', 'checked_in', 'checked_out', 'completed'])(
+  'preserves existing %s QR access without requiring a decision timestamp', status => {
+    mockInvite = { ...mockInvite, status, visitorDecision: null };
+    act(() => { tree = create(renderScreen()); });
+    expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+    expect(qrNodes()).toHaveLength(1);
+    expect(tree.root.findAllByType('LoadingButton' as any).filter(button => button.props.children === 'actions.accept')).toHaveLength(0);
+  },
+);
+
+it.each(['rejected', 'visitor_rejected'])('does not show a QR or accepted label for %s invitations', status => {
+  mockInvite = { ...mockInvite, status, visitorDecision: null };
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationDeclined');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('shows an authoritative decision without requiring decidedAt', () => {
+  mockInvite = { ...mockInvite, status: 'approved', visitorDecision: { accepted: true } };
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(1);
+});
+
+it('keeps an expired pending invitation blocked even when it has a retained QR', () => {
+  mockInvite = { ...pendingInvite(), isExpired: true, qrValidity: { retainedUntilCheckout: true, expired: false } };
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitorInvite.invitationExpired');
+  expect(qrNodes()).toHaveLength(0);
+  expect(tree.root.findAllByType('LoadingButton' as any).filter(button => button.props.children === 'actions.accept')).toHaveLength(0);
+});
+
+it('preserves pending-revocation presentation and withholds the QR of a responded invitation', () => {
+  mockInvite = { ...mockInvite, qrValidity: { expired: true, terminal: true, revocationPending: true } };
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+  expect(JSON.stringify(tree.toJSON())).toContain('Revocation pending');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('does not infer a visitor decision from an approved status and an issued QR', () => {
+  mockInvite = { ...pendingInvite('approved'), canAccept: false, canReject: false };
+  act(() => { tree = create(renderScreen()); });
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+  expect(action('accept').props.disabled).toBe(true);
+});
+
+it('submits rejection only when permitted and follows the current rejected query', async () => {
+  mockInvite = pendingInvite();
+  mockReject.mutateAsync.mockImplementation(async () => {
+    mockInvite = {
+      ...mockInvite, status: 'visitor_rejected', canAccept: false, canReject: false,
+      visitorDecision: { accepted: false, reason: 'Offline fixture reason' },
+    };
+    return { status: 'visitor_rejected' };
+  });
+  act(() => { tree = create(renderScreen()); });
+  act(() => action('reject').props.onPress());
+  const modal = tree.root.findAll(node => typeof node.props.onConfirm === 'function' && !!node.props.translations)[0];
+  await act(async () => { await modal.props.onConfirm('Offline fixture reason'); });
+  expect(mockReject.mutateAsync).toHaveBeenCalledTimes(1);
+  expect(mockReject.mutateAsync).toHaveBeenCalledWith({ reason: 'Offline fixture reason' });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationDeclined');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('does not submit rejection when the backend disallows it', async () => {
+  mockInvite = { ...pendingInvite(), canReject: false };
+  act(() => { tree = create(renderScreen()); });
+  expect(action('reject').props.disabled).toBe(true);
+  const modal = tree.root.findAll(node => typeof node.props.onConfirm === 'function' && !!node.props.translations)[0];
+  await act(async () => { await modal.props.onConfirm('Offline fixture reason'); });
+  expect(mockReject.mutateAsync).not.toHaveBeenCalled();
+});
+
+it('does not let local acceptance override a subsequent HTTP 410', async () => {
+  mockInvite = pendingInvite();
+  mockAccept.mutateAsync.mockImplementation(async () => {
+    mockInvite = { ...mockInvite, status: 'visitor_accepted' };
+    mockError = { response: { status: 410 } };
+    return { status: 'visitor_accepted', qrCode: 'stale-mutation-qr' };
+  });
+  act(() => { tree = create(renderScreen()); });
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitorInvite.invitationExpired');
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(qrNodes()).toHaveLength(0);
+});
+
+it('lets a refreshed pending status replace local acceptance even while QR presence is unchanged', async () => {
+  mockInvite = pendingInvite();
+  mockAccept.mutateAsync.mockImplementation(async () => {
+    mockInvite = { ...mockInvite, status: 'visitor_accepted', canAccept: false, canReject: false };
+    return { status: 'visitor_accepted' };
+  });
+  act(() => { tree = create(renderScreen()); });
+  await act(async () => { await action('accept').props.onPress(); });
+  expect(JSON.stringify(tree.toJSON())).toContain('visitor.invitationAccepted');
+  mockInvite = pendingInvite();
+  act(() => tree.update(renderScreen()));
+  expect(JSON.stringify(tree.toJSON())).not.toContain('visitor.invitationAccepted');
+  expect(action('accept').props.disabled).toBe(false);
+  expect(qrNodes()).toHaveLength(0);
 });

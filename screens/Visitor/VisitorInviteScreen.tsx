@@ -19,6 +19,7 @@ import { PURPOSE_VALUE_TO_KEY, normalizePurposeValue } from "@/constants/request
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { canDisplayQr, httpErrorStatus, hasInvalidQrSchedule } from '@/utils/qrAccess';
+import { getInviteResponseStatus } from '@/utils/inviteResponseStatus';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 
 // Dallah Albaraka Light Theme Colors for this page
@@ -387,6 +388,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   const acceptMutation = useAcceptInviteMutation(token || '');
   const rejectMutation = useRejectInviteMutation(token || '');
   const now = useQrClock();
+  const responseStatus = invite ? getInviteResponseStatus(invite) : null;
   const pageError = error || acceptMutation.error || rejectMutation.error;
   const accessBlocked = !!pageError || invite?.isExpired === true || (!!invite && hasInvalidQrSchedule(invite)) ||
     ['expired', 'cancelled', 'rejected', 'visitor_rejected'].includes(invite?.status || '');
@@ -600,8 +602,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   // The current query response always wins over a previous acceptance result.
   const displayInvite = invite;
   if (actionCompleted && displayInvite && !pageError && !accessBlocked &&
-      ((actionCompleted === 'accepted' && ['accepted', 'visitor_accepted'].includes(displayInvite.status)) ||
-       (actionCompleted === 'rejected' && ['rejected', 'visitor_rejected'].includes(displayInvite.status)))) {
+      responseStatus === actionCompleted) {
     const qrCodeValue = canDisplayQr(displayInvite, now) ? displayInvite.qrCode : undefined;
     
     return (
@@ -820,10 +821,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   }
 
   const isExpiredOrCancelled = invite.isExpired === true || invite.status === 'expired' || invite.status === 'cancelled';
-  const hasVisitorDecision = invite.visitorDecision?.decidedAt !== undefined && invite.visitorDecision?.decidedAt !== null;
-  const isAlreadyResponded = hasVisitorDecision || ['accepted', 'visitor_accepted', 'visitor_rejected', 'rejected', 'checked_in', 'checked_out', 'completed'].includes(invite.status) || !!invite.qrCode;
-  const isAccepted = invite.visitorDecision?.accepted === true || ['accepted', 'visitor_accepted', 'checked_in', 'checked_out', 'completed'].includes(invite.status) || !!invite.qrCode;
-  const finalStatus = ['rejected', 'visitor_rejected'].includes(invite.status) || invite.visitorDecision?.accepted === false ? 'rejected' : isAccepted ? 'accepted' : null;
+  const finalStatus = responseStatus;
 
   if (isExpiredOrCancelled) {
     const isCancelled = invite.status === 'cancelled';
@@ -880,7 +878,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   }
 
   // Already responded - show confirmation with details
-  if (isAlreadyResponded && finalStatus) {
+  if (finalStatus) {
     const qrCodeValue = canDisplayQr(invite, now) ? invite.qrCode : undefined;
     const decisionDate = invite.visitorDecision?.decidedAt;
     const decisionReason = invite.visitorDecision?.reason;
