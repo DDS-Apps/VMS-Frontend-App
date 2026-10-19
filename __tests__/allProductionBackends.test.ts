@@ -6,7 +6,7 @@ import { getEnvironmentConfig } from '../config/environments';
 const production = 'https://vms.dallah.com';
 const stale = 'https://vms-backend-app-qa.replit.app';
 
-describe('all clients use production', () => {
+describe('backend variant isolation', () => {
   it.each(['production', 'qa', 'staging', 'preview', 'development', ''])(
     'ignores stale backend overrides for %s', appVariant => {
       const resolved = resolveEnvironment({
@@ -21,12 +21,13 @@ describe('all clients use production', () => {
           EXPO_PUBLIC_API_BASE_URL: stale, EXPO_PUBLIC_MICROSOFT_AUTH_URL: stale,
         },
       });
-      expect(resolved.apiBaseUrl).toBe(production);
-      expect(resolved.microsoftAuthUrl).toBe(production);
+      const expected = appVariant === 'qa' || appVariant === 'staging' ? stale : production;
+      expect(resolved.apiBaseUrl).toBe(expected);
+      expect(resolved.microsoftAuthUrl).toBe(expected);
       expect(publicEnvFor(resolved)).toMatchObject({
-        EXPO_PUBLIC_API_BASE_URL: production,
-        EXPO_PUBLIC_VMS_API_BASE_URL: production,
-        EXPO_PUBLIC_MICROSOFT_AUTH_URL: production,
+        EXPO_PUBLIC_API_BASE_URL: expected,
+        EXPO_PUBLIC_VMS_API_BASE_URL: expected,
+        EXPO_PUBLIC_MICROSOFT_AUTH_URL: expected,
       });
     },
   );

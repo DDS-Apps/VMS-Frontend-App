@@ -1,6 +1,6 @@
 /**
  * Guards the environment wiring used by app.config.js and the web build:
- * all variants use the production backend, QA keeps its app identity,
+ * QA and production use their isolated backends and app identities,
  * and the bundle checks reject stale backend configuration.
  */
 const fs = require("fs");
@@ -53,11 +53,12 @@ describe("resolveEnvironment", () => {
     expect(() => assertProductionConfig(resolved)).not.toThrow();
   });
 
-  it("keeps QA identities but uses production APIs for explicit QA or staging", () => {
+  it("uses isolated QA APIs for explicit QA or staging", () => {
     for (const appVariant of ["staging", "qa"]) {
       const resolved = resolveEnvironment({ appVariant, env: {} });
       expect(resolved.variant).toBe("qa");
-      expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
+      expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
+      expect(resolved.microsoftAuthUrl).toBe(resolved.apiBaseUrl);
       expect(resolved.appDomain).toBe("vms-frontend-folio3.replit.app");
       expect(resolved.legalPagesUrl).toBe("https://vms-frontend-folio3.replit.app");
     }
@@ -73,8 +74,8 @@ describe("resolveEnvironment", () => {
       },
     });
 
-    expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
-    expect(resolved.sources.apiBaseUrl).toBe("production backend policy");
+    expect(resolved.apiBaseUrl).toBe("https://vms-backend-app-qa.replit.app");
+    expect(resolved.sources.apiBaseUrl).toBe("qa backend policy");
     expect(resolved.legalPagesUrl).toBe("https://legal.example.com");
   });
 
@@ -203,7 +204,7 @@ describe("app.config.js", () => {
     expect(config.android.intentFilters[0].data[0].host).toBe("vms-frontend-folio3.replit.app");
     expect(config.extra).toMatchObject({
       environment: "qa",
-      apiBaseUrl: "https://vms.dallah.com",
+      apiBaseUrl: "https://vms-backend-app-qa.replit.app",
       legalPagesUrl: "https://vms-frontend-folio3.replit.app",
     });
   });
@@ -300,7 +301,7 @@ describe("web dist finalize + verify", () => {
   });
 
   it("renders the QA add-in against the Replit host without a web.config", () => {
-    seedDist(PRODUCTION_BUNDLE);
+    seedDist('var a="https://vms-backend-app-qa.replit.app";');
 
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
 
@@ -323,7 +324,7 @@ describe("web dist finalize + verify", () => {
   });
 
   it("fails when the config inlined into the bundle belongs to the other environment", () => {
-    seedDist('var c={"extra":{"apiBaseUrl":"https://wrong.example.com"}};var q="https://vms.dallah.com";');
+    seedDist('var c={"extra":{"apiBaseUrl":"https://wrong.example.com"}};var q="https://vms-backend-app-qa.replit.app";');
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
     expect(verifyBundleHosts({ distDir, environment: qa }).errors).toEqual([
       expect.stringContaining('apiBaseUrl is "https://wrong.example.com" but the qa build expects'),
@@ -373,8 +374,8 @@ describe("web dist finalize + verify", () => {
     expect(() => assertBackendOrigin("https://user:password@backend.internal")).toThrow();
   });
 
-  it("rejects the former web-only QA exception and QA backend leaks in staging", () => {
-    seedDist('var a="https://vms.dallah.com";var q="https://vms-backend-app-qa.replit.app";');
+  it("accepts the confirmed QA backend but rejects foreign QA backends", () => {
+    seedDist('var q="https://vms-backend-app-qa.replit.app";var wrong="https://vms-backend-folio3.replit.app";');
     finalizeDist({ distDir, rootDir: ROOT, environment: qa, webConfig: null });
     expect(verifyBundleHosts({ distDir, environment: qa }).errors).toEqual([
       expect.stringContaining("forbidden QA backend"),

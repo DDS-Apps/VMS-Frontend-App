@@ -11,7 +11,7 @@ const {
 } = require('./config/app-environments');
 
 // APP_VARIANT selects the environment: `production` builds target
-// https://vms.dallah.com for all variants. QA only retains a separate app identity.
+// https://vms.dallah.com; explicit QA/staging targets the isolated QA backend.
 // eas.json sets it per build profile; scripts/build-web.js sets it for web.
 const APP_VARIANT = normalizeVariant(process.env.APP_VARIANT);
 const IS_PRODUCTION = APP_VARIANT === PRODUCTION_VARIANT;
@@ -27,7 +27,7 @@ function readVariantFile(fileName) {
 }
 
 const fileEnv = readVariantFile(IS_PRODUCTION ? '.env.production' : '.env.staging');
-// Backend URLs are fixed to production for every variant. Production also
+// Backend URLs are fixed per variant. Production also
 // ignores process overrides for the other public app-domain settings.
 const environment = resolveEnvironment({
   appVariant: APP_VARIANT,

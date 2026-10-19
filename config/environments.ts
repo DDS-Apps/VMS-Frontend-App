@@ -4,7 +4,7 @@
  * This file documents the structure of environment configurations for Production and QA.
  * 
  * IMPORTANT: 
- * - Backend origins are fixed to production; other values use environment configuration.
+ * - Backend origins follow the explicitly resolved QA/production variant.
  * - This file only shows the structure and provides helper functions
  * - NEVER hardcode actual API keys, secrets, or credentials in this file
  * 
@@ -15,6 +15,7 @@
  */
 
 import { API_BASE_URL, MICROSOFT_AUTH_BASE_URL } from '../api/backendUrls';
+import { BACKEND_ENVIRONMENT } from '../api/backendEnvironment';
 
 export interface EnvironmentConfig {
   name: string;
@@ -94,19 +95,11 @@ export function getAllEnvVarKeys(): string[] {
  * use the same dallah-albaraka-vms Firebase project.
  */
 export function getCurrentEnvironment(): 'production' | 'qa' | 'unknown' {
-  const appVariant = (process.env.APP_VARIANT || 'production').trim().toLowerCase();
-
-  if (appVariant === 'production') {
-    return 'production';
-  }
-  if (appVariant === 'staging' || appVariant === 'qa') {
-    return 'qa';
-  }
-  return 'production';
+  return BACKEND_ENVIRONMENT;
 }
 
 /**
- * Get the config with the fixed production backend and environment-provided Firebase values.
+ * Get the resolved backend and environment-provided Firebase values.
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
   const env = getCurrentEnvironment();

@@ -148,8 +148,8 @@ function snippet(content, index) {
  */
 function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
   const errors = [];
-  if (webBackendUrl && webBackendUrl !== 'https://vms.dallah.com') {
-    throw new Error('Web backend must be https://vms.dallah.com');
+  if (webBackendUrl && webBackendUrl !== environment.apiBaseUrl) {
+    throw new Error('Web backend must match the resolved build environment');
   }
   if (webBackendUrl && (!webBackendUrl.startsWith('https://') || new URL(webBackendUrl).origin !== webBackendUrl)) {
     throw new Error('Web backend must be an HTTPS origin without a path or credentials');
@@ -197,7 +197,8 @@ function verifyBundleHosts({ distDir, environment, webBackendUrl }) {
     }
 
     if (!isProduction) {
-      for (const host of QA_HOSTS.filter(host => host !== hostnameOf(environment.appDomain))) {
+      for (const host of QA_HOSTS.filter(host => host !== hostnameOf(environment.appDomain) &&
+        host !== hostnameOf(environment.apiBaseUrl) && host !== hostnameOf(environment.microsoftAuthUrl))) {
         if (content.includes(host)) errors.push(`${relative}: forbidden QA backend "${host}"`);
       }
       continue;

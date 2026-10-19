@@ -20,9 +20,13 @@ import { isValidRole } from '@/constants/roles';
 import type { UserRole } from '@/types/vms.types';
 import { queryClient } from '@/providers/QueryProvider';
 import { dashboardKpiKeys } from '@/hooks/queries/useDashboardKpiQuery';
+import { API_BASE_URL } from '@/api/backendUrls';
 
-const AUTH_STORAGE_KEY = '@vms_auth';
-const TOKEN_STORAGE_KEY = '@vms_tokens';
+// Keep existing production sessions intact, but never restore a production
+// profile/token into QA when the same browser preview changes environments.
+const storageScope = API_BASE_URL === 'https://vms.dallah.com' ? '' : `:${encodeURIComponent(API_BASE_URL)}`;
+const AUTH_STORAGE_KEY = `@vms_auth${storageScope}`;
+const TOKEN_STORAGE_KEY = `@vms_tokens${storageScope}`;
 export const SESSION_EXPIRED_ERROR = 'SESSION_EXPIRED';
 
 /**

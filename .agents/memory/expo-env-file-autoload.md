@@ -1,21 +1,38 @@
 ---
-name: Expo .env.production auto-load and environment resolution
-description: Why per-variant config is resolved explicitly in app.config.js instead of trusting process.env, and how production builds stay isolated from the QA shared env.
+name: Expo variant isolation and dotenv loading
+description: Why variants resolve explicitly, how QA stays isolated, and why existing exports need rebuilding.
 ---
-**Rule:** Production remains the default base environment, including internal/preview binaries. Explicit QA/staging may retain its app identity, but must use the production backend. Stale process variables, local files and Expo metadata must not redirect clients to QA.
 
-**All-configuration policy (2026-10-15):** The user explicitly superseded the web-only QA exception and requested `https://vms.dallah.com` for every configuration, including IIS web and mobile. Explicit QA/staging variants must not restore the old QA backend. This is the requested policy, not evidence that every setting has already been updated.
+Production remains the default for standard publishing and existing EAS profiles.
+Explicit QA/staging and the workspace preview use the user-confirmed QA backend,
+including Microsoft sign-in. Firebase must remain unchanged.
 
-**Why:** The user now wants all clients to target production. Changing a shared API variable alone does not affect exported web when build-time resolution overrides it.
+**Why:** On 2026-10-19 the user confirmed the QA origin
+`https://vms-backend-app-qa.replit.app` for preview and QA builds, superseding the
+previous rule that every variant used production. Production builds remain live.
 
-**How to apply:** Align web-specific overrides and all client variants with production without changing Firebase. Distinguish the public client origin from IIS's real backend upstream to avoid self-proxy loops. Exported browser configuration requires rebuilding; publishing needs separate authorization.
+**How to apply:** Preserve the per-variant split and isolate cached authentication
+by backend. Never reuse production sessions for QA or silently fall back to live
+APIs when QA metadata is invalid. Existing published exports/binaries require a
+separate rebuild and publish; changing workspace variables does not update them.
 
-**Why:** The user explicitly stated all builds and publishing should target production. Expo also loads `.env.production` for every export regardless of variant, and Metro inlines `EXPO_PUBLIC_*` references. Stale QA process variables or a plaintext production URL must not override that requirement.
+Resolve variants explicitly rather than trusting loaded process dotenv values.
 
-**How to apply:** New per-environment values go into `config/app-environments.js` (+ `publicEnvFor`, + `extra` in `app.config.js`); production web builds go through `scripts/build-web.js`, which also verifies the inlined `apiBaseUrl` matches the variant. Bundle scans must not use `grep -v` on minified output — one filtered line hides the whole bundle; scan token-by-token with context instead.
+**Why:** Expo loads `.env.production` for every export regardless of variant,
+and Metro inlines public environment references. Stale production or QA process
+variables must not redirect the chosen build.
 
-Production clients running outside their canonical web domain require backend approval for those exact origins.
+**How to apply:** Keep runtime URLs aligned with resolved Expo configuration,
+guard production against QA/dev URLs, and verify exported hostnames in both
+directions. Scan tokens with context, not `grep -v` on minified bundles. Production
+web's public origin is distinct from IIS's real backend upstream; avoid self-proxy
+loops.
 
-**Why:** The production API's CORS response can reject a Replit/local preview even when the build correctly targets production. Static exports and a rendered login page do not prove authenticated API access.
+Backend CORS and SSO redirects still need authorization for the frontend origin.
 
-**How to apply:** Verify allowed origins separately, keep production targeting unchanged, and never suggest wildcard credentialed CORS as a workaround.
+**Why:** A valid build target and a rendered login page do not prove authenticated
+API or Microsoft callback access.
+
+**How to apply:** Check exact origins separately without wildcard credentialed
+CORS, live workflow mutations, or claiming authenticated verification from a
+static export.

@@ -34,18 +34,25 @@ Restoration verification uses resolved configuration, type checking and a clean
 production web export, without running unit tests. No live notification,
 device registration, deliberate crash or remote native build is part of this work.
 
-### Shared production backend
+### Isolated QA and production backends
 
-Web API requests and Microsoft sign-in use `config/web-backend.json`, currently
-`https://vms.dallah.com`, through Metro's `backendUrls.web.ts`.
-This applies to web preview and published web builds, including production exports.
-Android and iOS use the same committed backend origin. Explicit QA/staging variants
-also use production APIs. Firebase, app domains, legal pages and native links retain their identities.
+The workspace preview now uses `APP_VARIANT=qa`. Explicit QA/staging builds use
+`https://vms-backend-app-qa.replit.app` for both API requests and Microsoft sign-in.
+Production builds retain `https://vms.dallah.com`, including standard publishing
+and all existing EAS profiles. Firebase is unchanged.
 
-The web origin is embedded at build time: changing the shared API secret does not
-replace it. Change this public configuration and republish to update the web backend.
-The bundle verifier rejects the former QA backend in every variant.
-All these clients access live data; QA/staging is no longer an isolated backend.
+Web and native consume the resolved Expo `extra` through `api/backendEnvironment.ts`.
+The variant resolver ignores stale API/SSO environment variables and local-file
+overrides. `config/web-backend.json` remains the production-only origin/fallback.
+QA requires its explicit metadata; it must not silently fall back to live APIs.
+
+Saved QA profiles/tokens use backend-scoped storage keys so a production browser
+session is not reused after switching the workspace to QA. Production storage
+keys remain unchanged. Sign in again to QA after reloading.
+
+Backend URLs are embedded in exports: existing published apps/binaries are not
+changed until rebuilt and separately published. Build QA web explicitly with
+`node scripts/build-web.js --variant qa --no-web-config --precompress`.
 
 The app has two base environments. Their public values are committed in
 `config/app-environments.js`, the single source of truth read by
@@ -54,8 +61,8 @@ The app has two base environments. Their public values are committed in
 | | QA | Production |
 |---|---|---|
 | Web app / app domain | `vms-frontend-folio3.replit.app` (Replit deployment of this project) | `vms.dallah.com` (IIS) |
-| API base URL | `https://vms.dallah.com` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
-| Microsoft SSO base URL | `https://vms.dallah.com` | `https://vms.dallah.com` |
+| API base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` (`/api/*` proxied by IIS) |
+| Microsoft SSO base URL | `https://vms-backend-app-qa.replit.app` | `https://vms.dallah.com` |
 | Legal pages | `https://vms-frontend-folio3.replit.app` | `https://vms.dallah.com` |
 | Outlook add-in | `a3f7c2d1-…` "VMS QA - Create Visit Request" | `c98d21ef-…` "VMS - Create Visit Request" |
 | Firebase project | `dallah-albaraka-vms` | `dallah-albaraka-vms` (shared) |
@@ -74,8 +81,8 @@ files in `config/qa/` remain unchanged.
 
 ## How values are resolved
 
-`apiBaseUrl` and `microsoftAuthUrl` are fixed to the production origin in all
-variants. Process and local-file overrides cannot redirect them.
+`apiBaseUrl` and `microsoftAuthUrl` are fixed to the selected variant's origin.
+Process and local-file overrides cannot redirect them.
 For `appDomain` and `legalPagesUrl`, highest priority first:
 
 1. `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_MICROSOFT_AUTH_URL`,
@@ -91,12 +98,12 @@ For `appDomain` and `legalPagesUrl`, highest priority first:
    for every `expo export` and would inline them into QA builds.
 3. The committed defaults.
 
-`microsoftAuthUrl` always matches the production API origin.
+`microsoftAuthUrl` always matches the selected API origin.
 
 If `APP_VARIANT=production` ends up pointing at HTTP or a non-production host (e.g. a
 stale `.env.production`), `app.config.js` throws and the build stops. The app
-uses the committed production origin directly on web and native; Expo metadata
-and exported public URL variables are resolved to that same origin.
+uses resolved Expo metadata on web and native; production always retains its
+committed production origin and QA requires explicit QA metadata.
 
 ## What is derived from the environment
 
