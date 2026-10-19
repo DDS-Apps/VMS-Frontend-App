@@ -36,6 +36,9 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
       const full = width < 768 && count === 1;
       expect(wrapper.props.style.maxWidth).toBe(full ? '100%' : width < 768 || count === 2 ? '49%' : '24%');
       expect(wrapper.props.style.flexBasis).toBe(full ? '100%' : width < 768 || count === 2 ? '46%' : '22%');
+      expect(wrapper.props.style.alignSelf).toBe('stretch');
+      expect(wrapper.props.style.height).toBeUndefined();
+      expect(wrapper.props.style.minHeight).toBeUndefined();
       expect(wrapper.props.style.height).toBeUndefined();
     }
     const row = tree.root.findAllByType(View).find(node => StyleSheet.flatten(node.props.style)?.flexWrap === 'wrap');
@@ -48,6 +51,13 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
       const basis = parseFloat(wrappers[0].props.style.flexBasis) / 100 * availableWidth;
       expect(2 * basis + gap).toBeLessThanOrEqual(availableWidth);
       expect(3 * basis + 2 * gap).toBeGreaterThan(availableWidth);
+    }
+    for (const card of tree.root.findAllByType('ThemedView' as any)) {
+      const style = StyleSheet.flatten(card.props.style);
+      expect(style).toMatchObject({ alignItems: 'flex-start', alignSelf: 'stretch', flexGrow: 1 });
+      expect(style.height).toBeUndefined();
+      expect(style.minHeight).toBeUndefined();
+      expect(style.maxHeight).toBeUndefined();
     }
     for (const text of tree.root.findAllByType('ThemedText' as any)) {
       expect(text.props.numberOfLines).toBeUndefined();

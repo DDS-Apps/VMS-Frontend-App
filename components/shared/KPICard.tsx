@@ -100,6 +100,7 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
           flexGrow: customSingleWidth ? 0 : 1,
           flexShrink: customSingleWidth ? 1 : 0,
           maxWidth: fullWidth || customSingleWidth ? '100%' : effectiveColumns === 2 ? '49%' : effectiveColumns === 3 ? '32%' : '24%',
+          alignSelf: 'stretch',
           marginBottom: Spacing.md,
         }}>
           {child}
@@ -127,13 +128,16 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
 const styles = StyleSheet.create({
   row: {
     flexWrap: 'wrap',
+    alignItems: 'stretch',
   },
   card: {
     padding: Spacing.sm,
     paddingLeft: Spacing.md,
     borderRadius: BorderRadius.lg,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+    flexGrow: 1,
     overflow: 'visible' as const,
     gap: Spacing.sm,
   },
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     minWidth: 0,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   label: {
