@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DDIcon } from '@/components/DDIcon';
 import { ThemedText } from '@/components/ThemedText';
 import { Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { formatTime12, isValidTime, parseTime12, timeOptions } from '@/utils/timeInput';
+import { formatTime12, isValidTime, parseTime12 } from '@/utils/timeInput';
+import { TimeColumns } from './TimeColumns.web';
 import type { TimeFieldProps } from './TimeField.types';
 
 // react-dom is already a runtime dependency; this module is never loaded on native.
@@ -14,7 +15,7 @@ const { createPortal } = require('react-dom') as {
 };
 
 export function TimeField({
-  value, onTimeSelect, label, style, disabled, minuteInterval = 5, onValidityChange,
+  value, onTimeSelect, label, style, disabled, onValidityChange,
 }: TimeFieldProps) {
   const { theme } = useTheme();
   const { t, isRTL } = useTranslation();
@@ -22,9 +23,9 @@ export function TimeField({
   const [draft, setDraft] = useState(() => formatTime12(value, isRTL));
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [navigating, setNavigating] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, height: 240 });
+  const [pickerTime, setPickerTime] = useState(value);
+  const [pickerDirty, setPickerDirty] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 264 });
   const anchor = useRef<View>(null);
   const popup = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -32,11 +33,13 @@ export function TimeField({
   validity.current = onValidityChange;
   const interactingPopup = useRef(false);
   const lastCommit = useRef<number | undefined>(undefined);
+  const focusColumnOnOpen = useRef(false);
   const valueStamp = isValidTime(value) ? value.getTime() : NaN;
-  const options = useMemo(() => timeOptions(value, minuteInterval), [valueStamp, minuteInterval]);
 
   useEffect(() => {
     setDraft(formatTime12(value, isRTL));
+    setPickerTime(value);
+    setPickerDirty(false);
     setError(!isValidTime(value));
     validity.current?.(isValidTime(value));
   }, [valueStamp, isRTL]);
@@ -49,9 +52,10 @@ export function TimeField({
     const rect = node?.getBoundingClientRect();
     if (!rect) return;
     const below = window.innerHeight - rect.bottom - 8;
-    const height = Math.max(40, Math.min(240, Math.max(below, rect.top - 8)));
-    const top = below >= Math.min(240, rect.top - 8) ? rect.bottom + 4 : Math.max(4, rect.top - height - 4);
-    setPosition({ top, left: Math.max(4, rect.left), width: Math.min(rect.width, window.innerWidth - 8), height });
+    const maxHeight = Math.max(40, Math.min(264, Math.max(below, rect.top - 8)));
+    const top = below >= Math.min(264, rect.top - 8) ? rect.bottom + 4 : Math.max(4, rect.top - maxHeight - 4);
+    const width = Math.min(Math.max(rect.width, 224), 320, window.innerWidth - 8);
+    setPosition({ top, left: Math.max(4, Math.min(rect.left, window.innerWidth - width - 4)), width, maxHeight });
   }, []);
 
   const commit = useCallback((time: Date) => {
@@ -100,17 +104,34 @@ export function TimeField({
   }, [open, draft, locate, commit]);
 
   useEffect(() => {
-    if (open) document.getElementById(`${listId}-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
-  }, [open, activeIndex, listId]);
+    if (open && focusColumnOnOpen.current) {
+      focusColumnOnOpen.current = false;
+      document.getElementById(`${listId}-hour`)?.focus();
+    }
+  }, [open, listId]);
 
   function openList() {
-    if (disabled || options.length === 0) return;
+    if (disabled || !isValidTime(value)) return;
     const selected = parseTime12(draft, value) ?? value;
-    const minutes = selected.getHours() * 60 + selected.getMinutes();
-    setActiveIndex(Math.min(options.length - 1, Math.round(minutes / minuteInterval)));
-    setNavigating(false);
+    setPickerTime(new Date(selected));
+    setPickerDirty(false);
+    interactingPopup.current = false;
     locate();
     setOpen(true);
+  }
+
+  function applyPicker() {
+    input.current?.focus();
+    commit(new Date(pickerTime));
+  }
+
+  function discard() {
+    input.current?.focus();
+    setOpen(false);
+    setDraft(formatTime12(value, isRTL));
+    setPickerDirty(false);
+    setError(!isValidTime(value));
+    validity.current?.(isValidTime(value));
   }
 
   return (
@@ -129,8 +150,8 @@ export function TimeField({
           aria-label={label}
           aria-expanded={open}
           aria-controls={listId}
-          aria-autocomplete="list"
-          aria-activedescendant={open ? `${listId}-${activeIndex}` : undefined}
+          aria-autocomplete="none"
+          aria-haspopup="dialog"
           aria-invalid={error}
           aria-describedby={error ? `${listId}-error` : undefined}
           autoComplete="off"
@@ -148,12 +169,11 @@ export function TimeField({
             const text = event.target.value;
             setDraft(text);
             lastCommit.current = undefined;
-            setNavigating(false);
+            setPickerDirty(false);
             const parsed = parseTime12(text, value);
             const valid = parsed !== null;
             if (parsed) {
-              const minutes = parsed.getHours() * 60 + parsed.getMinutes();
-              setActiveIndex(Math.min(options.length - 1, Math.round(minutes / minuteInterval)));
+              setPickerTime(parsed);
             }
             setError(!valid);
             validity.current?.(valid);
@@ -165,22 +185,17 @@ export function TimeField({
           onKeyDown={event => {
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               event.preventDefault();
-              if (!open) openList();
-              else setActiveIndex(index => Math.max(0, Math.min(options.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1))));
-              setNavigating(true);
+              if (!open) {
+                focusColumnOnOpen.current = true;
+                openList();
+              } else document.getElementById(`${listId}-hour`)?.focus();
             } else if (event.key === 'Enter') {
               event.preventDefault();
-              // Edited text always wins; selecting a suggestion never discards an invalid draft silently.
-              const parsed = parseTime12(draft, value);
-              if (open && navigating) commit(options[activeIndex]);
-              else if (parsed) commit(parsed);
+              if (open && pickerDirty) applyPicker();
               else commitDraft();
             } else if (event.key === 'Escape') {
               event.preventDefault();
-              setOpen(false);
-              setDraft(formatTime12(value, isRTL));
-              setError(false);
-              validity.current?.(isValidTime(value));
+              discard();
             }
           }}
         />
@@ -204,32 +219,38 @@ export function TimeField({
         <div
           ref={popup}
           id={listId}
-          role="listbox"
+          role="dialog"
           aria-label={label}
           onPointerDownCapture={() => { interactingPopup.current = true; }}
           onPointerUpCapture={() => { interactingPopup.current = false; }}
           onPointerCancel={() => { interactingPopup.current = false; }}
+          onBlur={event => {
+            const next = event.relatedTarget as Node | null;
+            const field = anchor.current as unknown as HTMLElement | null;
+            if (!popup.current?.contains(next) && !field?.contains(next)) commitDraft();
+          }}
+          onKeyDown={event => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              discard();
+            } else if (event.key === 'Enter') {
+              event.preventDefault();
+              applyPicker();
+            }
+          }}
           style={{
             position: 'fixed', ...position, zIndex: 2147483647, overflowY: 'auto',
+            padding: 8, boxSizing: 'border-box', fontFamily: Typography.body.fontFamily,
             background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8,
             boxShadow: '0 4px 16px rgba(0,0,0,0.15)', direction: isRTL ? 'rtl' : 'ltr',
           }}
         >
-          {options.map((time, index) => (
-            <button
-              key={index} id={`${listId}-${index}`} role="option" type="button" tabIndex={-1}
-              aria-selected={index === activeIndex}
-              onMouseDown={event => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => { commit(time); input.current?.focus(); setOpen(false); }}
-              style={{
-                display: 'block', width: '100%', border: 0, padding: '10px 14px', cursor: 'pointer',
-                background: index === activeIndex ? theme.surfaceSecondary : theme.surface,
-                color: theme.text, fontSize: 16, fontFamily: Typography.body.fontFamily,
-                textAlign: isRTL ? 'right' : 'left',
-              }}
-            >{formatTime12(time, isRTL)}</button>
-          ))}
+          <TimeColumns
+            id={listId} value={pickerTime}
+            onChange={time => { setPickerTime(time); setPickerDirty(true); }}
+            onDone={applyPicker}
+          />
         </div>,
         (anchor.current as unknown as HTMLElement | null)?.closest?.('[aria-modal="true"], [role="dialog"]') ?? document.body,
       ) : null}

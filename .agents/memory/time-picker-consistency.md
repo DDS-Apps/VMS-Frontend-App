@@ -14,12 +14,15 @@ Keep the existing API's internal time encoding unchanged.
 
 Time selection throughout the mobile app should follow the native iOS
 hour/minute/AM–PM spinner reference in a centered dialog, rather than the custom
-bottom-sheet wheel. Web should use an editable time dropdown.
+bottom-sheet wheel. Web should keep direct typing and use a compact dropdown
+with independent hour (01–12), minute (00–59), and AM/PM columns plus Done.
+Unfinished column selections are discarded on outside click or Escape.
 
 **Why:** After reviewing the inconsistent pickers and blank iPhone rendering,
 the user explicitly selected the spinner for mobile throughout the app and the
 previously discussed editable dropdown for web. They want the existing visual
-styling retained.
+styling retained. After seeing the full-day list, they approved independently
+scrolling columns matching their new reference instead of a long list of times.
 
 **How to apply:** Use shared platform-specific controls across creation,
 editing, approval, and settings flows; preserve existing dates, scheduling

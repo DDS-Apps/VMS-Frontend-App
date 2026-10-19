@@ -4,6 +4,7 @@ import { TimeField } from '@/components/time/TimeField.web';
 
 let mockRTL = false;
 const mockListeners = new Map<string, Function>();
+const mockFocus = jest.fn();
 const mockPortal = jest.fn((children: React.ReactNode, _container: Element) => children);
 let mockDialog: Element | null = null;
 jest.mock('react-native', () => {
@@ -40,7 +41,7 @@ describe('editable web time dropdown', () => {
     mockDialog = null;
     mockListeners.clear();
     Object.defineProperty(global, 'document', { configurable: true, value: {
-      body: {}, getElementById: () => ({ scrollIntoView: jest.fn() }),
+      body: {}, getElementById: () => ({ focus: mockFocus }),
       addEventListener: (key: string, callback: Function) => mockListeners.set(key, callback),
       removeEventListener: (key: string) => mockListeners.delete(key),
     } });
@@ -58,7 +59,7 @@ describe('editable web time dropdown', () => {
         { createNodeMock: () => ({
           getBoundingClientRect: () => ({ top: 40, bottom: 90, left: 20, width: 300 }),
           closest: () => mockDialog,
-          contains: () => false, focus: jest.fn(),
+          contains: () => false, focus: jest.fn(), clientHeight: 176,
         }) },
       );
     });
@@ -67,14 +68,23 @@ describe('editable web time dropdown', () => {
   const input = () => tree!.root.findByType('input');
   const type = (value: string) => act(() => input().props.onChange({ target: { value } }));
   const key = (value: string) => act(() => input().props.onKeyDown({ key: value, preventDefault: jest.fn() }));
+  const column = (index: number) => tree!.root.findAllByProps({ role: 'listbox' })[index];
+  const choose = (index: number, label: string) => act(() => {
+    column(index).findAllByProps({ role: 'option' }).find(node => node.props.children === label)!.props.onClick();
+  });
+  const done = () => act(() => tree!.root.findByProps({ children: 'common.done' }).props.onClick());
 
-  it('displays a 12-hour value, with typing, suggestions and combobox semantics', () => {
+  it('shows compact independent hour/minute/period columns instead of a full-day time list', () => {
     const renderer = mount();
     expect(input().props.value).toBe('9:07 AM');
     expect(input().props.role).toBe('combobox');
     act(() => input().props.onFocus());
-    expect(renderer.root.findAllByProps({ role: 'option' })).toHaveLength(288);
-    expect(renderer.root.findByProps({ role: 'listbox' })).toBeDefined();
+    expect(renderer.root.findAllByProps({ role: 'listbox' })).toHaveLength(3);
+    expect(column(0).findAllByProps({ role: 'option' })).toHaveLength(12);
+    expect(column(1).findAllByProps({ role: 'option' })).toHaveLength(60);
+    expect(column(2).findAllByProps({ role: 'option' })).toHaveLength(2);
+    expect(column(1).props.style).toMatchObject({ height: 176, overflowY: 'auto' });
+    expect(input().props['aria-haspopup']).toBe('dialog');
     expect(input().props['aria-expanded']).toBe(true);
   });
 
@@ -98,12 +108,20 @@ describe('editable web time dropdown', () => {
     expect(input().props['aria-invalid']).toBe(true);
   });
 
-  it('selects a suggestion immediately and closes the dropdown', () => {
-    const renderer = mount();
+  it('stages all three parts and only applies them once when Done is pressed', () => {
+    mount();
     act(() => input().props.onFocus());
-    const option = renderer.root.findAllByProps({ role: 'option' }).find(node => node.props.children === '2:30 PM')!;
-    act(() => option.props.onClick());
+    choose(0, '02');
+    choose(1, '30');
+    choose(2, 'time.pm');
+    expect(onTimeSelect).not.toHaveBeenCalled();
+    expect(input().props.value).toBe('9:07 AM');
+    expect(input().props['aria-expanded']).toBe(true);
+    done();
+    expect(onTimeSelect).toHaveBeenCalledTimes(1);
     expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(14);
+    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(30);
+    expect(onTimeSelect.mock.calls[0][0].getDate()).toBe(19);
     expect(input().props.value).toBe('2:30 PM');
     expect(input().props['aria-expanded']).toBe(false);
   });
@@ -116,12 +134,16 @@ describe('editable web time dropdown', () => {
     expect(onTimeSelect).not.toHaveBeenCalled();
   });
 
-  it('supports arrow navigation followed by Enter selection', () => {
+  it('supports focusing and navigating the columns by keyboard before Enter applies', () => {
     mount();
     act(() => input().props.onFocus());
     key('ArrowDown');
+    expect(mockFocus).toHaveBeenCalled();
+    act(() => column(0).props.onKeyDown({ key: 'ArrowDown', preventDefault: jest.fn(), stopPropagation: jest.fn() }));
+    expect(onTimeSelect).not.toHaveBeenCalled();
     key('Enter');
-    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(10);
+    expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(10);
+    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(7);
   });
 
   it('Escape restores the committed value and clears invalidity', () => {
@@ -173,5 +195,80 @@ describe('editable web time dropdown', () => {
     mount();
     act(() => input().props.onFocus());
     expect(mockPortal).toHaveBeenLastCalledWith(expect.anything(), mockDialog);
+  });
+
+  it('discards unfinished column choices on an outside click and reopens at the original time', () => {
+    mount();
+    act(() => input().props.onFocus());
+    choose(0, '02');
+    choose(1, '37');
+    act(() => mockListeners.get('pointerdown')!({ target: {} }));
+    expect(onTimeSelect).not.toHaveBeenCalled();
+    expect(input().props.value).toBe('9:07 AM');
+    act(() => input().props.onFocus());
+    expect(column(0).findByProps({ 'aria-selected': true }).props.children).toBe('09');
+    expect(column(1).findByProps({ 'aria-selected': true }).props.children).toBe('07');
+  });
+
+  it('discards column choices on Escape', () => {
+    mount();
+    act(() => input().props.onFocus());
+    choose(0, '02');
+    const panel = tree!.root.findByProps({ role: 'dialog' });
+    act(() => panel.props.onKeyDown({ key: 'Escape', preventDefault: jest.fn(), stopPropagation: jest.fn() }));
+    expect(onTimeSelect).not.toHaveBeenCalled();
+    expect(input().props.value).toBe('9:07 AM');
+    expect(input().props['aria-expanded']).toBe(false);
+  });
+
+  it('lets valid directly typed time commit while discarding unfinished column changes', () => {
+    mount();
+    act(() => input().props.onFocus());
+    type('2:30 PM');
+    choose(0, '05');
+    act(() => mockListeners.get('pointerdown')!({ target: {} }));
+    expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(14);
+    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(30);
+  });
+
+  it.each([['time.am', 0], ['time.pm', 12]])('handles twelve %s without changing the date', (period, hours) => {
+    mount();
+    act(() => input().props.onFocus());
+    choose(0, '12');
+    choose(1, '00');
+    choose(2, period as string);
+    done();
+    expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(hours);
+    expect(onTimeSelect.mock.calls[0][0].getDate()).toBe(19);
+  });
+
+  it('allows every minute, including values between five-minute steps', () => {
+    mount();
+    act(() => input().props.onFocus());
+    choose(1, '37');
+    done();
+    expect(input().props.value).toBe('9:37 AM');
+    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(37);
+  });
+
+  it('commits typed time when keyboard focus leaves the popup, not its unfinished column selections', () => {
+    mount();
+    act(() => input().props.onFocus());
+    type('2:30 PM');
+    choose(0, '05');
+    act(() => tree!.root.findByProps({ role: 'dialog' }).props.onBlur({ relatedTarget: null }));
+    expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(14);
+    expect(input().props['aria-expanded']).toBe(false);
+  });
+
+  it('localizes all three columns in Arabic', () => {
+    mockRTL = true;
+    mount();
+    act(() => input().props.onFocus());
+    choose(0, '٠٢');
+    choose(1, '٣٧');
+    choose(2, 'time.pm');
+    done();
+    expect(input().props.value).toBe('٢:٣٧ م');
   });
 });
