@@ -962,6 +962,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     activeTasks: 'Active Tasks',
   },
   time: {
+    invalidTime: 'Enter a valid 12-hour time, for example 2:30 PM.',
     today: 'Today',
     yesterday: 'Yesterday',
     tomorrow: 'Tomorrow',

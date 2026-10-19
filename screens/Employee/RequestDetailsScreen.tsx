@@ -31,7 +31,9 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
-import { TimePicker } from "@/components/TimePicker";
+import { TimePicker, TimePickerContent } from "@/components/TimePicker";
+import { TimeField } from "@/components/time/TimeField";
+import { useTimeFieldValidation } from "@/hooks/useTimeFieldValidation";
 import { DDIcon, type IconName } from "@/components/DDIcon";
 import {
   SelectableCard,
@@ -175,6 +177,7 @@ export default function RequestDetailsScreen({
   });
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditTimePicker, setShowEditTimePicker] = useState(false);
+  const { hasInvalidTimes, reportTimeValidity } = useTimeFieldValidation();
   const [showEditEndTimePicker, setShowEditEndTimePicker] = useState(false);
   const [showPurposePicker, setShowPurposePicker] = useState(false);
   // Inline picker mode for iOS (can't stack Modals on iOS)
@@ -954,12 +957,9 @@ export default function RequestDetailsScreen({
   };
 
   const handleEditTimeChange = (
-    event: DateTimePickerEvent,
-    selectedTime?: Date,
+    selectedTime: Date,
   ) => {
-    if (Platform.OS === "android") {
-      setShowEditTimePicker(false);
-    }
+    setShowEditTimePicker(false);
     if (selectedTime) {
       let timeToSet = selectedTime;
       if (isApprovalFlow) {
@@ -974,6 +974,7 @@ export default function RequestDetailsScreen({
         const newEnd = new Date(timeToSet.getTime() + 60 * 60 * 1000);
         setEditEndTime(newEnd);
       }
+      return timeToSet;
     }
   };
 
@@ -990,6 +991,7 @@ export default function RequestDetailsScreen({
   };
 
   const handleEditConfirm = () => {
+    if (hasInvalidTimes) return;
     const requiresMeetingRoom = editRequiresMeetingRoom || editRequiresBuffet;
 
     // Validate meeting room selection before submitting
@@ -2771,7 +2773,11 @@ export default function RequestDetailsScreen({
                     >
                       {t("form.startTime")} *
                     </ThemedText>
-                    <Pressable
+                    <TimeField
+                      value={isApprovalFlow && approvalStartTime ? approvalStartTime : editTime}
+                      onTimeSelect={handleEditTimeChange}
+                      label={t("form.startTime")}
+                      onValidityChange={valid => reportTimeValidity('start', valid)}
                       style={[
                         styles.pickerButton,
                         {
@@ -2805,7 +2811,7 @@ export default function RequestDetailsScreen({
                           : formatDisplayTime(editTime)}
                       </ThemedText>
                       <DDIcon name="chevron-down" size={16} variant="muted" />
-                    </Pressable>
+                    </TimeField>
 
                     <Spacer height={Spacing.lg} />
                     <ThemedText
@@ -2821,7 +2827,11 @@ export default function RequestDetailsScreen({
                     >
                       {t("form.endTime")} *
                     </ThemedText>
-                    <Pressable
+                    <TimeField
+                      value={editEndTime}
+                      onTimeSelect={setEditEndTime}
+                      label={t("form.endTime")}
+                      onValidityChange={valid => reportTimeValidity('end', valid)}
                       style={[
                         styles.pickerButton,
                         {
@@ -2867,7 +2877,7 @@ export default function RequestDetailsScreen({
                         {formatDisplayTime(editEndTime)}
                       </ThemedText>
                       <DDIcon name="chevron-down" size={16} variant="muted" />
-                    </Pressable>
+                    </TimeField>
                     {isWalkInEndTimeBeforeStartTime() ? (
                       <ThemedText
                         style={[
@@ -2968,7 +2978,11 @@ export default function RequestDetailsScreen({
                     >
                       {t("form.time")}
                     </ThemedText>
-                    <Pressable
+                    <TimeField
+                      value={editTime}
+                      onTimeSelect={handleEditTimeChange}
+                      label={t("form.time")}
+                      onValidityChange={valid => reportTimeValidity('start', valid)}
                       style={[
                         styles.pickerButton,
                         {
@@ -3002,7 +3016,7 @@ export default function RequestDetailsScreen({
                       >
                         {formatDisplayTime(editTime)}
                       </ThemedText>
-                    </Pressable>
+                    </TimeField>
 
                     <Spacer height={Spacing.lg} />
 
@@ -3019,7 +3033,11 @@ export default function RequestDetailsScreen({
                     >
                       {t("form.endTime")}
                     </ThemedText>
-                    <Pressable
+                    <TimeField
+                      value={editEndTime}
+                      onTimeSelect={setEditEndTime}
+                      label={t("form.endTime")}
+                      onValidityChange={valid => reportTimeValidity('end', valid)}
                       style={[
                         styles.pickerButton,
                         {
@@ -3054,7 +3072,7 @@ export default function RequestDetailsScreen({
                       >
                         {formatDisplayTime(editEndTime)}
                       </ThemedText>
-                    </Pressable>
+                    </TimeField>
 
                     <Spacer height={Spacing.lg} />
 
@@ -3522,6 +3540,7 @@ export default function RequestDetailsScreen({
                   }}
                   loading={updateMutation.isPending}
                   disabled={
+                    hasInvalidTimes ||
                     updateMutation.isPending ||
                     // Rooms still loading — wait before saving
                     (editRequiresMeetingRoom && (isLoadingEditRooms || isFetchingEditRooms)) ||
@@ -3592,102 +3611,27 @@ export default function RequestDetailsScreen({
 
               {Platform.OS === 'ios' && inlinePickerMode === 'endTime' && (
                 <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
-                  <View style={{ flex: 1, padding: 24 }}>
-                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
-                        {t("time.selectTime")}
-                      </ThemedText>
-                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
-                        <DDIcon name="x" size={20} variant="muted" />
-                      </Pressable>
-                    </View>
-                    <DateTimePicker
-                      value={editEndTime}
-                      mode="time"
-                      display="spinner"
-                      onChange={(event: DateTimePickerEvent, date?: Date) => {
-                        if (date) {
-                          setEditEndTime(date);
-                        }
-                      }}
-                      style={{ height: 180 }}
+                  <ScrollView contentContainerStyle={{ padding: 24 }}>
+                    <TimePickerContent
+                      selectedTime={editEndTime}
+                      onTimeSelect={setEditEndTime}
+                      onClose={() => setInlinePickerMode('none')}
                       minuteInterval={5}
                     />
-                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
-                      <LoadingButton
-                        onPress={() => setInlinePickerMode('none')}
-                        variant="secondary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.cancel")}
-                      </LoadingButton>
-                      <LoadingButton
-                        onPress={() => setInlinePickerMode('none')}
-                        variant="primary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.confirm")}
-                      </LoadingButton>
-                    </View>
-                  </View>
+                  </ScrollView>
                 </View>
               )}
 
               {Platform.OS === 'ios' && inlinePickerMode === 'startTime' && (
                 <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
-                  <View style={{ flex: 1, padding: 24 }}>
-                    <View style={[styles.modalHeader, { borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }]}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
-                        {t("time.selectTime")}
-                      </ThemedText>
-                      <Pressable onPress={() => setInlinePickerMode('none')} hitSlop={8}>
-                        <DDIcon name="x" size={20} variant="muted" />
-                      </Pressable>
-                    </View>
-                    <DateTimePicker
-                      value={editTime}
-                      mode="time"
-                      display="spinner"
-                      onChange={(event: DateTimePickerEvent, date?: Date) => {
-                        if (date) {
-                          let timeToSet = date;
-                          if (isApprovalFlow) {
-                            const now = new Date();
-                            if (timeToSet < now) {
-                              timeToSet = now;
-                            }
-                            setApprovalStartTime(timeToSet);
-                          }
-                          setEditTime(timeToSet);
-                          if (editEndTime <= timeToSet) {
-                            setEditEndTime(new Date(timeToSet.getTime() + 60 * 60 * 1000));
-                          }
-                        }
-                      }}
-                      style={{ height: 180 }}
+                  <ScrollView contentContainerStyle={{ padding: 24 }}>
+                    <TimePickerContent
+                      selectedTime={editTime}
+                      onTimeSelect={handleEditTimeChange}
+                      onClose={() => setInlinePickerMode('none')}
                       minuteInterval={5}
                     />
-                    <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.md }}>
-                      <LoadingButton
-                        onPress={() => setInlinePickerMode('none')}
-                        variant="secondary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.cancel")}
-                      </LoadingButton>
-                      <LoadingButton
-                        onPress={() => setInlinePickerMode('none')}
-                        variant="primary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.confirm")}
-                      </LoadingButton>
-                    </View>
-                  </View>
+                  </ScrollView>
                 </View>
               )}
 
@@ -3756,21 +3700,7 @@ export default function RequestDetailsScreen({
           visible={showEditTimePicker}
           onClose={() => setShowEditTimePicker(false)}
           selectedTime={editTime}
-          onTimeSelect={(time) => {
-            let timeToSet = time;
-            if (isApprovalFlow) {
-              const now = new Date();
-              if (timeToSet < now) {
-                timeToSet = now;
-              }
-              setApprovalStartTime(timeToSet);
-            }
-            setEditTime(timeToSet);
-            if (editEndTime <= timeToSet) {
-              setEditEndTime(new Date(timeToSet.getTime() + 60 * 60 * 1000));
-            }
-            setShowEditTimePicker(false);
-          }}
+          onTimeSelect={handleEditTimeChange}
           minuteInterval={5}
         />
 

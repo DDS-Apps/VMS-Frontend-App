@@ -962,6 +962,7 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     activeTasks: 'المهام النشطة',
   },
   time: {
+    invalidTime: 'أدخل وقتًا صحيحًا بنظام ١٢ ساعة، مثل ٢:٣٠ م.',
     today: 'اليوم',
     yesterday: 'أمس',
     tomorrow: 'غداً',

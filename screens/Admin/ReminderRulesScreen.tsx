@@ -7,6 +7,8 @@ import { DDIcon } from "@/components/DDIcon";
 import { LoadingButton } from "@/components/shared/LoadingButton";
 import { StyledInput } from "@/components/StyledInput";
 import { TimePicker } from "@/components/TimePicker";
+import { TimeField } from "@/components/time/TimeField";
+import { useTimeFieldValidation } from "@/hooks/useTimeFieldValidation";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -70,6 +72,7 @@ export default function ReminderRulesScreen() {
   const [hasChanges, setHasChanges] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const { hasInvalidTimes, reportTimeValidity } = useTimeFieldValidation();
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const editRevisionRef = useRef(0);
 
@@ -99,7 +102,7 @@ export default function ReminderRulesScreen() {
   };
 
   const handleSave = async () => {
-    if (!localRules) return;
+    if (!localRules || hasInvalidTimes) return;
     const submittedRevision = editRevisionRef.current;
 
     try {
@@ -352,7 +355,12 @@ export default function ReminderRulesScreen() {
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeStartTime")}
               </ThemedText>
-              <Pressable
+              <TimeField
+                value={timeStringToDate(localRules.officeStartTime)}
+                onTimeSelect={handleStartTimeSelect}
+                label={t("admin.officeStartTime")}
+                minuteInterval={15}
+                onValidityChange={valid => reportTimeValidity('start', valid)}
                 style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => setShowStartTimePicker(true)}
               >
@@ -363,13 +371,18 @@ export default function ReminderRulesScreen() {
                   {convert24To12Hour(localRules.officeStartTime, isRTL)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
-              </Pressable>
+              </TimeField>
             </View>
             <View style={styles.timeField}>
               <ThemedText style={[Typography.label, { marginBottom: Spacing.sm }]}>
                 {t("admin.officeEndTime")}
               </ThemedText>
-              <Pressable
+              <TimeField
+                value={timeStringToDate(localRules.officeEndTime)}
+                onTimeSelect={handleEndTimeSelect}
+                label={t("admin.officeEndTime")}
+                minuteInterval={15}
+                onValidityChange={valid => reportTimeValidity('end', valid)}
                 style={[styles.timeButton, { backgroundColor: theme.background, borderColor: theme.border, flexDirection: getFlexDirection(isRTL) }]}
                 onPress={() => setShowEndTimePicker(true)}
               >
@@ -380,7 +393,7 @@ export default function ReminderRulesScreen() {
                   {convert24To12Hour(localRules.officeEndTime, isRTL)}
                 </ThemedText>
                 <DDIcon name="chevron-down" size={18} color={theme.textSecondary} />
-              </Pressable>
+              </TimeField>
             </View>
           </DirectionalRow>
 
@@ -441,6 +454,7 @@ export default function ReminderRulesScreen() {
         {hasChanges ? (
           <LoadingButton
             onPress={handleSave}
+            disabled={hasInvalidTimes}
             loading={updateMutation.isPending}
             variant="primary"
             size="medium"

@@ -60,6 +60,8 @@ import type {
 import { applyOpacity, createModalOverlayStyle } from "@/utils/statusStyles";
 import { CalendarDatePicker } from "@/components/CalendarDatePicker";
 import { TimePicker } from "@/components/TimePicker";
+import { TimeField } from "@/components/time/TimeField";
+import { useTimeFieldValidation } from "@/hooks/useTimeFieldValidation";
 import { normalizePhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
@@ -164,6 +166,7 @@ export default function VisitorRequestFormScreen({
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const { hasInvalidTimes, reportTimeValidity } = useTimeFieldValidation();
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [purposeValue, setPurposeValue] = useState(initialPurposeValue);
 
@@ -637,6 +640,7 @@ export default function VisitorRequestFormScreen({
   };
 
   const handleSubmit = async () => {
+    if (hasInvalidTimes) return;
     const { isValid } = validateForm();
     if (!isValid) {
       return;
@@ -1385,7 +1389,11 @@ export default function VisitorRequestFormScreen({
                 {t("form.visitTime")} *
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <Pressable
+              <TimeField
+                value={selectedTime}
+                onTimeSelect={handleTimeSelect}
+                label={t("form.visitTime")}
+                onValidityChange={valid => reportTimeValidity('start', valid)}
                 style={[
                   styles.iconInputButton,
                   {
@@ -1413,7 +1421,7 @@ export default function VisitorRequestFormScreen({
                   </ThemedText>
                   <DDIcon name="chevron-down" size={20} variant="muted" />
                 </DirectionalRow>
-              </Pressable>
+              </TimeField>
               {errors.visitTime ? (
                 <>
                   <Spacer height={Spacing.xs} />
@@ -1439,7 +1447,11 @@ export default function VisitorRequestFormScreen({
                 {t("form.endTime")} *
               </ThemedText>
               <Spacer height={Spacing.xs} />
-              <Pressable
+              <TimeField
+                value={selectedEndTime}
+                onTimeSelect={handleEndTimeSelect}
+                label={t("form.endTime")}
+                onValidityChange={valid => reportTimeValidity('end', valid)}
                 style={[
                   styles.iconInputButton,
                   {
@@ -1467,7 +1479,7 @@ export default function VisitorRequestFormScreen({
                   </ThemedText>
                   <DDIcon name="chevron-down" size={20} variant="muted" />
                 </DirectionalRow>
-              </Pressable>
+              </TimeField>
               {errors.endTime ? (
                 <>
                   <Spacer height={Spacing.xs} />
@@ -2521,6 +2533,7 @@ export default function VisitorRequestFormScreen({
             onPress={handleSubmit}
             loading={isSubmitting}
             disabled={
+              hasInvalidTimes ||
               isSubmitting ||
               // Employee list or rooms still loading — wait before submitting
               isSubmitDisabledByLoading({

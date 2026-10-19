@@ -16,10 +16,11 @@ import {
   KeyboardAvoidingView,
   useWindowDimensions,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { TimePicker, TimePickerContent } from "@/components/TimePicker";
+import { TimeField } from "@/components/time/TimeField";
+import { useTimeFieldValidation } from "@/hooks/useTimeFieldValidation";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -250,6 +251,7 @@ export default function ManagerApprovalDetailScreen({
   });
   const [approvalStartTime, setApprovalStartTime] = useState<Date | null>(null);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const { hasInvalidTimes, reportTimeValidity } = useTimeFieldValidation();
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
 
   // Inline end time editing state (for approved walk-ins)
@@ -662,6 +664,7 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleWalkInApprovalSubmit = () => {
+    if (hasInvalidTimes) return;
     if (!isWalkInEditMode && !approvalPolicy.canApprove(requestId)) return;
     if (isReadOnlyRole) return;
     if (isWalkInEditMode && hasVisitStarted) return;
@@ -781,12 +784,9 @@ export default function ManagerApprovalDetailScreen({
   };
 
   const handleStartTimeChange = (
-    event: DateTimePickerEvent,
-    selectedTime?: Date,
+    selectedTime: Date,
   ) => {
-    if (Platform.OS === "android") {
-      setShowStartTimePicker(false);
-    }
+    setShowStartTimePicker(false);
     if (selectedTime) {
       const now = new Date();
       // Use Riyadh wall-clock "now" so clamp is correct for users outside Saudi Arabia
@@ -802,16 +802,14 @@ export default function ManagerApprovalDetailScreen({
       if (walkInEndTime.getTime() <= clampedTime.getTime()) {
         setWalkInEndTime(new Date(clampedTime.getTime() + 60 * 60 * 1000));
       }
+      return clampedTime;
     }
   };
 
   const handleEndTimeChange = (
-    event: DateTimePickerEvent,
-    selectedTime?: Date,
+    selectedTime: Date,
   ) => {
-    if (Platform.OS === "android") {
-      setShowEndTimePicker(false);
-    }
+    setShowEndTimePicker(false);
     if (selectedTime) {
       setWalkInEndTime(selectedTime);
     }
@@ -819,12 +817,9 @@ export default function ManagerApprovalDetailScreen({
 
   // Handler for inline end time editing (approved walk-ins)
   const handleInlineEndTimeChange = (
-    event: DateTimePickerEvent,
-    selectedTime?: Date,
+    selectedTime: Date,
   ) => {
-    if (Platform.OS === "android") {
-      setShowInlineEndTimePicker(false);
-    }
+    setShowInlineEndTimePicker(false);
     if (selectedTime) {
       setInlineEndTime(selectedTime);
     }
@@ -832,6 +827,7 @@ export default function ManagerApprovalDetailScreen({
 
   // Save inline end time to API
   const handleSaveInlineEndTime = () => {
+    if (hasInvalidTimes) return;
     if (!inlineEndTime || !visitData) return;
     if (hasVisitStarted) return;
 
@@ -1439,7 +1435,11 @@ export default function ManagerApprovalDetailScreen({
                         marginTop: 2,
                       }}
                     >
-                      <Pressable
+                      <TimeField
+                        value={inlineEndTime}
+                        onTimeSelect={handleInlineEndTimeChange}
+                        label={t("form.endTime")}
+                        onValidityChange={valid => reportTimeValidity('inlineEnd', valid)}
                         onPress={() => setShowInlineEndTimePicker(true)}
                         style={[
                           styles.inlineTimeButton,
@@ -1462,10 +1462,10 @@ export default function ManagerApprovalDetailScreen({
                         >
                           {formatTimeForDisplay(inlineEndTime)}
                         </ThemedText>
-                      </Pressable>
+                      </TimeField>
                       <Pressable
                         onPress={handleSaveInlineEndTime}
-                        disabled={updateMutation.isPending}
+                        disabled={updateMutation.isPending || hasInvalidTimes}
                       >
                         <DDIcon name="check" size={20} color={theme.success} />
                       </Pressable>
@@ -2516,7 +2516,11 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("form.startTime")} *
                 </ThemedText>
-                <Pressable
+                <TimeField
+                  value={approvalStartTime || new Date()}
+                  onTimeSelect={handleStartTimeChange}
+                  label={t("form.startTime")}
+                  onValidityChange={valid => reportTimeValidity('start', valid)}
                   onPress={() => setShowStartTimePicker(true)}
                   style={[
                     styles.reasonInput,
@@ -2534,7 +2538,7 @@ export default function ManagerApprovalDetailScreen({
                     {formatDisplayTime(approvalStartTime || new Date())}
                   </ThemedText>
                   <DDIcon name="clock" size={18} variant="muted" />
-                </Pressable>
+                </TimeField>
               </View>
 
               <Spacer height={Spacing.lg} />
@@ -2548,7 +2552,11 @@ export default function ManagerApprovalDetailScreen({
                 >
                   {t("form.endTime")} *
                 </ThemedText>
-                <Pressable
+                <TimeField
+                  value={walkInEndTime}
+                  onTimeSelect={handleEndTimeChange}
+                  label={t("form.endTime")}
+                  onValidityChange={valid => reportTimeValidity('end', valid)}
                   onPress={() => setShowEndTimePicker(true)}
                   style={[
                     styles.reasonInput,
@@ -2566,113 +2574,53 @@ export default function ManagerApprovalDetailScreen({
                     {formatDisplayTime(walkInEndTime)}
                   </ThemedText>
                   <DDIcon name="clock" size={18} variant="muted" />
-                </Pressable>
+                </TimeField>
               </View>
 
               {showEndTimePicker && Platform.OS === 'android' && (
-                <DateTimePicker
-                  value={walkInEndTime}
-                  mode="time"
-                  is24Hour={false}
-                  display="default"
-                  onChange={handleEndTimeChange}
+                <TimePicker
+                  visible
+                  selectedTime={walkInEndTime}
+                  minuteInterval={1}
+                  onTimeSelect={handleEndTimeChange}
+                  onClose={() => setShowEndTimePicker(false)}
                 />
               )}
 
               {/* iOS Inline End Time Picker Overlay - covers modal content to avoid stacking issues */}
               {showEndTimePicker && Platform.OS === 'ios' && (
                 <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
-                  <View style={{ flex: 1, padding: 24 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
-                        {t("form.endTime")}
-                      </ThemedText>
-                      <Pressable onPress={() => setShowEndTimePicker(false)} hitSlop={8}>
-                        <DDIcon name="x" size={20} variant="muted" />
-                      </Pressable>
-                    </View>
-                    <DateTimePicker
-                      value={walkInEndTime}
-                      mode="time"
-                      is24Hour={false}
-                      display="spinner"
-                      onChange={handleEndTimeChange}
-                      style={{ height: 180 }}
+                  <ScrollView contentContainerStyle={{ padding: 24 }}>
+                    <TimePickerContent
+                      selectedTime={walkInEndTime}
+                      minuteInterval={1}
+                      onTimeSelect={handleEndTimeChange}
+                      onClose={() => setShowEndTimePicker(false)}
                     />
-                    <Spacer height={Spacing.lg} />
-                    <DirectionalRow style={{ gap: Spacing.md }}>
-                      <LoadingButton
-                        onPress={() => setShowEndTimePicker(false)}
-                        variant="secondary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.cancel")}
-                      </LoadingButton>
-                      <LoadingButton
-                        onPress={() => setShowEndTimePicker(false)}
-                        variant="primary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.done")}
-                      </LoadingButton>
-                    </DirectionalRow>
-                  </View>
+                  </ScrollView>
                 </View>
               )}
 
               {showStartTimePicker && Platform.OS === 'android' && (
-                <DateTimePicker
-                  value={approvalStartTime || new Date()}
-                  mode="time"
-                  is24Hour={false}
-                  display="default"
-                  minimumDate={new Date()}
-                  onChange={handleStartTimeChange}
+                <TimePicker
+                  visible
+                  selectedTime={approvalStartTime || new Date()}
+                  minuteInterval={1}
+                  onTimeSelect={handleStartTimeChange}
+                  onClose={() => setShowStartTimePicker(false)}
                 />
               )}
 
               {showStartTimePicker && Platform.OS === 'ios' && (
                 <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface, borderRadius: 12 }]}>
-                  <View style={{ flex: 1, padding: 24 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: theme.border, paddingBottom: Spacing.md, marginBottom: Spacing.md }}>
-                      <ThemedText style={[Typography.subtitle, { fontSize: 18, fontWeight: '600', color: theme.text, flex: 1 }]}>
-                        {t("form.startTime")}
-                      </ThemedText>
-                      <Pressable onPress={() => setShowStartTimePicker(false)} hitSlop={8}>
-                        <DDIcon name="x" size={20} variant="muted" />
-                      </Pressable>
-                    </View>
-                    <DateTimePicker
-                      value={approvalStartTime || new Date()}
-                      mode="time"
-                      is24Hour={false}
-                      display="spinner"
-                      minimumDate={new Date()}
-                      onChange={handleStartTimeChange}
-                      style={{ height: 180 }}
+                  <ScrollView contentContainerStyle={{ padding: 24 }}>
+                    <TimePickerContent
+                      selectedTime={approvalStartTime || new Date()}
+                      minuteInterval={1}
+                      onTimeSelect={handleStartTimeChange}
+                      onClose={() => setShowStartTimePicker(false)}
                     />
-                    <Spacer height={Spacing.lg} />
-                    <DirectionalRow style={{ gap: Spacing.md }}>
-                      <LoadingButton
-                        onPress={() => setShowStartTimePicker(false)}
-                        variant="secondary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.cancel")}
-                      </LoadingButton>
-                      <LoadingButton
-                        onPress={() => setShowStartTimePicker(false)}
-                        variant="primary"
-                        size="medium"
-                        style={{ flex: 1 }}
-                      >
-                        {t("common.done")}
-                      </LoadingButton>
-                    </DirectionalRow>
-                  </View>
+                  </ScrollView>
                 </View>
               )}
 
@@ -2702,7 +2650,7 @@ export default function ManagerApprovalDetailScreen({
                   loading={
                     approveMutation.isPending || updateMutation.isPending
                   }
-                  disabled={isProcessing}
+                  disabled={isProcessing || hasInvalidTimes}
                   variant={isWalkInEditMode ? "primary" : "success"}
                   size="medium"
                   loadingText={
@@ -2722,12 +2670,12 @@ export default function ManagerApprovalDetailScreen({
 
       {/* Inline End Time Picker for approved walk-ins */}
       {showInlineEndTimePicker && inlineEndTime && (
-        <DateTimePicker
-          value={inlineEndTime}
-          mode="time"
-          is24Hour={false}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleInlineEndTimeChange}
+        <TimePicker
+          visible
+          selectedTime={inlineEndTime}
+          minuteInterval={1}
+          onTimeSelect={handleInlineEndTimeChange}
+          onClose={() => setShowInlineEndTimePicker(false)}
         />
       )}
 

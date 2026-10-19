@@ -962,6 +962,7 @@ export interface TranslationKeys {
     activeTasks: string;
   };
   time: {
+    invalidTime: string;
     today: string;
     yesterday: string;
     tomorrow: string;
