@@ -28,7 +28,7 @@ import {
 } from "@/constants/requestConstants";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { getVisitorCardMetadataFlexWrap } from "@/utils/visitorCardLayout";
-import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
+import { formatVisitDateLabel, getVisitDisplayDate } from "@/utils/groupVisitsByDate";
 
 type CardVariant = 'default' | 'compact' | 'actions' | 'selectable';
 
@@ -162,7 +162,7 @@ export function VisitorRequestCard({
 }: VisitorRequestCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { formatDateShort, formatTimeFromString, toLocalNumerals } = useFormatters();
+  const { formatTimeFromString, toLocalNumerals } = useFormatters();
   const { isRTL, localeCode } = useLanguage();
   const displayedStatus = statusOverride ?? request.status;
   const statusConfig = getStatusStyle(theme, displayedStatus, t);
@@ -176,23 +176,6 @@ export function VisitorRequestCard({
     eligible: isStatusEligible,
     thresholdMinutes: UPCOMING_INDICATOR_DEFAULT_THRESHOLD_MINUTES,
   });
-
-  const formatDate = (dateString: string): string => {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      const [year, month, day] = dateString.split("-").map(Number);
-      const calendarDate = new Date(Date.UTC(year, month - 1, day));
-      if (
-        calendarDate.getUTCFullYear() === year &&
-        calendarDate.getUTCMonth() === month - 1 &&
-        calendarDate.getUTCDate() === day
-      ) {
-        return formatVisitDateLabel(dateString, localeCode);
-      }
-      return "—";
-    }
-    const date = new Date(dateString);
-    return Number.isNaN(date.getTime()) ? "—" : formatDateShort(date);
-  };
 
   const formatTime = (timeString: string): string => {
     return formatTimeFromString(timeString);
@@ -290,11 +273,12 @@ export function VisitorRequestCard({
   };
 
   const renderDateTime = () => {
+    const visitDate = getVisitDisplayDate(request);
     return (
       <DirectionalRow 
         style={styles.dateTimeRow}
       >
-        {renderIconText('calendar', formatDate(request.visitDate))}
+        {renderIconText('calendar', visitDate ? formatVisitDateLabel(visitDate, localeCode) : "—")}
         {request.duration ? (
           <DirectionalRow style={styles.durationGroup}>
             <ThemedText style={[styles.separator, { color: theme.border }]}>•</ThemedText>

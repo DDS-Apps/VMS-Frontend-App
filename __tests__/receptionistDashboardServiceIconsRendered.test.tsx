@@ -1,6 +1,7 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
 import { ICON_PATHS } from "@/constants/iconPaths";
+import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 
 let mockLocaleCode = "en-US";
 let mockIsRTL = false;
@@ -547,6 +548,28 @@ describe("rendered Receptionist dashboard service icons", () => {
     act(() => {
       renderer!.unmount();
     });
+  });
+
+  it.each(["en-US", "ar-SA"])("shows the payload schedule date consistently in cards and table, locale=%s", locale => {
+    mockLocaleCode = locale;
+    mockIsRTL = locale === "ar-SA";
+    mockTodayResponse = {
+      ...mockTodayData,
+      data: [{
+        ...mockNoParkingVisitor, visitDate: undefined,
+        visitStartAt: "2026-10-18T22:15:00Z", timezone: "Asia/Riyadh",
+      }],
+    };
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    const table = renderer.root.findByType("VisitorMatrixTable" as any);
+    expect(table.props.visitors[0].visitDate).toBe("2026-10-19");
+    const expectedDate = formatVisitDateLabel(table.props.visitors[0].visitDate, locale);
+    pressCardViewToggle(renderer);
+    const textValues = renderer.root.findAllByType("ThemedText" as any)
+      .map(node => node.children.filter(child => typeof child === "string").join(""));
+    expect(textValues).toContain(expectedDate);
+    act(() => renderer.unmount());
   });
 
   it("shows host, calendar date, duration and the scheduled/actual movement sections on cards", () => {

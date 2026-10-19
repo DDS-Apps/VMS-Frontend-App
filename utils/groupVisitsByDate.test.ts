@@ -1,7 +1,29 @@
 import {
   formatVisitDateLabel,
+  getVisitDisplayDate,
   groupVisitsByDate,
 } from "@/utils/groupVisitsByDate";
+
+describe("getVisitDisplayDate", () => {
+  it("prefers the explicit payload visit date over its scheduled-start instant", () => {
+    expect(getVisitDisplayDate({
+      visitDate: "2026-10-19", visitStartAt: "2026-10-18T10:00:00Z",
+    })).toBe("2026-10-19");
+  });
+
+  it("uses the scheduled-start date in the visit timezone, not the UTC/device date", () => {
+    expect(getVisitDisplayDate({ visitStartAt: "2026-10-18T22:15:00Z", timezone: "Asia/Riyadh" }))
+      .toBe("2026-10-19");
+    expect(getVisitDisplayDate({ visitStartAt: "2026-10-18T22:15:00Z", timezone: "America/New_York" }))
+      .toBe("2026-10-18");
+  });
+
+  it.each([{}, { visitDate: "" }, { visitStartAt: "invalid" }, { visitStartAt: "2026-10-19T00:00:00" }])(
+    "does not substitute today when the payload has no usable date: %j", visit => {
+      expect(getVisitDisplayDate(visit)).toBeUndefined();
+    },
+  );
+});
 
 describe("groupVisitsByDate", () => {
   it("keeps every record and returns chronological date groups", () => {

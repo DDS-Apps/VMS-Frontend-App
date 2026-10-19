@@ -7,6 +7,23 @@ export interface VisitDateGroup<T> {
 
 const BUSINESS_TIME_ZONE = "Asia/Riyadh";
 
+/** Display-only schedule date; never substitute the device's current date. */
+export function getVisitDisplayDate(visit: {
+  visitDate?: string | null;
+  visitStartAt?: string | null;
+  timezone?: string | null;
+}): string | undefined {
+  if (visit.visitDate?.trim()) return visit.visitDate.trim();
+  if (!visit.visitStartAt || !/(?:Z|[+-]\d{2}:\d{2})$/i.test(visit.visitStartAt)) return undefined;
+  const start = new Date(visit.visitStartAt);
+  if (Number.isNaN(start.getTime())) return undefined;
+  try {
+    return getBusinessDateKey(start, visit.timezone || BUSINESS_TIME_ZONE);
+  } catch {
+    return undefined;
+  }
+}
+
 function addCalendarDays(dateKey: string, days: number): string {
   const date = new Date(`${dateKey}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);

@@ -19,6 +19,7 @@ import { useInfiniteVisitsQuery } from "@/hooks/queries/useApprovalQueries";
 import { getBusinessDateKey } from "@/utils/dateTimeUtils";
 import {
   formatVisitDateLabel,
+  getVisitDisplayDate,
   groupVisitsByDate,
 } from "@/utils/groupVisitsByDate";
 import type { TodayVisitorDto } from "@/types";
@@ -332,7 +333,7 @@ export default function ReceptionistDashboardScreen({ navigation }: Receptionist
       id: v.id,
       visitorName: v.visitor.fullName,
       company: v.visitor.company ?? undefined,
-      visitDate: v.visitDate ?? undefined,
+      visitDate: getVisitDisplayDate(v),
       plannedInTime: v.visitTime,
       plannedOutTime: v.endTime ?? (isTodayVisitor ? v.scheduledEndTime : undefined) ?? undefined,
       // Preserve Pending Host Approval and render expiration separately.
