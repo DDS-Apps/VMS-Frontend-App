@@ -311,6 +311,57 @@ export default function LoginScreen({ onLoginSuccess, onForgotPassword }: LoginS
           </ThemedText>
 
           <View style={styles.form}>
+            <Pressable
+              style={[
+                styles.microsoftButton,
+                {
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
+                  flexDirection: getFlexDirection(isRTL),
+                },
+              ]}
+              onPress={handleMicrosoftLogin}
+              disabled={isMicrosoftSubmitting || isAzureLoading || isSubmitting}
+            >
+              {isMicrosoftSubmitting || isAzureLoading ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
+              )}
+              <ThemedText
+                style={[
+                  Typography.body,
+                  {
+                    color: theme.text,
+                    fontWeight: "600",
+                    marginStart: Spacing.sm,
+                  },
+                ]}
+              >
+                {isMicrosoftSubmitting || isAzureLoading
+                  ? t("auth.signingIn")
+                  : t("auth.signInWithMicrosoft")}
+              </ThemedText>
+            </Pressable>
+
+            <DirectionalRow style={styles.dividerContainer}>
+              <View
+                style={[styles.dividerLine, { backgroundColor: theme.border }]}
+              />
+              <ThemedText
+                style={[
+                  Typography.bodySmall,
+                  { color: theme.textSecondary, paddingHorizontal: Spacing.md },
+                ]}
+              >
+                {t("common.or")}
+              </ThemedText>
+              <View
+                style={[styles.dividerLine, { backgroundColor: theme.border }]}
+              />
+            </DirectionalRow>
+
             <ThemedText
               style={[
                 Typography.label,
@@ -524,56 +575,6 @@ export default function LoginScreen({ onLoginSuccess, onForgotPassword }: LoginS
               {t("auth.signIn")}
             </LoadingButton>
 
-            <DirectionalRow style={styles.dividerContainer}>
-              <View
-                style={[styles.dividerLine, { backgroundColor: theme.border }]}
-              />
-              <ThemedText
-                style={[
-                  Typography.bodySmall,
-                  { color: theme.textSecondary, paddingHorizontal: Spacing.md },
-                ]}
-              >
-                {t("common.or")}
-              </ThemedText>
-              <View
-                style={[styles.dividerLine, { backgroundColor: theme.border }]}
-              />
-            </DirectionalRow>
-
-            <Pressable
-              style={[
-                styles.microsoftButton,
-                {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.border,
-                  opacity: isMicrosoftSubmitting || isAzureLoading ? 0.7 : 1,
-                  flexDirection: getFlexDirection(isRTL),
-                },
-              ]}
-              onPress={handleMicrosoftLogin}
-              disabled={isMicrosoftSubmitting || isAzureLoading || isSubmitting}
-            >
-              {isMicrosoftSubmitting || isAzureLoading ? (
-                <ActivityIndicator size="small" color={theme.primary} />
-              ) : (
-                <DDIcon name="globe" size={INPUT_ICON_SIZE} variant="primary" />
-              )}
-              <ThemedText
-                style={[
-                  Typography.body,
-                  {
-                    color: theme.text,
-                    fontWeight: "600",
-                    marginStart: Spacing.sm,
-                  },
-                ]}
-              >
-                {isMicrosoftSubmitting || isAzureLoading
-                  ? t("auth.signingIn")
-                  : t("auth.signInWithMicrosoft")}
-              </ThemedText>
-            </Pressable>
           </View>
         </View>
       </ScrollView>
