@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DDIcon } from "@/components/DDIcon";
 import { ROUTES } from "@/constants";
-import Constants from "expo-constants";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { InAppNotificationToast } from "@/components/InAppNotificationToast";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
@@ -61,7 +60,6 @@ export default function SettingsScreen({
     paddingBottom: insets.bottom + Spacing.xl
   };
 
-  const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   const getRoleLabel = (role: UserRole) => {
     const roleKeys: Record<UserRole, string> = {
@@ -338,17 +336,6 @@ export default function SettingsScreen({
           </DirectionalRow>
         </Pressable>
 
-        <View style={[styles.sectionDivider, { backgroundColor: theme.surfaceSecondary }]} />
-
-        <DirectionalRow style={[styles.settingItem, { gap: Spacing.md }]}>
-          <DDIcon name="info" size={20} variant="muted" />
-          <ThemedText style={[styles.settingLabel, { color: theme.text, flex: 1 }]}>
-            {t('settings.version')}
-          </ThemedText>
-          <ThemedText style={[styles.settingDescription, { color: theme.textSecondary }]}>
-            {appVersion}
-          </ThemedText>
-        </DirectionalRow>
       </ThemedView>
 
       {onLogout ? (
