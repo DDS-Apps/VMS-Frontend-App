@@ -70,8 +70,7 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
       expect(style.minHeight).toBeUndefined();
       expect(style.maxHeight).toBeUndefined();
     }
-    for (const text of tree.root.findAllByType('ThemedText' as any).filter(node =>
-      node.props.testID !== 'kpi-first-word-measure')) {
+    for (const text of tree.root.findAllByType('ThemedText' as any)) {
       expect(text.props.numberOfLines).toBeUndefined();
       expect(StyleSheet.flatten(text.props.style).height).toBeUndefined();
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
@@ -17,23 +17,6 @@ export interface KPICardProps {
 
 export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
-  const { width, fontScale } = useWindowDimensions();
-  const isMobile = width < 768;
-  const [contentWidth, setContentWidth] = useState(0);
-  const [valueMeasurement, setValueMeasurement] = useState({ key: '', width: 0 });
-  const [wordMeasurement, setWordMeasurement] = useState({ key: '', width: 0 });
-  const words = title.trim().split(/\s+/);
-  const firstWord = words[0] ?? '';
-  const remainingTitle = words.slice(1).join(' ');
-  const valueKey = `${fontScale}:${value}`;
-  const wordKey = `${fontScale}:${firstWord}`;
-  const inlineFirstWord = isMobile
-    && firstWord.length > 0
-    && valueMeasurement.key === valueKey
-    && wordMeasurement.key === wordKey
-    && valueMeasurement.width + Spacing.xs + wordMeasurement.width < contentWidth;
-  const label = inlineFirstWord ? remainingTitle : title;
 
   return (
     <ThemedView
@@ -54,69 +37,22 @@ export function KPICard({ title, value, icon, color, subtitle }: KPICardProps) {
         <DDIcon name={icon} size={18} color="#FFFFFF" />
       </View>
 
-      <View
-        testID="kpi-content"
-        style={styles.textContainer}
-        onLayout={isMobile ? event => setContentWidth(event.nativeEvent.layout.width) : undefined}
-      >
-        <View
-          testID="kpi-value-header"
-          style={[styles.valueHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+      <View style={styles.textContainer}>
+        <ThemedText
+          variant="h3"
+          style={[styles.value, { color: theme.text }]}
         >
-          <ThemedText
-            testID="kpi-value"
-            variant="h3"
-            onLayout={isMobile ? event => setValueMeasurement({
-              key: valueKey,
-              width: event.nativeEvent.layout.width,
-            }) : undefined}
-            style={[
-              styles.value,
-              { color: theme.text },
-            ]}
-          >
-            {value}
-          </ThemedText>
-          {inlineFirstWord ? (
-            <ThemedText testID="kpi-inline-word" style={[styles.label, { color, flexShrink: 0 }]}>
-              {firstWord}
-            </ThemedText>
-          ) : null}
-        </View>
-
-        {label ? (
-          <ThemedText testID="kpi-label" style={[styles.label, { color }]}>
-            {label}
-          </ThemedText>
-        ) : null}
+          {value}
+        </ThemedText>
+        <ThemedText style={[styles.label, { color }]}>
+          {title}
+        </ThemedText>
         {subtitle ? (
           <ThemedText
             style={[styles.subtitle, { color: theme.textSecondary }]}
           >
             {subtitle}
           </ThemedText>
-        ) : null}
-        {isMobile && firstWord ? (
-          <View
-            pointerEvents="none"
-            accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={styles.wordMeasurement}
-          >
-            <ThemedText
-              testID="kpi-first-word-measure"
-              accessible={false}
-              numberOfLines={1}
-              style={styles.label}
-              onLayout={event => setWordMeasurement({
-                key: wordKey,
-                width: event.nativeEvent.layout.width,
-              })}
-            >
-              {firstWord}
-            </ThemedText>
-          </View>
         ) : null}
       </View>
     </ThemedView>
@@ -257,20 +193,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
-  valueHeader: {
-    alignSelf: 'stretch',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    columnGap: Spacing.xs,
-  },
-  wordMeasurement: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    opacity: 0,
-    alignItems: 'flex-start',
-  },
   label: {
     ...Typography.bodySmall,
     fontSize: 12,
@@ -280,10 +202,9 @@ const styles = StyleSheet.create({
   value: {
     ...Typography.title,
     fontSize: 20,
-    lineHeight: 28,
+    lineHeight: 20,
     fontWeight: '700',
     textAlign: 'left',
-    flexShrink: 1,
   },
   subtitle: {
     ...Typography.caption,
