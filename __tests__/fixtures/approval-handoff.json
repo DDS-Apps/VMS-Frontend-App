@@ -1,0 +1,76 @@
+{
+  "single": {
+    "id": "visit-eligible",
+    "status": "visitor_pending",
+    "approvedBy": "manager-test",
+    "approverName": "Manager",
+    "approvedAt": "2026-08-21T10:30:00.000Z",
+    "reminderSchedule": {
+      "firstReminderAt": "2026-08-21T10:45:00.000Z",
+      "secondReminderAt": "2026-08-21T10:55:00.000Z",
+      "autoCancelAt": "2026-08-21T11:00:00.000Z"
+    }
+  },
+  "pending": {
+    "id": "visit-eligible",
+    "status": "approved",
+    "approvedBy": "manager-test",
+    "approverName": "Manager",
+    "approvedAt": "2026-08-21T10:30:00.000Z",
+    "provisioningPending": true
+  },
+  "cancelled": {
+    "id": "visit-eligible",
+    "status": "cancelled",
+    "approvedBy": "manager-test",
+    "approverName": "Manager",
+    "approvedAt": "2026-08-21T10:30:00.000Z",
+    "provisioningPending": true
+  },
+  "expired": {
+    "success": false,
+    "error": "Conflict",
+    "code": "VISIT_APPROVAL_EXPIRED",
+    "message": "This meeting has ended and can no longer be approved.",
+    "statusCode": 409
+  },
+  "invalid": {
+    "success": false,
+    "error": "Unprocessable Entity",
+    "code": "VISIT_APPROVAL_INVALID_SCHEDULE",
+    "message": "This visit has an invalid or unresolved meeting schedule.",
+    "statusCode": 422
+  },
+  "processed": {
+    "success": false,
+    "error": "Unprocessable Entity",
+    "code": "VISIT_APPROVAL_ALREADY_PROCESSED",
+    "message": "No longer awaiting manager approval.",
+    "statusCode": 422
+  },
+  "mixed": {
+    "successCount": 1,
+    "failedCount": 1,
+    "failedIds": ["visit-expired"],
+    "results": [
+      { "id": "visit-eligible", "success": true },
+      { "id": "visit-expired", "success": false, "error": "This meeting has ended.", "code": "VISIT_APPROVAL_EXPIRED" }
+    ]
+  },
+  "allExpired": {
+    "successCount": 0,
+    "failedCount": 1,
+    "failedIds": ["visit-expired"],
+    "results": [
+      { "id": "visit-expired", "success": false, "error": "This meeting has ended.", "code": "VISIT_APPROVAL_EXPIRED" }
+    ]
+  },
+  "bulkWarning": {
+    "successCount": 1,
+    "failedCount": 0,
+    "failedIds": [],
+    "results": [
+      { "id": "visit-eligible", "success": true, "code": "VISIT_APPROVAL_PROVISIONING_PENDING", "warning": "Approval committed, but follow-up provisioning did not complete." }
+    ]
+  }
+}

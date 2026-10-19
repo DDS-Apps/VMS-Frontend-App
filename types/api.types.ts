@@ -1244,13 +1244,20 @@ export interface ApproveVisitPayload {
 
 export interface ApproveVisitResponse {
   id: string;
-  status: 'approved';
+  status: string;
   approvedBy: string;
   approverName: string;
   approvedAt: string;
   comment?: string;
-  qrCode: string;
-  reminders: {
+  qrCode?: string;
+  provisioningPending?: boolean;
+  reminderSchedule?: {
+    firstReminderAt: string;
+    secondReminderAt: string;
+    autoCancelAt: string;
+  };
+  /** Legacy backend compatibility; new responses use reminderSchedule. */
+  reminders?: {
     firstReminderAt: string;
     secondReminderAt: string;
     autoCancelAt: string;
@@ -1287,6 +1294,8 @@ export interface BulkApprovalResult {
   id: string;
   success: boolean;
   error?: string;
+  code?: string;
+  warning?: string;
 }
 
 export interface BulkApprovalResponse {

@@ -53,6 +53,23 @@ describe("active approval policy", () => {
     act(() => renderer.update(<Harness records={[]} />));
     expect(staleHandler("one")).toBe(false);
   });
+  it.each(["VISIT_APPROVAL_EXPIRED", "VISIT_APPROVAL_INVALID_SCHEDULE", "VISIT_APPROVAL_ALREADY_PROCESSED"])(
+    "remembers %s for unchanged data but allows a corrected schedule", code => {
+      act(() => { renderer = create(<Harness />); });
+      const captured = policy!.canApprove;
+      act(() => policy!.rememberServerRejection("one", code));
+      expect(captured("one")).toBe(false);
+      act(() => renderer.update(<Harness records={[{ ...record }]} />));
+      expect(policy!.canApprove("one")).toBe(false);
+      act(() => renderer.update(<Harness records={[{ ...record, endTime: "16:00" }]} />));
+      expect(policy!.canApprove("one")).toBe(true);
+    },
+  );
+  it("does not infer a permanent eligibility block from generic transport failures", () => {
+    act(() => { renderer = create(<Harness />); });
+    act(() => policy!.rememberServerRejection("one", "NETWORK_ERROR"));
+    expect(policy!.canApprove("one")).toBe(true);
+  });
   it("recomputes when native foreground and navigation focus resume", () => {
     act(() => { renderer = create(<Harness />); });
     const before = policy!.tick;

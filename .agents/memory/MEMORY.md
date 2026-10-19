@@ -46,3 +46,4 @@
 - [Password recovery boundaries](password-recovery-boundaries.md) — external backend owns eligibility, mail and revocation; distinguish frontend fixtures from live QA and keep reset secrets memory-only.
 - [QR retention contract](qr-retention-contract.md) — backend validity governs retained QR access; meeting end, approval deadlines, and physical checkout remain distinct.
 - [Approval provisioning boundaries](approval-provisioning-contract.md) — committed approval can outlive failed provisioning or precede cancellation; warn and refresh, never resubmit to repair it.
+- [Test variant isolation](test-variant-isolation.md) — production Babel console stripping invalidates Jest log assertions; isolate the test variant, not production logging policy.

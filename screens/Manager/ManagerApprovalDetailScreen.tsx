@@ -78,7 +78,8 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
-import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalErrorMessage, getApprovalServerRejectionCode, getCancellationErrorMessage } from "@/utils/approvalErrorMessage";
+import { canUpdateAfterApproval, getApprovalOutcomeMessage } from "@/utils/approvalOutcome";
 
 
 const LAYOUT = {
@@ -599,13 +600,11 @@ export default function ManagerApprovalDetailScreen({
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
-        onSuccess: () => {
-          showToast(t("notifications.requestApproved"), "success");
-          setTimeout(() => {
-            navigation.goBack();
-          }, 1000);
+        onSuccess: (response) => {
+          Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
         },
         onError: (error) => {
+          approvalPolicy.rememberServerRejection(requestId, getApprovalServerRejectionCode(error));
           Alert.alert(t("approval.approveFailed"), getApprovalErrorMessage(error, t) || t("errors.submitFailed"));
         },
       },
@@ -740,7 +739,14 @@ export default function ManagerApprovalDetailScreen({
       approveMutation.mutate(
         { id: requestId, payload: {} },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (!canUpdateAfterApproval(response)) {
+              setShowWalkInApprovalModal(false);
+              setApprovalStartTime(null);
+              setIsWalkInEditMode(false);
+              Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
+              return;
+            }
             // Then update with the time details
             updateMutation.mutate(
               { id: requestId, data: payload },
@@ -754,19 +760,20 @@ export default function ManagerApprovalDetailScreen({
                   setWalkInRequiresMeetingRoom(false);
                   setWalkInRequiresParking(false);
                   setWalkInRequiresBuffet(false);
-                  showToast(t("notifications.walkInApproved"), "success");
-                  setTimeout(() => {
-                    navigation.goBack();
-                  }, 1000);
+                  Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
                 },
                 onError: (error) => {
-                  showToast(t("errors.somethingWentWrong"), "error");
+                  setShowWalkInApprovalModal(false);
+                  setIsWalkInEditMode(false);
+                  refetch();
+                  Alert.alert(t("approval.result"), t("approval.followUpUpdateFailed"));
                 },
               },
             );
           },
           onError: (error) => {
-            showToast(t("errors.somethingWentWrong"), "error");
+            approvalPolicy.rememberServerRejection(requestId, getApprovalServerRejectionCode(error));
+            Alert.alert(t("approval.approveFailed"), getApprovalErrorMessage(error, t));
           },
         },
       );
@@ -917,8 +924,7 @@ export default function ManagerApprovalDetailScreen({
         }, 1000);
       },
       onError: (error) => {
-        console.error('[CancelRequest Manager] ERROR:', error);
-        showToast(t("errors.somethingWentWrong"), "error");
+        Alert.alert(t("errors.somethingWentWrong"), getCancellationErrorMessage(error, t) || t("errors.submitFailed"));
       },
     });
   };

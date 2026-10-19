@@ -60,7 +60,8 @@ import {
   hasSameApprovalHistoryDateRange,
 } from "@/utils/managerApprovalHistoryFilters";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
-import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalErrorMessage, getApprovalServerRejectionCode } from "@/utils/approvalErrorMessage";
+import { getApprovalOutcomeMessage } from "@/utils/approvalOutcome";
 import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
 import { ActiveDateRangeLabel } from "@/components/shared/ActiveDateRangeLabel";
 
@@ -577,8 +578,9 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
       approveMutation.mutate(
         { id },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
             setApprovingRequestId(null);
+            Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
             queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
             // Remove stale visitDetail cache so the detail page loads fresh data
             // rather than briefly showing pending-status action buttons.
@@ -586,6 +588,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
           },
           onError: (error) => {
             setApprovingRequestId(null);
+            approvalPolicy.rememberServerRejection(id, getApprovalServerRejectionCode(error));
             Alert.alert(
               t("common.error"),
               getApprovalErrorMessage(error, t) || t("approval.approveFailed"),

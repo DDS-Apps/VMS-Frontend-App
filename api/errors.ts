@@ -14,6 +14,8 @@ export type ApiErrorCode =
 
 export interface ApiError {
   code: ApiErrorCode;
+  /** Backend workflow code, separate from the stable transport category. */
+  backendCode?: string;
   status?: number;
   message: string;
   details?: unknown;
@@ -22,6 +24,7 @@ export interface ApiError {
 
 export class ApiException extends Error implements ApiError {
   code: ApiErrorCode;
+  backendCode?: string;
   status?: number;
   details?: unknown;
   originalError?: Error;
@@ -30,13 +33,14 @@ export class ApiException extends Error implements ApiError {
     super(error.message);
     this.name = 'ApiException';
     this.code = error.code;
+    this.backendCode = error.backendCode;
     this.status = error.status;
     this.details = error.details;
     this.originalError = error.originalError;
   }
 }
 
-export function mapAxiosErrorToApiError(error: AxiosError<{ message?: string; error?: string; details?: unknown }>): ApiError {
+export function mapAxiosErrorToApiError(error: AxiosError<{ code?: string; message?: string; error?: string; details?: unknown }>): ApiError {
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return {
       code: 'TIMEOUT',
@@ -69,6 +73,7 @@ export function mapAxiosErrorToApiError(error: AxiosError<{ message?: string; er
     case 422:
       return {
         code: 'VALIDATION_ERROR',
+        backendCode: typeof data?.code === 'string' ? data.code : undefined,
         status,
         message,
         details: data?.details || data,
@@ -98,9 +103,10 @@ export function mapAxiosErrorToApiError(error: AxiosError<{ message?: string; er
     case 409:
       return {
         code: 'CONFLICT',
+        backendCode: typeof data?.code === 'string' ? data.code : undefined,
         status,
         message,
-        details: data?.details,
+        details: data?.details || data,
         originalError: error,
       };
     default:

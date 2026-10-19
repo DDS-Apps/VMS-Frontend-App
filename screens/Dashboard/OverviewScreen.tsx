@@ -64,7 +64,8 @@ import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 import { useRiyadhBusinessDateKey } from "@/hooks/useRiyadhBusinessDateKey";
 import { DashboardKpiSection } from "@/components/shared/DashboardKpiSection";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
-import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalErrorMessage, getApprovalServerRejectionCode } from "@/utils/approvalErrorMessage";
+import { getApprovalOutcomeMessage } from "@/utils/approvalOutcome";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -146,12 +147,14 @@ export default function OverviewScreen({
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           setApprovingRequestId(null);
+          Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
           refetchPending();
         },
         onError: (error) => {
           setApprovingRequestId(null);
+          approvalPolicy.rememberServerRejection(requestId, getApprovalServerRejectionCode(error));
           Alert.alert(
             t('errors.somethingWentWrong'),
             getApprovalErrorMessage(error, t) || t('errors.submitFailed'),

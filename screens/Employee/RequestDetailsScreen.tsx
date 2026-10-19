@@ -101,7 +101,8 @@ import { useServerDateTime } from "@/hooks/useServerDateTime";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
-import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalErrorMessage, getApprovalServerRejectionCode, getCancellationErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalOutcomeMessage } from "@/utils/approvalOutcome";
 
 
 export default function RequestDetailsScreen({
@@ -606,8 +607,8 @@ export default function RequestDetailsScreen({
         setShowCancelModal(false);
         navigation.goBack();
       },
-      onError: () => {
-        Alert.alert(t("errors.somethingWentWrong"), t("errors.submitFailed"));
+      onError: (error) => {
+        Alert.alert(t("errors.somethingWentWrong"), getCancellationErrorMessage(error, t) || t("errors.submitFailed"));
       },
     });
   };
@@ -697,11 +698,11 @@ export default function RequestDetailsScreen({
     managerApproveMutation.mutate(
       { id: requestId, payload: {} },
       {
-        onSuccess: () => {
-          setSuccessMessage(t("notifications.requestApproved"));
-          setShowSuccessModal(true);
+        onSuccess: (response) => {
+          Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
         },
         onError: (error) => {
+          approvalPolicy.rememberServerRejection(requestId, getApprovalServerRejectionCode(error));
           Alert.alert(
             t("errors.somethingWentWrong"),
             getApprovalErrorMessage(error, t) || t("errors.submitFailed"),

@@ -43,6 +43,7 @@ import type {
 import type { VisitorRequest } from '@/types/vms.types';
 import { invitationKeys } from './useInvitationQueries';
 import { useSingleFlightApprovalMutation } from '@/hooks/useSingleFlightApprovalMutation';
+import { isApiError } from '@/api/errors';
 
 export const mapPendingHostWalkInToVisitorRequest = (walkIn: PendingHostWalkInDto): VisitorRequest => {
   return {
@@ -233,7 +234,11 @@ export function useApproveVisitMutation() {
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Reconcile only the returned lifecycle status. Never seed an incomplete
+      // detail object or infer QR access from an approval response.
+      queryClient.setQueryData<VisitDetailsDto>(requestKeys.visitDetail(variables.id),
+        old => old ? { ...old, status: data.status } : old);
       queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
       queryClient.invalidateQueries({ queryKey: requestKeys.all });
       queryClient.invalidateQueries({ 
@@ -421,7 +426,16 @@ export function useCancelVisitMutation() {
   const queryClient = useQueryClient();
 
   return useMutation<CancelVisitResponse, Error, string>({
+    retry: false,
     mutationFn: (id) => requestApiService.cancelVisit(id),
+    onError: (error) => {
+      if (isApiError(error) && error.status === 409) {
+        queryClient.invalidateQueries({ queryKey: requestKeys.all });
+        queryClient.invalidateQueries({ queryKey: approvalHistoryKeys.all });
+        queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+        invalidateDashboardKpis(queryClient);
+      }
+    },
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: requestKeys.visitDetail(id) });
       queryClient.invalidateQueries({ queryKey: requestKeys.all });

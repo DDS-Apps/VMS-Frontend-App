@@ -43,7 +43,8 @@ import {
 } from "@/utils/visitExpiredGuard";
 import { useTimeBoundaryTick } from "@/hooks/useTimeBoundaryTick";
 import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
-import { getApprovalErrorMessage } from "@/utils/approvalErrorMessage";
+import { getApprovalCodeMessage, getApprovalErrorMessage, getApprovalServerRejectionCode, isApprovalServerBlocked } from "@/utils/approvalErrorMessage";
+import { getApprovalOutcomeMessage, hasApprovalProvisioningWarning, MAX_APPROVAL_BATCH_SIZE } from "@/utils/approvalOutcome";
 
 const LAYOUT = {
   cardPadding: Spacing.lg,
@@ -608,14 +609,16 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
     approveMutation.mutate(
       { id: requestId, payload: {} },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           setApprovingRequestId(null);
+          Alert.alert(t("approval.result"), getApprovalOutcomeMessage(response, t));
           // Remove stale visitDetail cache so the detail page loads fresh data
           // rather than briefly showing pending-status action buttons.
           queryClient.removeQueries({ queryKey: requestKeys.visitDetail(requestId) });
         },
         onError: (error) => {
           setApprovingRequestId(null);
+          approvalPolicy.rememberServerRejection(requestId, getApprovalServerRejectionCode(error));
           Alert.alert(
             t('errors.somethingWentWrong'),
             getApprovalErrorMessage(error, t) || t('errors.submitFailed'),
@@ -645,6 +648,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
       Alert.alert(t("approval.approveFailed"), `${selectedIds.size - eligibleIds.length} — ${t("approval.skippedRequests")}`);
     }
     if (eligibleIds.length === 0) return;
+    if (eligibleIds.length > MAX_APPROVAL_BATCH_SIZE) {
+      Alert.alert(t("approval.approveFailed"), t("approval.batchLimit"));
+      return;
+    }
     
     bulkApproveMutation.mutate(
       { ids: eligibleIds },
@@ -652,13 +659,22 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         onSuccess: (response) => {
           const failed = response.results.filter(result => !result.success);
           const failedIds = new Set([...response.failedIds, ...failed.map(result => result.id)]);
-          const retryIds = eligibleIds.filter(id => failedIds.has(id) && approvalPolicy.canApprove(id));
+          const committedIds = new Set(response.results.filter(result => result.success).map(result => result.id));
+          const blockedIds = new Set(failed.filter(result => isApprovalServerBlocked(result.code)).map(result => result.id));
+          failed.forEach(result => {
+            if (!committedIds.has(result.id)) approvalPolicy.rememberServerRejection(result.id, result.code);
+          });
+          const retryIds = eligibleIds.filter(id => failedIds.has(id) && !committedIds.has(id) &&
+            !blockedIds.has(id) && approvalPolicy.canApprove(id));
           setSelectedIds(new Set(retryIds));
           setIsSelectionMode(retryIds.length > 0);
           Alert.alert(
             t("approval.bulkResult"),
-            `${t("status.approved")}: ${response.successCount}\n${t("approval.failed")}: ${response.failedCount}` +
-              failed.map(result => `\n${pendingApprovals.find(request => request.id === result.id)?.visitor.fullName || result.id}: ${result.error || t("approval.approveFailed")}`).join(""),
+            `${t("approval.committed")}: ${response.successCount}\n${t("approval.failed")}: ${response.failedCount}` +
+              response.results.filter(result => !result.success || hasApprovalProvisioningWarning(result))
+                .map(result => `\n${pendingApprovals.find(request => request.id === result.id)?.visitor.fullName || result.id}: ${
+                  result.success ? t("approval.provisioningPending") : getApprovalCodeMessage(result.code, t)
+                }`).join(""),
           );
         },
         onError: (error) => {

@@ -9,6 +9,16 @@ export interface TranslationKeys {
     skippedRequests: string;
     bulkResult: string;
     failed: string;
+    result: string;
+    currentStatus: string;
+    statusChanged: string;
+    invalidSchedule: string;
+    alreadyProcessed: string;
+    provisioningPending: string;
+    cancellationConflict: string;
+    batchLimit: string;
+    committed: string;
+    followUpUpdateFailed: string;
   };
   passwordRecovery: {
     requestTitle: string;

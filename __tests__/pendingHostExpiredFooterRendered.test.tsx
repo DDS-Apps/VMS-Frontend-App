@@ -4,6 +4,7 @@ import { act, create } from "react-test-renderer";
 let mockWidth = 390;
 let mockFontScale = 1;
 let mockLocale: "en" | "ar" = "en";
+let mockHandoffTranslations = false;
 let mockScreen: "receptionist" | "manager" = "receptionist";
 let mockQueryData: Record<string, unknown> | undefined;
 let mockBoundaryTick = 0;
@@ -18,6 +19,10 @@ let mockRequest: Record<string, any>;
 const mockApproveMutate = jest.fn();
 const mockBulkApproveMutate = jest.fn();
 const mockRejectMutate = jest.fn();
+const mockCancelMutate = jest.fn();
+const mockUpdateMutate = jest.fn();
+const mockRefetchDetails = jest.fn();
+const handoffFixtures = require("./fixtures/approval-handoff.json");
 
 const mockTheme = {
   background: "#ffffff",
@@ -66,6 +71,7 @@ jest.mock("react-native", () => {
       get: () => ({ width: mockWidth, height: 800, scale: 1, fontScale: mockFontScale }),
     },
     Animated: {
+      View: mockHost("AnimatedView"),
       Value: class {
         setValue() {}
       },
@@ -86,6 +92,8 @@ jest.mock("react-native", () => {
       hairlineWidth: 1,
     },
     TextInput: mockHost("TextInput"),
+    Switch: mockHost("Switch"),
+    TouchableWithoutFeedback: mockHost("TouchableWithoutFeedback"),
     View: mockHost("View"),
     useWindowDimensions: () => ({
       width: mockWidth,
@@ -111,6 +119,7 @@ jest.mock("@react-navigation/native", () => ({
 }));
 jest.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ removeQueries: jest.fn(), invalidateQueries: jest.fn() }),
+  useQuery: () => ({ data: undefined, isLoading: false, isFetching: false, isError: false, refetch: jest.fn() }),
 }));
 
 jest.mock("@/components/ScreenScrollView", () => ({
@@ -221,8 +230,13 @@ jest.mock("@/hooks/useTheme", () => ({
 
 jest.mock("@/hooks/useTranslation", () => ({
   useTranslation: () => ({
-    t: (key: string) =>
-      mockTranslations[mockLocale][key as keyof (typeof mockTranslations)["en"]] ?? key,
+    t: (key: string) => {
+      if (mockHandoffTranslations) {
+        const language = mockLocale === "ar" ? require("@/constants/i18n/ar").ar : require("@/constants/i18n/en").en;
+        return key.split(".").reduce((value: any, part) => value?.[part], language) ?? key;
+      }
+      return mockTranslations[mockLocale][key as keyof (typeof mockTranslations)["en"]] ?? key;
+    },
   }),
 }));
 
@@ -243,6 +257,8 @@ jest.mock("@/hooks/useFormatters", () => ({
     formatDateShort: (value: string | Date) => String(value),
     formatTime: (value: string) => value,
     formatTimeFromString: (value: string) => value,
+    formatDateTime: (value: string) => value,
+    parseTimeString: (value: string) => value,
     formatTimeRange: (start: string, end: string) => `${start}-${end}`,
     formatVisitTimeRange: (start: string, end: string) => `${start}-${end}`,
     parseISODuration: (value: string) => value,
@@ -254,6 +270,8 @@ jest.mock("@/hooks/useServerDateTime", () => ({
   useServerDateTime: () => ({
     formatDateForApi: (value: Date) => value.toISOString().slice(0, 10),
     formatTimeForApi: (value: Date) => value.toISOString().slice(11, 16),
+    formatTime24ForApi: (value: Date) => value.toISOString().slice(11, 16),
+    formatDateForDisplay: (value: Date) => value.toISOString().slice(0, 10),
     formatTimeForDisplay: (value: Date) => value.toISOString().slice(11, 16),
     parseDateTime: (date: string, time: string) =>
       new Date(`${date}T${time}:00`),
@@ -313,12 +331,14 @@ jest.mock("@/hooks/queries/useApprovalQueries", () => ({
     isLoading: false,
     isFetching: false,
     error: null,
-    refetch: jest.fn(),
+    refetch: mockRefetchDetails,
   }),
   useApproveVisitMutation: () => ({ isPending: false, mutate: mockApproveMutate }),
+  useHostApproveVisitMutation: () => ({ isPending: false, mutate: jest.fn() }),
+  useHostRejectVisitMutation: () => ({ isPending: false, mutate: jest.fn() }),
   useRejectVisitMutation: () => ({ isPending: false, mutate: mockRejectMutate }),
-  useCancelVisitMutation: () => ({ isPending: false, mutate: jest.fn() }),
-  useUpdateVisitMutation: () => ({ isPending: false, mutate: jest.fn() }),
+  useCancelVisitMutation: () => ({ isPending: false, mutate: mockCancelMutate }),
+  useUpdateVisitMutation: () => ({ isPending: false, mutate: mockUpdateMutate }),
   useInfiniteVisitsQuery: () => ({
     data: mockUpcomingData,
     isLoading: false,
@@ -395,6 +415,7 @@ const UpcomingVisitorsListScreen = require(
 const OverviewScreen = require("@/screens/Dashboard/OverviewScreen").default;
 const ManagerDashboardScreen = require("@/screens/Manager/ManagerDashboardScreen").default;
 const ManagerAllRequestsScreen = require("@/screens/Manager/ManagerAllRequestsScreen").default;
+const RequestDetailsScreen = require("@/screens/Employee/RequestDetailsScreen").default;
 
 function pendingHostVisitor() {
   return {
@@ -479,6 +500,7 @@ function configureScreen(
   width: number,
 ) {
   mockScreen = screen;
+  mockHandoffTranslations = false;
   mockLocale = locale;
   mockWidth = width;
   mockFontScale = locale === "ar" ? 1.5 : 1;
@@ -487,6 +509,9 @@ function configureScreen(
   mockPendingApprovalData = undefined;
   mockApproveMutate.mockReset();
   mockRejectMutate.mockReset();
+  mockCancelMutate.mockReset();
+  mockUpdateMutate.mockReset();
+  mockRefetchDetails.mockReset();
   mockQueryData = screen === "manager" ? pendingHostDetails() : undefined;
   mockRequest = {
     id: "manager-expired",
@@ -995,6 +1020,146 @@ describe("pending-host expired detail footer rendering", () => {
       }));
       expect([...table().props.selectedIds]).toEqual(["later"]);
       expect(named("BulkActionBar").props.selectedCount).toBe(1);
+    });
+    it.each(["VISIT_APPROVAL_EXPIRED", "VISIT_APPROVAL_INVALID_SCHEDULE", "VISIT_APPROVAL_ALREADY_PROCESSED"])(
+      "does not keep %s selected even when the client clock still permits it", code => {
+        mount();
+        act(() => table().props.onLongPressRow("later"));
+        act(() => named("BulkActionBar").props.onApprove());
+        act(() => mockBulkApproveMutate.mock.calls[0][1].onSuccess({
+          successCount: 0, failedCount: 1, failedIds: ["later"],
+          results: [{ id: "later", success: false, code, error: "private raw backend text" }],
+        }));
+        expect([...table().props.selectedIds]).toEqual([]);
+        expect(mockBulkApproveMutate).toHaveBeenCalledTimes(1);
+        expect(JSON.stringify(require("react-native").Alert.alert.mock.calls)).not.toContain("private raw backend text");
+        expect(table().props.visitors.find((row: any) => row.id === "later").approveDisabled).toBe(true);
+        act(() => table().props.onApprove("later"));
+        expect(mockApproveMutate).not.toHaveBeenCalled();
+      },
+    );
+    it.each(["en", "ar"] as const)("shows committed-success warnings in %s and clears successful selection", locale => {
+      mockLocale = locale;
+      mockHandoffTranslations = true;
+      mockPendingApprovalData = { data: [
+        { ...pendingManagerApprovalRequest(), id: "visit-eligible", isWalkIn: false },
+      ] };
+      mount();
+      act(() => table().props.onLongPressRow("visit-eligible"));
+      act(() => named("BulkActionBar").props.onApprove());
+      act(() => mockBulkApproveMutate.mock.calls[0][1].onSuccess(handoffFixtures.bulkWarning));
+      const language = locale === "ar" ? require("@/constants/i18n/ar").ar : require("@/constants/i18n/en").en;
+      expect(require("react-native").Alert.alert).toHaveBeenLastCalledWith(language.approval.bulkResult,
+        expect.stringContaining(language.approval.provisioningPending));
+      expect([...table().props.selectedIds]).toEqual([]);
+      expect(mockBulkApproveMutate).toHaveBeenCalledTimes(1);
+    });
+    it("removes a committed duplicate ID even when another result position failed", () => {
+      mount();
+      act(() => table().props.onLongPressRow("later"));
+      act(() => named("BulkActionBar").props.onApprove());
+      act(() => mockBulkApproveMutate.mock.calls[0][1].onSuccess({
+        successCount: 1, failedCount: 1, failedIds: ["later"],
+        results: [{ id: "later", success: true }, { id: "later", success: false, code: "VISIT_APPROVAL_ALREADY_PROCESSED" }],
+      }));
+      expect([...table().props.selectedIds]).toEqual([]);
+    });
+    it.each([50, 51])("handles %i selected IDs without truncation or automatic multi-batch approval", count => {
+      mockPendingApprovalData = { data: Array.from({ length: count }, (_, i) => ({
+        ...pendingManagerApprovalRequest(), id: `v${i}`, isWalkIn: false,
+      })) };
+      mount();
+      act(() => table().props.onLongPressRow("v0"));
+      act(() => named("SelectAllBar").props.onToggleAll());
+      act(() => named("BulkActionBar").props.onApprove());
+      if (count === 50) {
+        expect(mockBulkApproveMutate).toHaveBeenCalledTimes(1);
+        expect(mockBulkApproveMutate.mock.calls[0][0].ids).toHaveLength(50);
+      } else {
+        expect(mockBulkApproveMutate).not.toHaveBeenCalled();
+        expect(require("react-native").Alert.alert).toHaveBeenLastCalledWith("approval.approveFailed", "approval.batchLimit");
+        expect([...table().props.selectedIds]).toHaveLength(51);
+      }
+    });
+    it.each(["dashboard", "overview", "all", "managerDetail", "sharedDetail"])(
+      "uses returned cancellation and provisioning warnings in the real %s callback", screen => {
+        mockHandoffTranslations = true;
+        mockQueryData = { ...pendingManagerApprovalDetails(), isWalkIn: false };
+        mockRequest = { ...pendingManagerApprovalRequest(), isWalkIn: false };
+        const navigation = { navigate: jest.fn(), goBack: jest.fn() };
+        act(() => {
+          dashboard = create(
+            screen === "dashboard" ? React.createElement(ManagerDashboardScreen, { navigation }) :
+            screen === "overview" ? React.createElement(OverviewScreen, { userRole: "manager" }) :
+            screen === "all" ? React.createElement(ManagerAllRequestsScreen, { navigation }) :
+            React.createElement(screen === "managerDetail" ? ManagerApprovalDetailScreen : RequestDetailsScreen, {
+              userRole: "manager", navigation, route: { params: { requestId: "manager-pending-approval" } },
+            }),
+          );
+        });
+        act(() => {
+          if (screen === "dashboard" || screen === "overview" || screen === "all") {
+            const target = screen === "overview"
+              ? dashboard.root.findAllByType("VisitorMatrixTable").find(node => node.props.showApproveReject)!
+              : table();
+            target.props.onApprove("soon");
+          } else {
+            dashboard.root.findAllByType("ApprovalActionGroup").find(node => !node.props.disabled)?.props.onApprove();
+          }
+        });
+        expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+        act(() => mockApproveMutate.mock.calls[0][1].onSuccess(handoffFixtures.cancelled));
+        const language = require("@/constants/i18n/en").en;
+        expect(require("react-native").Alert.alert).toHaveBeenLastCalledWith(language.approval.result,
+          `${language.approval.currentStatus}: ${language.status.cancelled}\n${language.approval.provisioningPending}`);
+        expect(navigation.goBack).not.toHaveBeenCalled();
+        expect(mockUpdateMutate).not.toHaveBeenCalled();
+        expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+      },
+    );
+    it.each(["pending", "cancelled"])("does not submit the walk-in follow-up edit after a %s approval outcome", outcome => {
+      mockQueryData = { ...pendingManagerApprovalDetails(), employeeId: "manager" };
+      mockRequest = { ...pendingManagerApprovalRequest(), employeeId: "manager" };
+      act(() => {
+        dashboard = create(React.createElement(ManagerApprovalDetailScreen, {
+          navigation: { goBack: jest.fn() }, route: { params: { requestId: "manager-pending-approval" } },
+        }));
+      });
+      act(() => dashboard.root.findByType("ApprovalActionGroup").props.onApprove());
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+      const submit = dashboard.root.findAllByType("LoadingButton")
+        .find(node => node.props.onPress?.name === "handleWalkInApprovalSubmit")!;
+      expect(submit).toBeDefined();
+      act(() => submit.props.onPress());
+      expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+      act(() => mockApproveMutate.mock.calls[0][1].onSuccess(handoffFixtures[outcome]));
+      expect(mockUpdateMutate).not.toHaveBeenCalled();
+      expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+      expect(require("react-native").Alert.alert).toHaveBeenLastCalledWith("approval.result",
+        expect.stringContaining("approval.provisioningPending"));
+    });
+    it.each(["managerDetail", "sharedDetail"])("shows a guarded cancellation conflict in %s without an automatic second write", screen => {
+      mockHandoffTranslations = true;
+      mockQueryData = { ...pendingManagerApprovalDetails(), employeeId: "manager", isWalkIn: false, visitTime: "13:00", endTime: "14:00", status: "approved", canCancel: true };
+      mockRequest = { ...pendingManagerApprovalRequest(), employeeId: "manager", isWalkIn: false, visitTime: "13:00", endTime: "14:00", status: "approved" };
+      act(() => {
+        dashboard = create(React.createElement(screen === "managerDetail" ? ManagerApprovalDetailScreen : RequestDetailsScreen, {
+          userRole: "manager", navigation: { goBack: jest.fn() }, route: { params: { requestId: "manager-pending-approval" } },
+        }));
+      });
+      const submit = dashboard.root.findAllByType("LoadingButton")
+        .find(node => node.props.variant === "danger" &&
+          node.props.children === require("@/constants/i18n/en").en.actions[
+            screen === "managerDetail" ? "cancelRequest" : "cancel"
+          ])!;
+      expect(submit).toBeDefined();
+      act(() => submit.props.onPress());
+      expect(mockCancelMutate).toHaveBeenCalledTimes(1);
+      act(() => mockCancelMutate.mock.calls[0][1].onError({ code: "CONFLICT", status: 409, message: "private debug" }));
+      expect(require("react-native").Alert.alert).toHaveBeenLastCalledWith(
+        require("@/constants/i18n/en").en.errors.somethingWentWrong,
+        require("@/constants/i18n/en").en.approval.cancellationConflict);
+      expect(mockCancelMutate).toHaveBeenCalledTimes(1);
     });
     it("removes an expiring selection and updates row expiry after a boundary render", () => {
       mount();
