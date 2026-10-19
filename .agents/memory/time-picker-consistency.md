@@ -41,3 +41,15 @@ user can see one time while an older or policy-adjusted time is submitted.
 **How to apply:** Preserve this distinction in every caller, including
 office-hours settings and approval dialogs. Cancelling a mobile picker must
 discard its temporary wheel selection.
+
+Do not treat Android native wheel language/theme as app-controlled merely
+because translated buttons and app-theme colours pass component tests.
+
+**Why:** The native picker library supports `locale` and `themeVariant` only
+on iOS; Android's wheel uses native system configuration. Mocked renderers
+cannot prove wheel text is visible on actual hardware.
+
+**How to apply:** Check English/Arabic and light/dark combinations with real
+app translations and palettes in automation, then verify native rendering on
+devices. For Android app-language parity, assess native localization support
+rather than adding an unsupported `locale` prop.

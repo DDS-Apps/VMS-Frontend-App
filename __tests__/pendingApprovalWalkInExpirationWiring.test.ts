@@ -27,8 +27,8 @@ describe('pending-approval walk-in expiration wiring', () => {
 
   it('shows Expired and guards Manager detail actions with the same result', () => {
     expect(managerDetails).toContain('computeIsPendingApprovalWalkInExpired');
-    expect(managerDetails).toContain(
-      '<RequestStatusBadge status={request.status} />',
+    expect(managerDetails).toMatch(
+      /<RequestStatusBadge\b[^>]*\bstatus=\{request\.status\}[^>]*\/>/,
     );
     expect(managerDetails).toContain(
       'if (isReadOnlyRole || !visitData?.isWalkIn) return;',

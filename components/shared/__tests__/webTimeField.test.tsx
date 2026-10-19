@@ -1,8 +1,12 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { TimeField } from '@/components/time/TimeField.web';
+import { Colors } from '@/constants/theme';
+import { en } from '@/constants/i18n/en';
+import { ar } from '@/constants/i18n/ar';
 
 let mockRTL = false;
+let mockDark = false;
 const mockListeners = new Map<string, Function>();
 const mockFocus = jest.fn();
 const mockPortal = jest.fn((children: React.ReactNode, _container: Element) => children);
@@ -22,10 +26,16 @@ jest.mock('react-dom', () => ({
   createPortal: (children: React.ReactNode, container: Element) => mockPortal(children, container),
 }));
 jest.mock('@/hooks/useTheme', () => ({
-  useTheme: () => ({ theme: { primary: '#f80', text: '#222', border: '#ddd', surface: '#fff', surfaceSecondary: '#eee', error: '#c00', textSecondary: '#777' } }),
+  useTheme: () => ({ theme: require('@/constants/theme').Colors[mockDark ? 'dark' : 'light'] }),
 }));
 jest.mock('@/hooks/useTranslation', () => ({
-  useTranslation: () => ({ isRTL: mockRTL, t: (key: string) => key }),
+  useTranslation: () => ({
+    isRTL: mockRTL,
+    t: (key: string) => {
+      const dictionary = mockRTL ? require('@/constants/i18n/ar').ar : require('@/constants/i18n/en').en;
+      return key.split('.').reduce((value: any, part: string) => value[part], dictionary);
+    },
+  }),
 }));
 jest.mock('@/components/DDIcon', () => ({ DDIcon: 'DDIcon' }));
 jest.mock('@/components/ThemedText', () => ({ ThemedText: 'ThemedText' }));
@@ -38,6 +48,7 @@ describe('editable web time dropdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRTL = false;
+    mockDark = false;
     mockDialog = null;
     mockListeners.clear();
     Object.defineProperty(global, 'document', { configurable: true, value: {
@@ -72,7 +83,7 @@ describe('editable web time dropdown', () => {
   const choose = (index: number, label: string) => act(() => {
     column(index).findAllByProps({ role: 'option' }).find(node => node.props.children === label)!.props.onClick();
   });
-  const done = () => act(() => tree!.root.findByProps({ children: 'common.done' }).props.onClick());
+  const done = () => act(() => tree!.root.findByProps({ children: mockRTL ? ar.common.done : en.common.done }).props.onClick());
 
   it('shows compact independent hour/minute/period columns instead of a full-day time list', () => {
     const renderer = mount();
@@ -113,7 +124,7 @@ describe('editable web time dropdown', () => {
     act(() => input().props.onFocus());
     choose(0, '02');
     choose(1, '30');
-    choose(2, 'time.pm');
+    choose(2, 'PM');
     expect(onTimeSelect).not.toHaveBeenCalled();
     expect(input().props.value).toBe('9:07 AM');
     expect(input().props['aria-expanded']).toBe(true);
@@ -231,7 +242,7 @@ describe('editable web time dropdown', () => {
     expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(30);
   });
 
-  it.each([['time.am', 0], ['time.pm', 12]])('handles twelve %s without changing the date', (period, hours) => {
+  it.each([['AM', 0], ['PM', 12]])('handles twelve %s without changing the date', (period, hours) => {
     mount();
     act(() => input().props.onFocus());
     choose(0, '12');
@@ -267,8 +278,34 @@ describe('editable web time dropdown', () => {
     act(() => input().props.onFocus());
     choose(0, '٠٢');
     choose(1, '٣٧');
-    choose(2, 'time.pm');
+    choose(2, 'م');
     done();
     expect(input().props.value).toBe('٢:٣٧ م');
+  });
+
+  it.each([
+    [false, false], [false, true], [true, false], [true, true],
+  ])('covers web dark=%s Arabic=%s using actual app colours and text', (dark, rtl) => {
+    mockDark = dark;
+    mockRTL = rtl;
+    mount();
+    act(() => input().props.onFocus());
+    const theme = Colors[dark ? 'dark' : 'light'];
+    const strings = rtl ? ar : en;
+    const panel = tree!.root.findByProps({ role: 'dialog' });
+    expect(input().props.style).toMatchObject({ color: theme.text, direction: rtl ? 'rtl' : 'ltr' });
+    expect(panel.props.style).toMatchObject({ background: theme.surface, direction: rtl ? 'rtl' : 'ltr' });
+    expect(column(0).findByProps({ 'aria-selected': true }).props.style).toMatchObject({ background: theme.primary, color: '#fff' });
+    expect(column(2).findByProps({ 'aria-selected': true }).props.children).toBe(strings.time.am);
+    expect(tree!.root.findByProps({ children: strings.common.done }).props.style).toMatchObject({ background: theme.primary, color: '#fff' });
+    choose(0, rtl ? '٠٢' : '02');
+    choose(1, rtl ? '٣٧' : '37');
+    choose(2, strings.time.pm);
+    expect(onTimeSelect).not.toHaveBeenCalled();
+    done();
+    expect(onTimeSelect).toHaveBeenCalledTimes(1);
+    expect(onTimeSelect.mock.calls[0][0].getHours()).toBe(14);
+    expect(onTimeSelect.mock.calls[0][0].getMinutes()).toBe(37);
+    expect(input().props.value).toBe(rtl ? '٢:٣٧ م' : '2:37 PM');
   });
 });
