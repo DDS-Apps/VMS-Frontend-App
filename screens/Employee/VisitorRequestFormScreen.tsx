@@ -40,6 +40,7 @@ import { useRoomAvailabilityQuery } from "@/hooks/queries/useMeetingRoomQueries"
 import { useRegisterWalkInMutation } from "@/hooks/queries/useReceptionQueries";
 import { useUsersQuery } from "@/hooks/queries/useUserQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getEmailChannelState, SHOW_SMS_CHANNEL } from "@/utils/communicationChannelState";
 import {
   DUPLICATE_CHECK_DEBOUNCE_MS,
   buildDuplicateCheckParams,
@@ -174,6 +175,8 @@ export default function VisitorRequestFormScreen({
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [sendSMS, setSendSMS] = useState(true);
   const [sendEmail, setSendEmail] = useState(true);
+  const { enabled: hasEmailAddress, selected: emailChannelSelected } =
+    getEmailChannelState(email, sendEmail);
 
   const [hostEmployee, setHostEmployee] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -745,7 +748,7 @@ export default function VisitorRequestFormScreen({
         | "whatsapp"
         | "qr_code"
       )[] = ["qr_code"];
-      if (sendEmail && email.trim()) communicationChannels.push("email");
+      if (emailChannelSelected) communicationChannels.push("email");
       if (sendSMS) communicationChannels.push("sms");
       if (sendWhatsApp) communicationChannels.push("whatsapp");
 
@@ -1940,7 +1943,7 @@ export default function VisitorRequestFormScreen({
             </DirectionalRow>
           </Pressable>
 
-          <Pressable
+          {SHOW_SMS_CHANNEL ? <Pressable
             style={[
               styles.channelChip,
               {
@@ -1976,14 +1979,18 @@ export default function VisitorRequestFormScreen({
                 ) : null}
               </View>
             </DirectionalRow>
-          </Pressable>
+          </Pressable> : null}
 
           <Pressable
+            accessibilityRole="checkbox"
+            accessibilityLabel={t("services.email")}
+            accessibilityState={{ checked: emailChannelSelected, disabled: !hasEmailAddress }}
+            disabled={!hasEmailAddress}
             style={[
               styles.channelChip,
               {
                 backgroundColor: theme.surface,
-                borderColor: sendEmail ? theme.primary : theme.border,
+                borderColor: emailChannelSelected ? theme.primary : theme.border,
               },
             ]}
             onPress={() => setSendEmail(!sendEmail)}
@@ -2004,12 +2011,12 @@ export default function VisitorRequestFormScreen({
                 style={[
                   styles.squareCheckbox,
                   {
-                    borderColor: sendEmail ? theme.primary : theme.border,
-                    backgroundColor: sendEmail ? theme.primary : 'transparent',
+                    borderColor: emailChannelSelected ? theme.primary : theme.border,
+                    backgroundColor: emailChannelSelected ? theme.primary : 'transparent',
                   },
                 ]}
               >
-                {sendEmail ? (
+                {emailChannelSelected ? (
                   <DDIcon name="check" size={10} color={theme.buttonText} />
                 ) : null}
               </View>

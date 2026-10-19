@@ -49,3 +49,4 @@
 - [Test variant isolation](test-variant-isolation.md) — production Babel console stripping invalidates Jest log assertions; isolate the test variant, not production logging policy.
 - [Timeline display boundaries](timeline-display-contract.md) — No-show is backend-directed detail presentation; completion never establishes physical departure or a new stored status.
 - [Shared visitor card reuse](shared-visitor-card-reuse.md) — Receptionist dashboard cards reuse the existing shared card, not a matching duplicate or dashboard-specific layout.
+- [Communication channel visibility](communication-channel-visibility.md) — hiding SMS in create forms does not authorize removing SMS support or changing delivery.

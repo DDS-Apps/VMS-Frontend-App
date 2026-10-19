@@ -1586,7 +1586,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     totalRecordsPeriod: 'Total Records in Period',
     totalRecordsAllTime: 'Total Records (All Time)',
     allStatuses: 'All statuses — matches downloaded report',
-    exportAuditNote: 'The exported report includes all visit statuses (including cancelled and auto-cancelled) for a complete audit record. The KPI cards above show active visits only.',
+    exportAuditNote: 'The exported report includes all visit statuses (including cancelled and auto-cancelled) for a complete audit record.',
   },
   calendar: {
     syncedToOutlook: 'Synced to Outlook',

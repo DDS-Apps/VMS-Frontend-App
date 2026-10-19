@@ -1586,7 +1586,7 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     totalRecordsPeriod: 'إجمالي السجلات في الفترة',
     totalRecordsAllTime: 'إجمالي السجلات (منذ البداية)',
     allStatuses: 'جميع الحالات — يطابق التقرير المُنزَّل',
-    exportAuditNote: 'يشمل التقرير المُصدَّر جميع حالات الزيارات (بما فيها الملغية والملغية تلقائياً) لسجل مراجعة كامل. تعرض بطاقات المؤشرات أعلاه الزيارات النشطة فقط.',
+    exportAuditNote: 'يشمل التقرير المُصدَّر جميع حالات الزيارات (بما فيها الملغية والملغية تلقائياً) لسجل مراجعة كامل.',
   },
   calendar: {
     syncedToOutlook: 'متزامن مع Outlook',
