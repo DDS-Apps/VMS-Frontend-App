@@ -50,4 +50,4 @@
 - [Timeline display boundaries](timeline-display-contract.md) — No-show is backend-directed detail presentation; completion never establishes physical departure or a new stored status.
 - [Shared visitor card reuse](shared-visitor-card-reuse.md) — Receptionist dashboard cards reuse the existing shared card, not a matching duplicate or dashboard-specific layout.
 - [Communication channel visibility](communication-channel-visibility.md) — hiding SMS in create forms does not authorize removing SMS support or changing delivery.
-- [Time picker consistency](time-picker-consistency.md) — current iPhone reference is the native spinner; dropdown redesign advice is not implementation approval.
+- [Time picker consistency](time-picker-consistency.md) — use the spinner reference throughout mobile and editable time dropdowns on web; retain existing styling.

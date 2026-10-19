@@ -1,18 +1,20 @@
 ---
 name: Time picker consistency
-description: Current iPhone reference is the native spinner, not the custom wheel or an approved dropdown redesign.
+description: Time selection uses the spinner reference on mobile and editable dropdowns on web, with unchanged app styling.
 ---
 
-For existing iPhone time selection, the user identified the native iOS
-hour/minute/AM–PM spinner in a centered dialog as the consistency reference,
-rather than the custom bottom-sheet wheel.
+Time selection throughout the mobile app should follow the native iOS
+hour/minute/AM–PM spinner reference in a centered dialog, rather than the custom
+bottom-sheet wheel. Web should use an editable time dropdown.
 
-**Why:** The user reported a blank native picker on one iPhone, a working
-native spinner on another, and a different custom picker in creation. They
-explicitly requested identifying the inconsistent screens.
+**Why:** After reviewing the inconsistent pickers and blank iPhone rendering,
+the user explicitly selected the spinner for mobile throughout the app and the
+previously discussed editable dropdown for web. They want the existing visual
+styling retained.
 
-**How to apply:** Distinguish native rendering failures from intentional
-component differences. The editable-dropdown discussion was advice, not
-authorization to implement it everywhere. Keep existing visual styling unless
-the user approves a redesign, and require native evidence before declaring the
+**How to apply:** Use shared platform-specific controls across creation,
+editing, approval, and settings flows; preserve existing dates, scheduling
+rules, permissions, and backend payloads. Keep current colors, fields, and
+English/Arabic behavior. Distinguish native rendering failures from intentional
+component differences, and require native evidence before declaring the
 device-specific blank rendering fixed.
