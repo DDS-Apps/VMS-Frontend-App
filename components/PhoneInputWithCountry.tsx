@@ -29,6 +29,7 @@ import {
   parsePhoneWithCountry,
   formatNationalNumber,
 } from '@/constants/countryData';
+import { isValidNationalPhone, NATIONAL_PHONE_FORMAT, normalizePhoneDigits } from '@/utils/phonePolicy';
 
 interface PhoneInputWithCountryProps {
   value: string;
@@ -165,27 +166,24 @@ export const PhoneInputWithCountry = ({
     setSearchQuery('');
     
     // Update the full number with new country code
-    const digits = nationalNumber.replace(/\D/g, '');
+    const digits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
     if (digits) {
       onChangeText(`${country.dialCode}${digits}`);
     }
   }, [nationalNumber, onChangeText]);
 
   const handlePhoneChange = useCallback((text: string) => {
-    const normalized = text.replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x0660))
-                           .replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x06F0));
+    const normalized = normalizePhoneDigits(text);
     const digits = normalized.replace(/\D/g, '');
     
-    // Limit to country's max length
-    const limitedDigits = digits.slice(0, selectedCountry.maxLength);
-    
-    // Format for display
-    const formatted = formatNationalNumber(limitedDigits, selectedCountry.format);
+    // Preserve overlong/leading-zero input so validation never silently changes
+    // a pasted number into a different, apparently valid phone number.
+    const formatted = formatNationalNumber(digits, NATIONAL_PHONE_FORMAT);
     setNationalNumber(formatted);
     
     // Send full international format to parent
-    if (limitedDigits) {
-      onChangeText(`${selectedCountry.dialCode}${limitedDigits}`);
+    if (digits) {
+      onChangeText(`${selectedCountry.dialCode}${digits}`);
     } else {
       onChangeText('');
     }
@@ -225,9 +223,13 @@ export const PhoneInputWithCountry = ({
   }, [selectedCountry, handleCountrySelect, theme, locale]);
 
   const displayedNumber = useMemo(() => {
-    const digits = nationalNumber.replace(/\D/g, '');
-    return formatNationalNumber(digits, selectedCountry.format);
-  }, [nationalNumber, selectedCountry]);
+    const digits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
+    return formatNationalNumber(digits, NATIONAL_PHONE_FORMAT);
+  }, [nationalNumber]);
+  const nationalDigits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
+  const inputError = error || (editable && nationalDigits && !isValidNationalPhone(nationalDigits)
+    ? t('form.invalidPhone')
+    : undefined);
 
   return (
     <View style={styles.container}>
@@ -236,7 +238,7 @@ export const PhoneInputWithCountry = ({
           <ThemedText
             style={[
               Typography.label,
-              { color: error ? theme.error : theme.textSecondary },
+              { color: inputError ? theme.error : theme.textSecondary },
             ]}
           >
             {label.toUpperCase()}{required ? ' *' : ''}
@@ -250,7 +252,7 @@ export const PhoneInputWithCountry = ({
           styles.inputContainer,
           {
             backgroundColor: editable === false ? theme.surfaceSecondary : theme.background,
-            borderColor: error ? theme.error : theme.border,
+            borderColor: inputError ? theme.error : theme.border,
             opacity: editable === false ? 0.6 : 1,
           },
         ]}
@@ -297,11 +299,11 @@ export const PhoneInputWithCountry = ({
         />
       </DirectionalRow>
 
-      {error && (
+      {inputError && (
         <>
           <Spacer height={Spacing.xs} />
           <ThemedText style={[Typography.caption, { color: theme.error }]}>
-            {error}
+            {inputError}
           </ThemedText>
         </>
       )}

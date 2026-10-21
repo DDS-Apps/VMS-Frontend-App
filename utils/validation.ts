@@ -15,10 +15,7 @@ export const validateMaxLength = (value: string, maxLength: number): boolean => 
   return value.length <= maxLength;
 };
 
-export const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^\+?[\d\s-()]+$/;
-  return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
-};
+export { validatePhone } from './phonePolicy';
 
 export const validateUrl = (url: string): boolean => {
   try {

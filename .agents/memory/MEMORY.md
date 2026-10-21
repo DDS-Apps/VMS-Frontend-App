@@ -52,3 +52,4 @@
 - [Shared visitor card reuse](shared-visitor-card-reuse.md) — Receptionist dashboard cards reuse the existing shared card, not a matching duplicate or dashboard-specific layout.
 - [Communication channel visibility](communication-channel-visibility.md) — hiding SMS in create forms does not authorize removing SMS support or changing delivery.
 - [Time picker consistency](time-picker-consistency.md) — use the spinner reference throughout mobile and editable time dropdowns on web; retain existing styling.
+- [Phone number policy](phone-number-policy.md) — all countries use nine national digits with no leading zero; country codes and extensions are separate.

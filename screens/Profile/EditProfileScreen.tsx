@@ -23,6 +23,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
 import { normalizePhoneNumber, formatPhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { validatePhone } from "@/utils/validation";
 import { apiConfig } from "@/api/config";
 
 interface EditProfileScreenProps {
@@ -151,14 +152,17 @@ export default function EditProfileScreen({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: { name?: string; phone?: string } = {};
+    const newErrors: { name?: string; phone?: string; businessPhone?: string } = {};
     
     if (!name.trim()) {
       newErrors.name = t('form.fieldRequired');
     }
     
-    if (phone.trim() && !/^[\d\s\-+()]+$/.test(phone)) {
+    if (!isSSOUser && phone.trim() && !validatePhone(phone)) {
       newErrors.phone = t('form.invalidPhone');
+    }
+    if (businessPhone.trim() && !validatePhone(businessPhone)) {
+      newErrors.businessPhone = t('form.invalidPhone');
     }
     
     setErrors(newErrors);

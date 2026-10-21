@@ -49,11 +49,11 @@ import {
   formatPhoneInput,
   formatPhoneNumber,
   formatPhoneForDisplay,
-  normalizePhoneNumber,
   getInitials,
 } from "@/utils/formatters";
 import { applyOpacity } from "@/utils/statusStyles";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { validatePhone } from "@/utils/validation";
 import { useRetainedDatedData } from "@/hooks/useRetainedDatedData";
 
 type UserSource = "microsoft_ad" | "app_created";
@@ -233,6 +233,7 @@ export default function UsersRolesScreen() {
     email?: string;
     password?: string;
     phone?: string;
+    businessPhone?: string;
   }>({});
 
   const queryParams = useMemo(
@@ -382,12 +383,6 @@ export default function UsersRolesScreen() {
     setShowModal(true);
   };
 
-  const validatePhone = (phone: string): boolean => {
-    const digitsOnly = normalizePhoneNumber(phone);
-    // Valid international phone: 7-15 digits (E.164 standard)
-    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
-  };
-
   const handlePhoneChange = (text: string) => {
     setFormData({ ...formData, phoneNumber: text });
     if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
@@ -395,6 +390,7 @@ export default function UsersRolesScreen() {
 
   const handleBusinessPhoneChange = (text: string) => {
     setFormData({ ...formData, businessPhone: text });
+    if (formErrors.businessPhone) setFormErrors({ ...formErrors, businessPhone: undefined });
   };
 
   const handleBusinessPhoneExtChange = (text: string) => {
@@ -446,6 +442,9 @@ export default function UsersRolesScreen() {
         errors.phone = t("errors.phoneRequired");
       } else if (!validatePhone(formData.phoneNumber)) {
         errors.phone = t("errors.invalidPhone");
+      }
+      if (formData.businessPhone.trim() && !validatePhone(formData.businessPhone)) {
+        errors.businessPhone = t("errors.invalidPhone");
       }
     }
 
@@ -2119,6 +2118,7 @@ export default function UsersRolesScreen() {
                     value={formData.businessPhone}
                     onChangeText={handleBusinessPhoneChange}
                     label={t("form.businessPhone")}
+                    error={formErrors.businessPhone}
                     testID="input-business-phone"
                     editable={!isSsoUser}
                   />

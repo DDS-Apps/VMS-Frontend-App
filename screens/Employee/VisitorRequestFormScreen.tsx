@@ -64,6 +64,7 @@ import { TimeField } from "@/components/time/TimeField";
 import { useTimeFieldValidation } from "@/hooks/useTimeFieldValidation";
 import { normalizePhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
+import { validatePhone } from "@/utils/validation";
 import type { VisitorRequestFormScreenProps } from "@/types/employeeNavigation.types";
 import { calculateServerDuration, getBusinessDateKey, getServerDateParts } from "@/utils/dateTimeUtils";
 import { useServerDateTime } from "@/hooks/useServerDateTime";
@@ -395,13 +396,6 @@ export default function VisitorRequestFormScreen({
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const validatePhone = (phone: string) => {
-    const digitsOnly = normalizePhoneNumber(phone);
-    // Valid international phone: 7-15 digits (E.164 standard)
-    // Saudi: 12 digits (966 + 9), US: 11 digits (1 + 10), etc.
-    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   };
 
   const handlePhoneChange = (fullNumber: string) => {
