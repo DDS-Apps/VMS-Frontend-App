@@ -1,6 +1,6 @@
 #!/bin/bash
-# Explicit production build helper; this project's Replit deployment instead
-# calls scripts/build-web.js directly with --variant qa.
+# Production build helper; this project's Replit deployment also builds
+# scripts/build-web.js with --variant production.
 # All the work happens in scripts/build-web.js so the same steps run on
 # Windows/macOS for the IIS production build (`npm run build:web:production`).
 set -e

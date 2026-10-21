@@ -3,20 +3,19 @@ name: Expo variant isolation and dotenv loading
 description: Why variants resolve explicitly, how QA stays isolated, and why existing exports need rebuilding.
 ---
 
-This project's Replit publishing and workspace preview must target the confirmed
-QA backend, including Microsoft sign-in. Explicit production exports and existing
-EAS profiles remain production. Firebase must remain unchanged.
+This project's Replit publishing, workspace preview, mobile profiles and IIS
+exports must target production, including Microsoft sign-in. Explicit QA/staging
+variants remain available only when deliberately requested. Firebase stays unchanged.
 
-**Why:** On 2026-10-19 the user confirmed the QA origin
-`https://vms-backend-app-qa.replit.app` for preview and QA builds, then clarified
-that publishing this QA frontend must also use QA after publishing still reached
-production. This supersedes the earlier standard-publishing production scope.
+**Why:** On 2026-10-21 the user explicitly requested production for mobile apps,
+web and IIS, with no QA connection. This supersedes the 2026-10-19 request to use
+QA for this project's preview and Replit publishing.
 
 **How to apply:** Preserve the per-variant split and isolate cached authentication
-by backend. Select QA explicitly in this project's deployment build command;
-changing workspace APP_VARIANT alone cannot override a hardcoded production
-build command. Never reuse production sessions for QA or silently fall back to live
-APIs when QA metadata is invalid. Existing published exports/binaries require a
+by backend. Select production explicitly in this project's deployment build command;
+changing workspace APP_VARIANT alone cannot override a hardcoded QA build command.
+Do not reuse QA sessions for production or silently fall back to live APIs when QA
+metadata is invalid. Existing published exports/binaries require a
 separate rebuild and publish; changing workspace variables does not update them.
 
 Resolve variants explicitly rather than trusting loaded process dotenv values.

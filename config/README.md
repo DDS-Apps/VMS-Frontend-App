@@ -1,9 +1,10 @@
 # Environment configuration
 
-**This Replit project's Publish command explicitly builds QA**, targeting
-`https://vms-backend-app-qa.replit.app`. Production remains the default for
-`npm run build:web` and every configured Android/iOS EAS profile, including
-preview and development binaries. Those target `https://vms.dallah.com`.
+**This Replit project's Publish command and workspace preview select production**.
+Replit web publishing, IIS exports, and every configured Android/iOS EAS profile,
+including preview and development binaries, target `https://vms.dallah.com`.
+`/api/docs` is the Swagger documentation route, not the client base URL.
+QA is available only when deliberately requested with an explicit QA/staging variant.
 Missing or unrecognized variants default to production, and production rejects
 non-production or HTTP targets.
 
@@ -37,7 +38,7 @@ device registration, deliberate crash or remote native build is part of this wor
 
 ### Isolated QA and production backends
 
-The workspace preview now uses `APP_VARIANT=qa`. Explicit QA/staging builds use
+The workspace preview now uses `APP_VARIANT=production`. Explicit QA/staging builds use
 `https://vms-backend-app-qa.replit.app` for both API requests and Microsoft sign-in.
 This project's Replit Publish command explicitly selects QA as well.
 Production builds retain `https://vms.dallah.com`, including `npm run build:web`
@@ -50,10 +51,11 @@ QA requires its explicit metadata; it must not silently fall back to live APIs.
 
 Saved QA profiles/tokens use backend-scoped storage keys so a production browser
 session is not reused after switching the workspace to QA. Production storage
-keys remain unchanged. Sign in again to QA after reloading.
+keys remain unchanged. Switching back to production must not reuse QA credentials.
 
 Backend URLs are embedded in exports: existing published apps/binaries are not
-changed until rebuilt and separately published. Build QA web explicitly with
+changed until rebuilt and separately published. If a separate QA export is needed,
+build it explicitly with
 `node scripts/build-web.js --variant qa --no-web-config --precompress`.
 
 The app has two base environments. Their public values are committed in
@@ -135,10 +137,19 @@ FIREBASE_APP_ID_WEB, FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS, FIREBASE_VAPI
 
 | Target | Command |
 |--------|---------|
-| QA web (this project's Replit publishing) | `node scripts/build-web.js --variant qa --no-web-config --precompress` |
+| Production web (this project's Replit publishing) | `node scripts/build-web.js --variant production --no-web-config --precompress` |
+| QA web (explicit, separate export only) | `node scripts/build-web.js --variant qa --no-web-config --precompress` |
 | Production web (explicit export) | `npm run build:web` |
 | Production web (IIS) | `VMS_BACKEND_ORIGIN=http://localhost:3000 npm run build:web:production` |
 | Production iOS / Android | `npm run build:ios` / `npm run build:android` (EAS `production` profile) |
 | Internal iOS / Android (production backend) | `npm run build:preview:ios` / `npm run build:preview:android` |
+
+### Release versions
+
+The user-facing version is kept aligned in `app.json`, `package.json`, and the
+root package-lock entries. EAS uses `appVersionSource: "remote"`, so the remote
+Android/iOS counters are authoritative; changing only `app.json` does not update
+them. Check and update the remote counters when preparing a release. The existing
+`autoIncrement: true` profiles advance those counters again when a build starts.
 
 See `DEPLOY_WEB_IIS.md` and `docs/production-readiness-checklist.md`.

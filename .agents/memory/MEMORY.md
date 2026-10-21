@@ -54,3 +54,4 @@
 - [Time picker consistency](time-picker-consistency.md) — use the spinner reference throughout mobile and editable time dropdowns on web; retain existing styling.
 - [Phone number policy](phone-number-policy.md) — all countries use nine national digits with no leading zero; country codes and extensions are separate.
 - [App download scope](app-download-store-scope.md) — login QR codes target production store listings even when the frontend uses QA APIs.
+- [EAS release counters](eas-remote-release-counters.md) — query remote native counters before choosing increments; later auto-incrementing builds advance them again.
