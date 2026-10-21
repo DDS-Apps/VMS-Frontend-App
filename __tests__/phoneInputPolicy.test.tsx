@@ -1,8 +1,9 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { TextInput } from 'react-native';
+import { FlatList, TextInput } from 'react-native';
 import { PhoneInputWithCountry } from '@/components/PhoneInputWithCountry';
 import { getTranslation } from '@/constants/i18n';
+import { getCountryByCode } from '@/constants/countryData';
 
 let mockLocale: 'en' | 'ar' = 'en';
 let mockDark = false;
@@ -111,6 +112,40 @@ describe.each([
     change('٥١٢٣٤٥٦٧٨٩');
     expect(mockChange).not.toHaveBeenCalled();
     expect(input().props.value).toBe('51 234 5678');
+  });
+
+  const selectKuwait = () => {
+    act(() => tree.root.findByProps({ testID: 'national-phone-country-picker' }).props.onPress());
+    const list = tree.root.findByType(FlatList);
+    const option = list.props.renderItem({ item: getCountryByCode('KW')!, index: 2 });
+    act(() => option.props.onPress());
+  };
+
+  it('changes country without truncating the accepted national number or relaxing entry limits', () => {
+    change('512345678');
+    mockChange.mockClear();
+    selectKuwait();
+    expect(mockChange).toHaveBeenLastCalledWith('+965512345678');
+    expect(input().props.value).toBe('51 234 5678');
+    expect(text()).not.toContain(error());
+    mockChange.mockClear();
+    change('51 234 56789');
+    change('012345678');
+    expect(mockChange).not.toHaveBeenCalled();
+    expect(input().props.value).toBe('51 234 5678');
+    change('612345678');
+    expect(mockChange).toHaveBeenLastCalledWith('+965612345678');
+  });
+
+  it('keeps an empty field empty when country changes and prefixes the next partial entry correctly', () => {
+    selectKuwait();
+    expect(mockChange).not.toHaveBeenCalled();
+    expect(input().props.value).toBe('');
+    change('5');
+    expect(mockChange).toHaveBeenLastCalledWith('+9655');
+    change('');
+    expect(mockChange).toHaveBeenLastCalledWith('');
+    expect(text()).not.toContain(error());
   });
 
   it('does not show new validation errors on locked synced fields', () => {
