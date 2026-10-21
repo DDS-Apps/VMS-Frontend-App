@@ -219,7 +219,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     passwordsDoNotMatch: 'Passwords do not match',
     resetPassword: 'Reset Password',
     passwordResetSuccess: 'Password reset successful',
-    passwordMinLength: 'Password must be at least 6 characters',
+    passwordMinLength: 'Password must be at least 8 characters',
     newPasswordMinLength: 'New password must be at least 8 characters.',
     passwordMaxBytes: 'Password must not exceed 72 UTF-8 bytes. Arabic letters and emoji can use more than one byte.',
     newPasswordGuidance: 'Password must be at least 8 characters long.',

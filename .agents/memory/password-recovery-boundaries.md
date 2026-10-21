@@ -19,7 +19,13 @@ The backend handoff requires an eight-character minimum, rejects blank-only pass
 
 **Why:** The backend uses bcrypt, whose input limit is measured in bytes, not JavaScript character count. Older frontend six-character guidance is not the new-password contract.
 
-**How to apply:** Align new-password validation and English/Arabic guidance without trimming submissions or changing existing-account login eligibility. Backend source existence is not deployment evidence: migration, configuration, real-mail QA and revocation/race verification remain external release gates.
+**How to apply:** Align new-password validation and English/Arabic guidance without trimming submissions. Login also requires at least eight characters per the user's subsequent consistency requirement; do not apply the new-password byte cap or other creation-only restrictions to login without a separate request. Backend source existence is not deployment evidence: migration, configuration, real-mail QA and revocation/race verification remain external release gates.
+
+Login and new-password flows must share the eight-character minimum, including English and Arabic validation messages.
+
+**Why:** The user explicitly requested correcting the inconsistent six-character login requirement to match Reset Password.
+
+**How to apply:** Keep the minimum aligned across login, reset, and signed-in password changes; preserve exact submitted passwords and leave Microsoft sign-in unchanged.
 
 Public password recovery should match the existing sign-in screen's background, typography, field labels and button sizing rather than introduce a separate auth design.
 

@@ -25,6 +25,7 @@ import { SESSION_EXPIRED_ERROR, useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
 import { useAzureAuth, AzureErrorType } from "@/hooks/useAzureAuth";
+import { MIN_PASSWORD_LENGTH } from "@/utils/newPasswordPolicy";
 
 interface LoginScreenProps {
   onLoginSuccess?: (role: UserRole) => void;
@@ -91,7 +92,7 @@ export default function LoginScreen({ onLoginSuccess, onForgotPassword }: LoginS
 
     if (!password.trim()) {
       newErrors.password = t("form.required");
-    } else if (password.length < 6) {
+    } else if (password.length < MIN_PASSWORD_LENGTH) {
       newErrors.password = t("auth.passwordMinLength");
     }
 

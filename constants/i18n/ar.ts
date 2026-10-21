@@ -219,7 +219,7 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     passwordsDoNotMatch: 'كلمات المرور غير متطابقة',
     resetPassword: 'إعادة تعيين كلمة المرور',
     passwordResetSuccess: 'تم إعادة تعيين كلمة المرور بنجاح',
-    passwordMinLength: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل',
+    passwordMinLength: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل',
     newPasswordMinLength: 'يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل.',
     passwordMaxBytes: 'يجب ألا تتجاوز كلمة المرور 72 بايت بترميز UTF-8. قد تستخدم الأحرف العربية والرموز التعبيرية أكثر من بايت واحد.',
     newPasswordGuidance: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.',
