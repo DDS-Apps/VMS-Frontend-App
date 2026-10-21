@@ -1,9 +1,15 @@
 import { COUNTRIES } from '@/constants/countryData';
 import { getTranslation } from '@/constants/i18n';
 import { validatePhone } from '@/utils/validation';
-import { isValidNationalPhone, normalizePhoneDigits } from '@/utils/phonePolicy';
+import { isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits } from '@/utils/phonePolicy';
 
 describe('application phone policy', () => {
+  it.each(['', '5', '51', '51234567', '512345678'])('allows the editable national draft %s', value => {
+    expect(isAllowedNationalPhoneDraft(value)).toBe(true);
+  });
+  it.each(['0', '012345678', '5123456789', '51 234 5678', '+966512345678'])('blocks the invalid national draft %s', value => {
+    expect(isAllowedNationalPhoneDraft(value)).toBe(false);
+  });
   it.each(COUNTRIES)('requires nine national digits for $code ($dialCode)', country => {
     expect(validatePhone(`${country.dialCode}512345678`)).toBe(true);
     expect(validatePhone(`${country.dialCode}012345678`)).toBe(false);

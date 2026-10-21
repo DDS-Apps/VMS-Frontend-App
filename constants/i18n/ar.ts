@@ -237,6 +237,12 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     passwordChangedSuccess: 'تم تغيير كلمة المرور بنجاح',
     azureLoginFailed: 'فشل تسجيل الدخول باستخدام Microsoft. يرجى المحاولة مرة أخرى.',
     azureNotConfigured: 'لم يتم تكوين تسجيل الدخول باستخدام Microsoft. يرجى الاتصال بالمسؤول.',
+    appDownloadTitle: 'احصل على تطبيق دله ديجيتال لإدارة الزوار',
+    appDownloadDescription: 'امسح الرمز أو افتح متجر التطبيقات على جهازك.',
+    appStore: 'App Store',
+    googlePlay: 'Google Play',
+    downloadOnAppStore: 'التنزيل من App Store',
+    getItOnGooglePlay: 'التنزيل من Google Play',
   },
   roles: {
     employee: 'موظف',

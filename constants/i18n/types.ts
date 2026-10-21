@@ -237,6 +237,12 @@ export interface TranslationKeys {
     passwordChangedSuccess: string;
     azureLoginFailed: string;
     azureNotConfigured: string;
+    appDownloadTitle: string;
+    appDownloadDescription: string;
+    appStore: string;
+    googlePlay: string;
+    downloadOnAppStore: string;
+    getItOnGooglePlay: string;
   };
   roles: {
     employee: string;

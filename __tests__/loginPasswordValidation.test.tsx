@@ -31,6 +31,7 @@ jest.mock('@/hooks/useAzureAuth', () => ({
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
 jest.mock('@/components/DDIcon', () => ({ DDIcon: () => null }));
 jest.mock('@/components/shared/LoadingButton', () => ({ LoadingButton: 'LoginAction' }));
+jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 describe.each(['en', 'ar'] as const)('login minimum password length (%s)', locale => {
   let tree: ReactTestRenderer;
@@ -76,5 +77,12 @@ describe.each(['en', 'ar'] as const)('login minimum password length (%s)', local
     await submit();
     expect(mockLogin).toHaveBeenCalledWith('fixture@example.test', password);
     expect(JSON.stringify(tree.toJSON())).not.toContain(getTranslation(locale, 'auth.passwordMinLength'));
+  });
+
+  it('places both download links after the sign-in form', () => {
+    const rendered = JSON.stringify(tree.toJSON());
+    expect(rendered.indexOf('download-ios')).toBeGreaterThan(rendered.indexOf('LoginAction'));
+    expect(tree.root.findByProps({ testID: 'download-ios' }).props.accessibilityRole).toBe('link');
+    expect(tree.root.findByProps({ testID: 'download-android' }).props.accessibilityRole).toBe('link');
   });
 });

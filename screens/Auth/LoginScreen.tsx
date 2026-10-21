@@ -26,6 +26,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { ApiException } from "@/api/errors";
 import { useAzureAuth, AzureErrorType } from "@/hooks/useAzureAuth";
 import { MIN_PASSWORD_LENGTH } from "@/utils/newPasswordPolicy";
+import AppDownloadSection from "@/components/auth/AppDownloadSection";
 
 interface LoginScreenProps {
   onLoginSuccess?: (role: UserRole) => void;
@@ -577,6 +578,7 @@ export default function LoginScreen({ onLoginSuccess, onForgotPassword }: LoginS
             </LoadingButton>
 
           </View>
+          <AppDownloadSection />
         </View>
       </ScrollView>
     </ThemedView>

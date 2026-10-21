@@ -29,7 +29,7 @@ import {
   parsePhoneWithCountry,
   formatNationalNumber,
 } from '@/constants/countryData';
-import { isValidNationalPhone, NATIONAL_PHONE_FORMAT, normalizePhoneDigits } from '@/utils/phonePolicy';
+import { isAllowedNationalPhoneDraft, isValidNationalPhone, NATIONAL_PHONE_FORMAT, normalizePhoneDigits } from '@/utils/phonePolicy';
 
 interface PhoneInputWithCountryProps {
   value: string;
@@ -173,11 +173,12 @@ export const PhoneInputWithCountry = ({
   }, [nationalNumber, onChangeText]);
 
   const handlePhoneChange = useCallback((text: string) => {
+    if (!editable) return;
     const normalized = normalizePhoneDigits(text);
     const digits = normalized.replace(/\D/g, '');
-    
-    // Preserve overlong/leading-zero input so validation never silently changes
-    // a pasted number into a different, apparently valid phone number.
+    // Reject the edit rather than truncating or stripping a leading zero.
+    // Keep the last accepted controlled value and never emit the rejected input.
+    if (!isAllowedNationalPhoneDraft(digits)) return;
     const formatted = formatNationalNumber(digits, NATIONAL_PHONE_FORMAT);
     setNationalNumber(formatted);
     
@@ -187,7 +188,7 @@ export const PhoneInputWithCountry = ({
     } else {
       onChangeText('');
     }
-  }, [selectedCountry, onChangeText]);
+  }, [editable, selectedCountry, onChangeText]);
 
   const renderCountryItem = useCallback(({ item }: { item: CountryData }) => {
     const isSelected = item.code === selectedCountry.code;

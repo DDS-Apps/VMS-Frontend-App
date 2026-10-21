@@ -237,6 +237,12 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     passwordChangedSuccess: 'Password changed successfully',
     azureLoginFailed: 'Microsoft sign-in failed. Please try again.',
     azureNotConfigured: 'Microsoft sign-in is not configured. Please contact your administrator.',
+    appDownloadTitle: 'Get the Dallah Digital VMS app',
+    appDownloadDescription: 'Scan a code or open your device’s app store.',
+    appStore: 'App Store',
+    googlePlay: 'Google Play',
+    downloadOnAppStore: 'Download on the App Store',
+    getItOnGooglePlay: 'Get it on Google Play',
   },
   roles: {
     employee: 'Employee',

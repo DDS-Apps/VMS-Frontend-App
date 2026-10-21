@@ -12,6 +12,11 @@ export function isValidNationalPhone(value: string): boolean {
   return /^[1-9][0-9]{8}$/.test(value);
 }
 
+/** Empty and partial national numbers are editable; invalid edits are not. */
+export function isAllowedNationalPhoneDraft(value: string): boolean {
+  return /^(?:[1-9][0-9]{0,8})?$/.test(value);
+}
+
 /** Validate the national portion, never counting the country calling code. */
 export function validatePhone(value: string): boolean {
   const normalized = normalizePhoneDigits(value).trim();
