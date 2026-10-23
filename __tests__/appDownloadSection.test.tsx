@@ -1,12 +1,13 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { Linking, StyleSheet } from 'react-native';
+import { Linking, Platform, StyleSheet } from 'react-native';
 import AppDownloadSection from '@/components/auth/AppDownloadSection';
 import { APP_STORE_LINKS } from '@/constants/appStoreLinks';
 import { getTranslation } from '@/constants/i18n';
 
 let mockLocale: 'en' | 'ar' = 'en';
 let mockDark = false;
+const originalPlatform = Platform.OS;
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('@/contexts/LanguageContext', () => ({
@@ -32,6 +33,7 @@ describe.each([
     });
   };
   beforeEach(() => {
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
     mockLocale = locale;
     mockDark = dark;
     open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
@@ -40,6 +42,7 @@ describe.each([
   afterEach(() => {
     act(() => tree.unmount());
     open.mockRestore();
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: originalPlatform });
   });
 
   it('renders the exact production destinations as genuine high-contrast QR payloads', () => {
@@ -86,5 +89,28 @@ describe.each([
     expect(text()).toContain(getTranslation(locale, 'errors.somethingWentWrong'));
     await press('ios');
     expect(text()).not.toContain(getTranslation(locale, 'errors.somethingWentWrong'));
+  });
+});
+
+describe.each(['ios', 'android'] as const)('native %s app downloads', platform => {
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: originalPlatform });
+  });
+
+  it.each([
+    ['en', false], ['ar', false], ['en', true], ['ar', true],
+  ] as const)('hides the entire section (%s, dark=%s)', (locale, dark) => {
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: platform });
+    mockLocale = locale;
+    mockDark = dark;
+    let tree!: ReactTestRenderer;
+    try {
+      act(() => { tree = create(<AppDownloadSection />); });
+      expect(tree.toJSON()).toBeNull();
+      expect(tree.root.findAllByType('QRCode' as any)).toHaveLength(0);
+      expect(tree.root.findAllByProps({ testID: 'app-download-cards' })).toHaveLength(0);
+    } finally {
+      if (tree) act(() => tree.unmount());
+    }
   });
 });

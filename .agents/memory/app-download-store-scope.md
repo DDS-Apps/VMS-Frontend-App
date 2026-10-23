@@ -13,3 +13,12 @@ iOS apps and supplied both official store destinations.
 selection. Do not substitute TestFlight, EAS preview, or guessed listings, and
 do not change authentication, backend selection, or native build variants to
 add download links.
+
+The login download section is for web browsers only, including mobile browsers;
+hide the whole section in installed iOS and Android apps.
+
+**Why:** The user explicitly confirmed that the app-download blocks should not
+appear inside the native apps, but must remain visible on web and mobile web.
+
+**How to apply:** Distinguish the runtime platform, not screen width or mobile
+user-agent detection. Keep both QR destinations and their matching links intact.

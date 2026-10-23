@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Platform, Pressable, StyleSheet, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { ThemedText } from "@/components/ThemedText";
 import { DirectionalRow } from "@/components/DirectionalRow";
@@ -16,6 +16,9 @@ export default function AppDownloadSection() {
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
   const [openError, setOpenError] = useState(false);
+
+  // Keep downloads available in desktop/mobile browsers, not installed apps.
+  if (Platform.OS !== "web") return null;
 
   const stores: { id: Store; name: string; action: string; testID: string }[] = [
     {
