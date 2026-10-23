@@ -1,7 +1,7 @@
 {
   "name": "dallah-vms",
   "main": "index.js",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "scripts": {
     "test": "npm run test:unit && npm run test:ios-auth",
     "test:unit": "APP_VARIANT=qa jest --runInBand",
