@@ -1,2 +1,3 @@
 /generated-artifacts/
-/dist/
+# dist/ is required by node server.js in the published app.
+# Keep it excluded from Git in .gitignore, not from deployment.

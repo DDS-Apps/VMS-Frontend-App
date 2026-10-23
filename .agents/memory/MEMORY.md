@@ -42,6 +42,7 @@
 - [Visit tile time isolation](visit-tile-time-isolation.md) — mixed Arabic host text must not separate AM/PM from its time; keep time before host metadata.
 - [Firebase platform boundaries](firebase-platform-boundaries.md) — web configuration changes do not authorize native or backend migration; validate delivery credentials per platform.
 - [Preview startup budget](preview-startup-budget.md) — cold production exports can exceed the startup deadline; separate preview startup and verify bundle readiness.
+- [Deployment runtime assets](deployment-runtime-assets.md) — keep required web exports out of Git, but never exclude them from deployment packaging.
 - [Mobile KPI columns](mobile-kpi-columns.md) — phone grids, including iPhone 11, keep two columns; full labels stay below numbers, never beside them.
 - [Password recovery boundaries](password-recovery-boundaries.md) — external backend owns eligibility, mail and revocation; distinguish frontend fixtures from live QA and keep reset secrets memory-only.
 - [QR retention contract](qr-retention-contract.md) — backend validity governs retained QR access; meeting end, approval deadlines, and physical checkout remain distinct.

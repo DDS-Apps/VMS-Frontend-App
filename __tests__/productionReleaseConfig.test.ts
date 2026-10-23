@@ -47,6 +47,17 @@ describe('production release configuration', () => {
     expect(() => assertProductionConfig(environment)).not.toThrow();
   });
 
+  it('includes the built website in deployment while keeping it out of Git', () => {
+    const deploymentIgnores = fs.readFileSync(path.join(root, '.replitignore'), 'utf8')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'));
+    expect(deploymentIgnores).not.toEqual(expect.arrayContaining(['/dist/']));
+    expect(deploymentIgnores).not.toEqual(expect.arrayContaining(['dist/']));
+    expect(fs.readFileSync(path.join(root, '.gitignore'), 'utf8'))
+      .toMatch(/(?:^|\n)\/?dist\/(?:\r?\n|$)/);
+  });
+
   it('keeps package and app release versions aligned without disabling EAS remote counters', () => {
     const pkg = require('../package.json');
     const lock = require('../package-lock.json');
