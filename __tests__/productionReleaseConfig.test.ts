@@ -31,11 +31,20 @@ describe('production release configuration', () => {
     expect(environment.microsoftAuthUrl).toBe('https://vms.dallah.com');
   });
 
-  it('publishes the web bundle explicitly against production', () => {
+  it('uses QA for Replit web preview and publishing without changing production IIS builds', () => {
     const config = fs.readFileSync(path.join(root, '.replit'), 'utf8');
     const deployment = config.split('[deployment]')[1].split('\n[')[0];
-    expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"production"/);
-    expect(deployment).not.toContain('"qa"');
+    expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"qa"/);
+    expect(config).toContain('APP_VARIANT=qa CI=1');
+    const pkg = require('../package.json');
+    expect(pkg.scripts['build:web']).toContain('--variant qa');
+    expect(pkg.scripts['build:web:production']).toContain('--variant production');
+    expect(pkg.scripts['dev:web']).toContain('APP_VARIANT=qa');
+    expect(pkg.scripts.web).toContain('APP_VARIANT=qa');
+    const environment = resolveEnvironment({ appVariant: 'qa' });
+    expect(environment.apiBaseUrl).toBe('https://vms-backend-app-qa.replit.app');
+    expect(environment.microsoftAuthUrl).toBe(environment.apiBaseUrl);
+    expect(() => assertProductionConfig(environment)).not.toThrow();
   });
 
   it('keeps package and app release versions aligned without disabling EAS remote counters', () => {

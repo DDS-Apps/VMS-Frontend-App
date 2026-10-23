@@ -3,17 +3,17 @@ name: Expo variant isolation and dotenv loading
 description: Why variants resolve explicitly, how QA stays isolated, and why existing exports need rebuilding.
 ---
 
-This project's Replit publishing, workspace preview, mobile profiles and IIS
-exports must target production, including Microsoft sign-in. Explicit QA/staging
-variants remain available only when deliberately requested. Firebase stays unchanged.
+Replit web publishing and web preview target QA, including Microsoft sign-in.
+Native mobile profiles and the explicit production IIS export remain on production.
+Firebase stays unchanged.
 
-**Why:** On 2026-10-21 the user explicitly requested production for mobile apps,
-web and IIS, with no QA connection. This supersedes the 2026-10-19 request to use
-QA for this project's preview and Replit publishing.
+**Why:** On 2026-10-23 the user requested QA APIs for web only, superseding the
+earlier all-platform production target for web, but not for native apps or IIS.
 
 **How to apply:** Preserve the per-variant split and isolate cached authentication
-by backend. Select production explicitly in this project's deployment build command;
-changing workspace APP_VARIANT alone cannot override a hardcoded QA build command.
+by backend. Select QA explicitly in web-only commands and keep native EAS profiles
+and the production IIS export explicitly production. Changing workspace APP_VARIANT
+alone cannot override a hardcoded deployment build variant.
 Do not reuse QA sessions for production or silently fall back to live APIs when QA
 metadata is invalid. Existing published exports/binaries require a
 separate rebuild and publish; changing workspace variables does not update them.
