@@ -16,3 +16,15 @@ coverage for threshold boundaries, rescheduling, eligibility, cancellation,
 foreground recovery and server clock offsets against explicit absolute times.
 Missing or ambiguous backend timestamps require contract verification, not a
 silent local-time fallback.
+
+**Backend contract:** The production Swagger at
+https://vms.dallah.com/api/docs describes visit/service starts as canonical
+ISO 8601 UTC across visit, reception, parking and buffet/staff responses.
+
+**Why:** This is external contract evidence for requiring an explicit timezone;
+frontend type declarations alone would not establish the backend's format.
+
+**How to apply:** Recheck the published contract when changing accepted formats.
+Documentation and historical samples do not prove that every current
+authenticated row contains the field; distinguish format compatibility from
+live endpoint coverage.
