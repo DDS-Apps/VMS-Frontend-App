@@ -1,22 +1,23 @@
 ---
 name: Phone number policy
-description: Explicit nine-digit national-number rule across countries and editable phone fields.
+description: Country-specific phone validation, separate calling codes, and unchanged form copy.
 ---
-Every selected country uses exactly nine national digits, with no leading zero.
-The country calling code is excluded from this count.
+Use the selected country's numbering rules, not a universal nine-digit limit.
+Keep the country calling code separate from the editable national number.
+Saudi national numbers retain their nine-digit requirement. Pakistan mobile
+numbers require ten national digits. Significant national
+zeroes must remain supported in countries whose numbering plans require them.
 
-**Why:** The user explicitly chose this application-wide rule after being warned
-that some countries normally use eight or ten national digits. They explicitly
-requested keeping the existing labels and validation messages unchanged.
-They subsequently clarified that showing an error is insufficient: the input
-must prevent a leading zero and entry beyond nine national digits.
+**Why:** On 2026-10-23 the user confirmed country-specific rules across all phone
+fields after the global nine-digit policy blocked a valid Pakistan number.
+This supersedes their earlier all-country nine-digit instruction. Their request
+to keep existing labels and validation messages unchanged remains in force.
 
 **How to apply:** Apply it to normal/walk-in visit creation and editable mobile
 and business phone fields in user/profile management. Keep optional fields
 optional, extensions separate, and read-only SSO fields locked. Do not truncate
-overlong numbers or silently remove a leading zero to make input valid. Preserve
-country codes and existing API payload conventions.
-Reject invalid edits before committing them to the field or parent form, keeping
-the last accepted value. Allow partial typing but require all nine digits to save.
+overlong numbers or silently remove a domestic trunk zero to make input valid.
+Preserve country codes and existing API payload conventions. Allow partial
+typing within the country's limits, but require a country-valid number to save.
 Keep the original field labels, placeholders, and English/Arabic error messages;
 this is a validation change, not a copy change.

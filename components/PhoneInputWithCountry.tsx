@@ -29,7 +29,7 @@ import {
   parsePhoneWithCountry,
   formatNationalNumber,
 } from '@/constants/countryData';
-import { isAllowedNationalPhoneDraft, isValidNationalPhone, NATIONAL_PHONE_FORMAT, normalizePhoneDigits } from '@/utils/phonePolicy';
+import { isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits } from '@/utils/phonePolicy';
 
 interface PhoneInputWithCountryProps {
   value: string;
@@ -133,7 +133,9 @@ export const PhoneInputWithCountry = ({
     if (value) {
       const parsed = parsePhoneWithCountry(value);
       if (parsed) {
-        if (parsed.country.code !== selectedCountry.code) {
+        // A calling code can represent multiple countries (e.g. US/Canada).
+        // Keep the user's selection when the parent echoes the same dial code.
+        if (parsed.country.dialCode !== selectedCountry.dialCode) {
           setSelectedCountry(parsed.country);
         }
         if (parsed.nationalNumber !== nationalNumber.replace(/\s/g, '')) {
@@ -175,11 +177,20 @@ export const PhoneInputWithCountry = ({
   const handlePhoneChange = useCallback((text: string) => {
     if (!editable) return;
     const normalized = normalizePhoneDigits(text);
-    const digits = normalized.replace(/\D/g, '');
+    const compact = normalized.replace(/[\s()-]/g, '');
+    // Phone autofill/paste may include the already-selected calling code.
+    // Do not duplicate that code or silently switch countries.
+    if (compact.startsWith('+') && !compact.startsWith(selectedCountry.dialCode)) return;
+    const digits = compact.startsWith('+')
+      ? compact.slice(selectedCountry.dialCode.length)
+      : normalized.replace(/\D/g, '');
+    const previousDigits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
+    const correctingInvalidValue = !isAllowedNationalPhoneDraft(previousDigits, selectedCountry.code)
+      && /^\d*$/.test(digits) && digits.length < previousDigits.length;
     // Reject the edit rather than truncating or stripping a leading zero.
     // Keep the last accepted controlled value and never emit the rejected input.
-    if (!isAllowedNationalPhoneDraft(digits)) return;
-    const formatted = formatNationalNumber(digits, NATIONAL_PHONE_FORMAT);
+    if (!isAllowedNationalPhoneDraft(digits, selectedCountry.code) && !correctingInvalidValue) return;
+    const formatted = formatNationalNumber(digits, selectedCountry.format);
     setNationalNumber(formatted);
     
     // Send full international format to parent
@@ -188,7 +199,7 @@ export const PhoneInputWithCountry = ({
     } else {
       onChangeText('');
     }
-  }, [editable, selectedCountry, onChangeText]);
+  }, [editable, selectedCountry, nationalNumber, onChangeText]);
 
   const renderCountryItem = useCallback(({ item }: { item: CountryData }) => {
     const isSelected = item.code === selectedCountry.code;
@@ -225,10 +236,10 @@ export const PhoneInputWithCountry = ({
 
   const displayedNumber = useMemo(() => {
     const digits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
-    return formatNationalNumber(digits, NATIONAL_PHONE_FORMAT);
-  }, [nationalNumber]);
+    return formatNationalNumber(digits, selectedCountry.format);
+  }, [nationalNumber, selectedCountry]);
   const nationalDigits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
-  const inputError = error || (editable && nationalDigits && !isValidNationalPhone(nationalDigits)
+  const inputError = error || (editable && nationalDigits && !isValidNationalPhone(nationalDigits, selectedCountry.code)
     ? t('form.invalidPhone')
     : undefined);
 
