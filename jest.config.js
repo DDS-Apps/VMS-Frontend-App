@@ -10,6 +10,8 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.cache/',
+    // Uses node:test, not Jest. Included in npm test via test:ios-auth.
+    '/scripts/apple-auth-service-key\\.test\\.js$',
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/.cache/',

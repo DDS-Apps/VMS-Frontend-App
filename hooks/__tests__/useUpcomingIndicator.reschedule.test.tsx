@@ -1,7 +1,7 @@
 /**
  * Tests for the reschedule path of useUpcomingIndicator.
  *
- * When a visit is rescheduled the hook receives new visitDate/visitTime props.
+ * When a visit is rescheduled the hook receives a new absolute visitStartAt.
  * These tests verify that:
  *
  *  1. Starting 20 min away  → indicator is OFF  (outside 15-min window)
@@ -10,8 +10,8 @@
  *  4. No flicker / double-fire during the prop-change transition
  *
  * The mechanism under test:
- *  - `calculate` is a useCallback whose identity changes when visitDate,
- *    visitTime, eligible, or thresholdMinutes changes.
+ *  - `calculate` is a useCallback whose identity changes when visitStartAt,
+ *    eligible, or thresholdMinutes changes.
  *  - The main useEffect depends on [calculate, scheduleNextCheck], so it
  *    re-runs on every reschedule, clears the old timer, calls
  *    setIsUpcoming(calculate()) synchronously, and arms a fresh timer.
@@ -47,7 +47,7 @@ import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
  * Positive  → future (visit is `offsetMinutes` minutes away).
  * Negative  → past   (visit started `|offsetMinutes|` minutes ago).
  */
-function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: string } {
+function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: string; visitStartAt: string } {
   const target = new Date(Date.now() + offsetMinutes * 60 * 1000);
   const visitDate = [
     target.getFullYear(),
@@ -55,7 +55,7 @@ function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: st
     String(target.getDate()).padStart(2, '0'),
   ].join('-');
   const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
-  return { visitDate, visitTime };
+  return { visitDate, visitTime, visitStartAt: target.toISOString() };
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +63,7 @@ function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: st
 // ---------------------------------------------------------------------------
 
 interface HostProps {
+  visitStartAt?: string;
   visitDate: string;
   visitTime: string;
   eligible: boolean;
@@ -76,8 +77,8 @@ interface HostProps {
  * render. The write happens during the render phase so `resultRef.current`
  * reflects the hook value for the most recent render as soon as `act()` settles.
  */
-function HostComponent({ visitDate, visitTime, eligible, resultRef, onTrueRef }: HostProps): null {
-  const value = useUpcomingIndicator({ visitDate, visitTime, eligible });
+function HostComponent({ visitDate, visitTime, visitStartAt, eligible, resultRef, onTrueRef }: HostProps): null {
+  const value = useUpcomingIndicator({ visitDate, visitTime, visitStartAt, eligible });
   resultRef.current = value;
   if (onTrueRef && value) {
     onTrueRef.current += 1;
@@ -89,7 +90,7 @@ function HostComponent({ visitDate, visitTime, eligible, resultRef, onTrueRef }:
 // Suite — reschedule / prop-change path
 // ---------------------------------------------------------------------------
 
-describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)', () => {
+describe('useUpcomingIndicator — reschedule (absolute start changes)', () => {
   /**
    * The core reschedule scenario:
    *  20 min away  → OFF
@@ -106,8 +107,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={true}
           resultRef={resultRef}
         />
@@ -122,8 +122,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />
@@ -138,8 +137,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit30.visitDate}
-          visitTime={visit30.visitTime}
+          {...visit30}
           eligible={true}
           resultRef={resultRef}
         />
@@ -164,8 +162,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={true}
           resultRef={resultRef}
         />
@@ -179,8 +176,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit7.visitDate}
-          visitTime={visit7.visitTime}
+          {...visit7}
           eligible={true}
           resultRef={resultRef}
         />
@@ -206,8 +202,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />
@@ -221,8 +216,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit25.visitDate}
-          visitTime={visit25.visitTime}
+          {...visit25}
           eligible={true}
           resultRef={resultRef}
         />
@@ -250,8 +244,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={true}
           resultRef={resultRef}
           onTrueRef={trueCountRef}
@@ -267,8 +260,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit8.visitDate}
-          visitTime={visit8.visitTime}
+          {...visit8}
           eligible={true}
           resultRef={resultRef}
           onTrueRef={trueCountRef}
@@ -295,8 +287,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={false}
           resultRef={resultRef}
         />
@@ -311,8 +302,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={false}
           resultRef={resultRef}
         />
@@ -337,8 +327,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={false}
           resultRef={resultRef}
         />
@@ -351,8 +340,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={false}
           resultRef={resultRef}
         />
@@ -364,8 +352,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />
@@ -425,6 +412,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
+          visitStartAt={new Date(base.getTime() + 2 * 60_000).toISOString()}
           visitDate={todayDate}
           visitTime={initialTime}
           eligible={true}
@@ -438,6 +426,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
+          visitStartAt={new Date(base.getTime() + 9 * 60_000).toISOString()}
           visitDate={tomorrowDate}
           visitTime={rescheduledTime}
           eligible={true}
@@ -491,6 +480,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer = create(
         <HostComponent
+          visitStartAt={new Date(base.getTime() + 2 * 60_000).toISOString()}
           visitDate={todayDate}
           visitTime={initialTime}
           eligible={true}
@@ -504,6 +494,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     act(() => {
       renderer.update(
         <HostComponent
+          visitStartAt={new Date(base.getTime() + 24 * 60_000).toISOString()}
           visitDate={tomorrowDate}
           visitTime={rescheduledTime}
           eligible={true}
@@ -532,7 +523,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     const v20 = buildVisitAt(20);
     act(() => {
       renderer = create(
-        <HostComponent visitDate={v20.visitDate} visitTime={v20.visitTime} eligible={true} resultRef={resultRef} />
+        <HostComponent {...v20} eligible={true} resultRef={resultRef} />
       );
     });
     expect(resultRef.current).toBe(false);
@@ -541,7 +532,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     const v5 = buildVisitAt(5);
     act(() => {
       renderer.update(
-        <HostComponent visitDate={v5.visitDate} visitTime={v5.visitTime} eligible={true} resultRef={resultRef} />
+        <HostComponent {...v5} eligible={true} resultRef={resultRef} />
       );
     });
     expect(resultRef.current).toBe(true);
@@ -550,7 +541,7 @@ describe('useUpcomingIndicator — reschedule (visitDate/visitTime prop changes)
     const v30 = buildVisitAt(30);
     act(() => {
       renderer.update(
-        <HostComponent visitDate={v30.visitDate} visitTime={v30.visitTime} eligible={true} resultRef={resultRef} />
+        <HostComponent {...v30} eligible={true} resultRef={resultRef} />
       );
     });
     expect(resultRef.current).toBe(false);

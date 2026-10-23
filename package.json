@@ -3,6 +3,8 @@
   "main": "index.js",
   "version": "3.0.7",
   "scripts": {
+    "test": "npm run test:unit && npm run test:ios-auth",
+    "test:unit": "APP_VARIANT=qa jest --runInBand",
     "dev": "npm run dev:mobile",
     "dev:mobile": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --port 5000 --host tunnel",
     "dev:web": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --web --port 5000 --host tunnel",

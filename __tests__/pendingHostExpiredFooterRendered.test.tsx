@@ -1,6 +1,10 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
 
+jest.mock("expo-constants", () => ({
+  expoConfig: { extra: { environment: "production", apiBaseUrl: "https://vms.dallah.com" } },
+}));
+
 let mockWidth = 390;
 let mockFontScale = 1;
 let mockLocale: "en" | "ar" = "en";

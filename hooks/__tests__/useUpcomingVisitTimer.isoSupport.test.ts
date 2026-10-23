@@ -6,7 +6,6 @@
 import {
   parseVisitStartAt,
   isUpcomingVisitFromISO,
-  isUpcomingVisit,
 } from '../useUpcomingVisitTimer';
 
 // ─── parseVisitStartAt ───────────────────────────────────────────────────────
@@ -43,10 +42,8 @@ describe('parseVisitStartAt', () => {
     expect(parseVisitStartAt('not-a-date')).toBeNull();
   });
 
-  it('does not return null for a date-only ISO string (JS Date parses it as UTC midnight)', () => {
-    // '2025-01-15' is a valid ISO 8601 date; new Date() parses it as UTC midnight.
-    // parseVisitStartAt accepts it — callers relying on this receive a Date at 00:00 UTC.
-    expect(parseVisitStartAt('2025-01-15')).not.toBeNull();
+  it('does not invent midnight when the backend supplied a date without a start time', () => {
+    expect(parseVisitStartAt('2025-01-15')).toBeNull();
   });
 });
 
@@ -113,22 +110,10 @@ describe('isUpcomingVisitFromISO', () => {
 
 // ─── isUpcomingVisit (legacy visitDate + visitTime path) ────────────────────
 
-describe('isUpcomingVisit legacy path', () => {
-  it('still works with a local date+time pair', () => {
-    const now = new Date();
-    const in10 = new Date(now.getTime() + 10 * 60 * 1000);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const dateStr = `${in10.getFullYear()}-${pad(in10.getMonth() + 1)}-${pad(in10.getDate())}`;
-    const timeStr = `${pad(in10.getHours())}:${pad(in10.getMinutes())}`;
-    expect(isUpcomingVisit(dateStr, timeStr, 15, Date.now)).toBe(true);
-  });
-
-  it('returns false for a past visit', () => {
-    expect(isUpcomingVisit('2020-01-01', '09:00', 15, Date.now)).toBe(false);
-  });
-
-  it('returns false for empty strings', () => {
-    expect(isUpcomingVisit('', '', 15, Date.now)).toBe(false);
+describe('no implicit local-time fallback', () => {
+  it.each(['2026-07-17', '2026-07-17T09:30:00', '09:30'])('rejects an ambiguous absolute start: %s', value => {
+    expect(parseVisitStartAt(value)).toBeNull();
+    expect(isUpcomingVisitFromISO(value, 15, Date.now)).toBe(false);
   });
 });
 

@@ -135,7 +135,7 @@ describe('RequestDetailsScreen — visitExpiredGuard wiring', () => {
 
   it('keeps the pending-host status badge unchanged while showing the banner', () => {
     expect(screenSource).toContain(
-      '<RequestStatusBadge status={request.status} />',
+      '<RequestStatusBadge status={request.status} presentationSource={visitData} />',
     );
     expect(screenSource).not.toMatch(
       /RequestStatusBadge status=\{isVisitExpired \? ["']expired["']/,

@@ -29,7 +29,7 @@ describe("operations dashboard loading behavior", () => {
     expect(buffetAll).not.toMatch(
       /<ScreenFlatList[\s\S]{0,500}refreshControl=/,
     );
-    expect(buffetAll).toContain("<DashboardKpiSection />");
+    expect(buffetAll).toMatch(/<DashboardKpiSection\b[^>]*\/>/);
     expect(buffetAll).not.toContain("const totalRequests = requests.length");
     expect(buffetAll).not.toContain("<StatsCards");
     expect(buffetAll).toContain("onPressRow={(id) =>");

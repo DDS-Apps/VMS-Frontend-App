@@ -58,8 +58,7 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     });
     const json = JSON.stringify(tree.toJSON());
     expect(json).toContain(dictionary.timeline.visitCompleted);
-    const exit = tree.root.findAllByType('ThemedText' as any).find(node => node.props.children === dictionary.timeline.exitRecorded)!;
-    expect(exit.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    expect(json).not.toContain(dictionary.timeline.exitRecorded);
   });
 
   it('renders repeat entry and exit labels inside one request timeline without a history title', () => {
@@ -67,10 +66,11 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
       tree = create(<RequestTimeline
         steps={[
           { id: 'approval', label: 'Approval marker', status: 'completed', icon: 'check' },
-          { id: 'completed', label: 'Completion marker', status: 'pending', icon: 'check' },
+          { id: 'completed', label: 'Completion marker', status: 'completed', icon: 'check',
+            timestamp: '2026-09-30T12:00:00Z' },
         ]}
         movementHistory={movementHistory}
-        visitStatus="checked_out"
+        visitStatus="completed"
       />);
     });
     const text = tree.root.findAllByType('ThemedText' as any).map(node => node.props.children).filter(v => typeof v === 'string');
@@ -92,7 +92,7 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     expect(tree.root.findAllByType('ThemedView' as any)).toHaveLength(1);
   });
 
-  it('shows awaiting response followed by grey check-in, checkout and completion with empty history', () => {
+  it('shows awaiting response without inventing physical movements or completion with empty history', () => {
     const dictionary = rtl ? ar : en;
     const data: TimelineData = {
       createdAt: '2026-09-30T07:00:00Z',
@@ -110,15 +110,14 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
       dictionary.timeline.visitorCheckedOut,
       dictionary.timeline.visitCompleted,
     ];
-    expect(labels.map(label => text.indexOf(label))).toEqual([...labels.map(label => text.indexOf(label))].sort((a, b) => a - b));
+    expect(text).toContain(dictionary.timeline.awaitingVisitor);
     for (const label of labels.slice(1)) {
-      const node = nodes.find(item => item.props.children === label)!;
-      expect(node.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+      expect(text).not.toContain(label);
     }
     expect(text).not.toContain(dictionary.movementHistory.noHistory);
   });
 
-  it('keeps checkout pending when a real check-in is recorded, and keeps completion pending after checkout', () => {
+  it('shows recorded check-in and checkout without inventing later events', () => {
     const dictionary = rtl ? ar : en;
     const data: TimelineData = { createdAt: '2026-09-30T07:00:00Z', status: 'checked_in' };
     act(() => {
@@ -127,8 +126,7 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     let nodes = tree.root.findAllByType('ThemedText' as any);
     expect(nodes.find(node => node.props.children === dictionary.movementHistory.checkIn)!.props.style)
       .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
-    expect(nodes.find(node => node.props.children === dictionary.timeline.visitorCheckedOut)!.props.style)
-      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    expect(nodes.find(node => node.props.children === dictionary.timeline.visitorCheckedOut)).toBeUndefined();
     act(() => tree.update(<ScheduledTimeline
       data={{ ...data, status: 'checked_out' }}
       history={{ ...movementHistory, data: movementHistory.data.slice(0, 2) }}
@@ -136,19 +134,18 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     nodes = tree.root.findAllByType('ThemedText' as any);
     expect(nodes.find(node => node.props.children === dictionary.movementHistory.checkOut)!.props.style)
       .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
-    expect(nodes.find(node => node.props.children === dictionary.timeline.visitCompleted)!.props.style)
-      .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    expect(nodes.find(node => node.props.children === dictionary.timeline.visitCompleted)).toBeUndefined();
   });
 
-  it('keeps planned checkout in legacy responses and only makes completion green for server-completed visits', () => {
+  it('omits hypothetical legacy movements and requires a recorded completion time', () => {
     const dictionary = rtl ? ar : en;
     const data: TimelineData = { createdAt: '2026-09-30T07:00:00Z', status: 'visitor_pending' };
     act(() => { tree = create(<ScheduledTimeline data={data} />); });
     let text = tree.root.findAllByType('ThemedText' as any).map(node => node.props.children);
-    expect(text).toContain(dictionary.timeline.visitorCheckedIn);
-    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
+    expect(text).not.toContain(dictionary.timeline.visitorCheckedIn);
+    expect(text).not.toContain(dictionary.timeline.visitorCheckedOut);
     act(() => tree.update(<ScheduledTimeline
-      data={{ ...data, status: 'completed' }}
+      data={{ ...data, status: 'completed', completedAt: '2026-09-30T12:00:00Z' }}
       history={{ ...movementHistory, data: movementHistory.data.slice(0, 2) }}
     />));
     const nodes = tree.root.findAllByType('ThemedText' as any);
@@ -157,5 +154,11 @@ describe.each([false, true])('inline movement rendering (RTL=%s)', rtl => {
     expect(text).not.toContain(dictionary.timeline.visitorCheckedOut);
     expect(nodes.find(node => node.props.children === dictionary.timeline.visitCompleted)!.props.style)
       .toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
+    act(() => tree.update(<ScheduledTimeline
+      data={{ ...data, status: 'completed' }}
+      history={{ ...movementHistory, data: movementHistory.data.slice(0, 2) }}
+    />));
+    expect(tree.root.findAllByType('ThemedText' as any)
+      .find(node => node.props.children === dictionary.timeline.visitCompleted)).toBeUndefined();
   });
 });

@@ -27,6 +27,10 @@ jest.mock("expo-splash-screen", () => ({
 
 jest.mock("expo-status-bar", () => ({ StatusBar: () => null }));
 
+jest.mock("react-native-keyboard-controller", () => ({
+  KeyboardAwareScrollView: require("react-native").ScrollView,
+}));
+
 jest.mock("react-native-gesture-handler", () => {
   const { View } = require("react-native");
   return { GestureHandlerRootView: View };
@@ -213,6 +217,12 @@ describe("app startup hand-off", () => {
 
   beforeEach(async () => {
     jest.useFakeTimers();
+    // jest-expo supplies a window object but not browser navigation.
+    Object.defineProperty(window, "location", {
+      configurable: true, value: { href: "https://frontend.example.test/" },
+    });
+    window.addEventListener = jest.fn();
+    window.removeEventListener = jest.fn();
     await AsyncStorage.clear();
     mockFontsState = [true, null];
     mockGetCurrentUser.mockReset();

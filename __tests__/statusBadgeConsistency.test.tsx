@@ -143,11 +143,14 @@ describe("shared status label styling", () => {
       "components/shared/VisitorRequestCard.tsx",
       "components/shared/VisitorMatrixTable.tsx",
       "screens/Receptionist/WalkInVisitorsScreen.tsx",
-      "screens/Receptionist/ReceptionistDashboardScreen.tsx",
     ]) {
       const source = fs.readFileSync(path.resolve(__dirname, "..", file), "utf8");
       expect(source).toContain("<ExpiredVisitBadge");
     }
+    const dashboard = fs.readFileSync(path.resolve(__dirname, "..",
+      "screens/Receptionist/ReceptionistDashboardScreen.tsx"), "utf8");
+    // The dashboard inherits the expiration badge from the shared card.
+    expect(dashboard).toContain("<VisitorRequestCard");
   });
 
   it("aligns expired-visit detail notice typography without changing the underlying status badge", () => {

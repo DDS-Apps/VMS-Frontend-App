@@ -42,7 +42,7 @@ import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
  * moment of the call. This puts the visit comfortably inside the 15-minute
  * alert window without relying on fake timers.
  */
-function buildVisitInFiveMinutes(): { visitDate: string; visitTime: string } {
+function buildVisitInFiveMinutes(): { visitDate: string; visitTime: string; visitStartAt: string } {
   const target = new Date(Date.now() + 5 * 60 * 1000);
   const visitDate = [
     target.getFullYear(),
@@ -50,7 +50,7 @@ function buildVisitInFiveMinutes(): { visitDate: string; visitTime: string } {
     String(target.getDate()).padStart(2, '0'),
   ].join('-');
   const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
-  return { visitDate, visitTime };
+  return { visitDate, visitTime, visitStartAt: target.toISOString() };
 }
 
 /**
@@ -58,7 +58,7 @@ function buildVisitInFiveMinutes(): { visitDate: string; visitTime: string } {
  * This is outside the 15-minute alert window, so the hook should return false
  * even when eligible is true.
  */
-function buildVisitInTwoHours(): { visitDate: string; visitTime: string } {
+function buildVisitInTwoHours(): { visitDate: string; visitTime: string; visitStartAt: string } {
   const target = new Date(Date.now() + 2 * 60 * 60 * 1000);
   const visitDate = [
     target.getFullYear(),
@@ -66,7 +66,7 @@ function buildVisitInTwoHours(): { visitDate: string; visitTime: string } {
     String(target.getDate()).padStart(2, '0'),
   ].join('-');
   const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
-  return { visitDate, visitTime };
+  return { visitDate, visitTime, visitStartAt: target.toISOString() };
 }
 
 /**
@@ -74,7 +74,7 @@ function buildVisitInTwoHours(): { visitDate: string; visitTime: string } {
  * Useful for confirming the hook correctly returns false for visits that
  * have already started.
  */
-function buildVisitInPast(): { visitDate: string; visitTime: string } {
+function buildVisitInPast(): { visitDate: string; visitTime: string; visitStartAt: string } {
   const target = new Date(Date.now() - 60 * 60 * 1000);
   const visitDate = [
     target.getFullYear(),
@@ -82,7 +82,7 @@ function buildVisitInPast(): { visitDate: string; visitTime: string } {
     String(target.getDate()).padStart(2, '0'),
   ].join('-');
   const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
-  return { visitDate, visitTime };
+  return { visitDate, visitTime, visitStartAt: target.toISOString() };
 }
 
 // ---------------------------------------------------------------------------
@@ -90,6 +90,7 @@ function buildVisitInPast(): { visitDate: string; visitTime: string } {
 // ---------------------------------------------------------------------------
 
 interface HostProps {
+  visitStartAt?: string;
   visitDate: string;
   visitTime: string;
   eligible: boolean;
@@ -103,8 +104,8 @@ interface HostProps {
  * in an effect), `resultRef.current` reflects the hook's return value for
  * the most recent render as soon as `act(...)` completes.
  */
-function HostComponent({ visitDate, visitTime, eligible, resultRef }: HostProps): null {
-  resultRef.current = useUpcomingIndicator({ visitDate, visitTime, eligible });
+function HostComponent({ visitDate, visitTime, visitStartAt, eligible, resultRef }: HostProps): null {
+  resultRef.current = useUpcomingIndicator({ visitDate, visitTime, visitStartAt, eligible });
   return null;
 }
 
@@ -123,7 +124,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
    * until the next useEffect fires.
    */
   it('returns false immediately when eligible flips from true to false, within the same render cycle', () => {
-    const { visitDate, visitTime } = buildVisitInFiveMinutes();
+    const { visitDate, visitTime, visitStartAt } = buildVisitInFiveMinutes();
     const resultRef: React.MutableRefObject<boolean> = { current: false };
 
     let renderer: ReturnType<typeof create>;
@@ -134,7 +135,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer = create(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={true}
           resultRef={resultRef}
         />
@@ -149,7 +150,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer.update(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={false}
           resultRef={resultRef}
         />
@@ -163,7 +164,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
   });
 
   it('returns false on initial render when eligible is false, even if visitTime is within the window', () => {
-    const { visitDate, visitTime } = buildVisitInFiveMinutes();
+    const { visitDate, visitTime, visitStartAt } = buildVisitInFiveMinutes();
     const resultRef: React.MutableRefObject<boolean> = { current: true };
 
     let renderer: ReturnType<typeof create>;
@@ -172,7 +173,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer = create(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={false}
           resultRef={resultRef}
         />
@@ -185,7 +186,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
   });
 
   it('returns true when eligible is true and visitTime is within the 15-minute window', () => {
-    const { visitDate, visitTime } = buildVisitInFiveMinutes();
+    const { visitDate, visitTime, visitStartAt } = buildVisitInFiveMinutes();
     const resultRef: React.MutableRefObject<boolean> = { current: false };
 
     let renderer: ReturnType<typeof create>;
@@ -194,7 +195,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer = create(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={true}
           resultRef={resultRef}
         />
@@ -207,7 +208,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
   });
 
   it('returns false when eligible is true but visitTime has already passed', () => {
-    const { visitDate, visitTime } = buildVisitInPast();
+    const { visitDate, visitTime, visitStartAt } = buildVisitInPast();
     const resultRef: React.MutableRefObject<boolean> = { current: true };
 
     let renderer: ReturnType<typeof create>;
@@ -216,7 +217,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer = create(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={true}
           resultRef={resultRef}
         />
@@ -262,8 +263,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={inFive.visitDate}
-          visitTime={inFive.visitTime}
+          {...inFive}
           eligible={true}
           resultRef={resultRef}
         />
@@ -278,8 +278,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
     act(() => {
       renderer.update(
         <HostComponent
-          visitDate={inTwoHours.visitDate}
-          visitTime={inTwoHours.visitTime}
+          {...inTwoHours}
           eligible={true}
           resultRef={resultRef}
         />
@@ -294,7 +293,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
   });
 
   it('remains false across multiple re-renders once eligible is false', () => {
-    const { visitDate, visitTime } = buildVisitInFiveMinutes();
+    const { visitDate, visitTime, visitStartAt } = buildVisitInFiveMinutes();
     const resultRef: React.MutableRefObject<boolean> = { current: false };
 
     let renderer: ReturnType<typeof create>;
@@ -303,7 +302,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer = create(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={true}
           resultRef={resultRef}
         />
@@ -317,7 +316,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer.update(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={false}
           resultRef={resultRef}
         />
@@ -331,7 +330,7 @@ describe('useUpcomingIndicator — render-time eligible guard', () => {
       renderer.update(
         <HostComponent
           visitDate={visitDate}
-          visitTime={visitTime}
+          visitTime={visitTime} visitStartAt={visitStartAt}
           eligible={false}
           resultRef={resultRef}
         />

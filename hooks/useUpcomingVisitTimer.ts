@@ -12,6 +12,17 @@ const MAX_TIMEOUT_MS = 60 * 1000;
  */
 export function parseVisitStartAt(iso: string): Date | null {
   if (!iso || typeof iso !== 'string') return null;
+  // A timezone-less string is interpreted in the device timezone. Require an
+  // explicit offset, and reject calendar rollover instead of inventing a start.
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/i.exec(iso);
+  if (!parts) return null;
+  const [, year, month, day, hour, minute, second = '0'] = parts;
+  const calendar = new Date(0);
+  calendar.setUTCFullYear(Number(year), Number(month) - 1, Number(day));
+  if (calendar.getUTCFullYear() !== Number(year) ||
+      calendar.getUTCMonth() !== Number(month) - 1 ||
+      calendar.getUTCDate() !== Number(day) ||
+      Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) return null;
   try {
     const d = new Date(iso);
     return isNaN(d.getTime()) ? null : d;
@@ -46,8 +57,7 @@ interface UseUpcomingIndicatorParams {
   thresholdMinutes?: number;
   /**
    * ISO 8601 UTC timestamp from the backend (e.g. "2025-01-15T09:00:00Z").
-   * When present and parseable, this is preferred over visitDate + visitTime.
-   * Falls back silently to the date/time string pair when absent or invalid.
+   * Required for the alert: no device-local fallback when absent or invalid.
    */
   visitStartAt?: string;
   /**
@@ -72,7 +82,8 @@ interface UseUpcomingIndicatorParams {
  *
  * ## Time source priority
  * 1. `visitStartAt` ISO UTC string (preferred — parses UTC correctly)
- * 2. `visitDate` + `visitTime` string pair (legacy fallback)
+ * Missing/invalid absolute timestamps hide the alert. Display-only local
+ * date/time fields never supply a guessed instant.
  *
  * ## Stale-state protection (regression notes)
  *
@@ -83,8 +94,8 @@ interface UseUpcomingIndicatorParams {
  * immediately — no wait for a `useEffect` or the next timer tick.
  *
  * **Layer 2 — effect re-run on prop changes:**
- * `calculate` is a `useCallback` that depends on `eligible`, `visitDate`,
- * `visitTime`, `visitStartAt`, `nowFn`, and `thresholdMinutes`. Any prop
+ * `calculate` depends on eligibility, the absolute start, effective clock,
+ * and threshold. Any relevant prop
  * change rebuilds `calculate`, which causes the main `useEffect` to fire and
  * call `setIsUpcoming(calculate())` synchronously after the render, keeping
  * the internal state in sync.
@@ -104,8 +115,6 @@ interface UseUpcomingIndicatorParams {
  * of the alert icon after a status transition, and it costs nothing at runtime.
  */
 export function useUpcomingIndicator({
-  visitDate,
-  visitTime,
   eligible,
   thresholdMinutes = 15,
   visitStartAt,

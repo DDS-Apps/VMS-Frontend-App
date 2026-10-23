@@ -57,23 +57,17 @@ describe.each([
     expect(approval.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
   };
 
-  it('renders an approved walk-in with empty history and pending movements, without inventing completed entry or exit', () => {
+  it('renders an approved walk-in with empty history without inventing entry, exit or completion', () => {
     render(approvedWalkIn);
     const text = labels();
     expect(text).toContain(dictionary.timeline.managerApproved);
     expect(text).toContain(dictionary.timeline.visitorAccepted);
     expect(text).not.toContain(dictionary.timeline.awaitingVisitor);
-    expect(text).toContain(dictionary.timeline.visitorCheckedIn);
-    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
     for (const label of [dictionary.timeline.visitorCheckedIn, dictionary.timeline.visitorCheckedOut]) {
-      const step = tree!.root.findAllByType('ThemedText' as any).find(node => node.props.children === label)!;
-      expect(step.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+      expect(text).not.toContain(label);
     }
     expect(text).not.toContain(dictionary.movementHistory.noHistory);
-    expect(text).toContain(dictionary.timeline.visitCompleted);
-    const completion = tree!.root.findAllByType('ThemedText' as any)
-      .find(node => node.props.children === dictionary.timeline.visitCompleted)!;
-    expect(completion.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    expect(text).not.toContain(dictionary.timeline.visitCompleted);
     expect(tree!.root.findAllByType('ThemedView' as any)).toHaveLength(1);
   });
 
@@ -92,14 +86,14 @@ describe.each([
     expectApprovalNotCompleted();
   });
 
-  it('keeps approval and legacy movement fallback when the history field is absent', () => {
+  it('keeps approval without inventing movements when the history field is absent', () => {
     act(() => { tree = create(<ReceptionistVisitTimeline data={approvedWalkIn} movementHistory={undefined} />); });
     expect(labels()).toContain(dictionary.timeline.managerApproved);
     expect(labels()).toContain(dictionary.timeline.visitorAccepted);
     expect(labels()).not.toContain(dictionary.timeline.awaitingVisitor);
-    expect(labels()).toContain(dictionary.timeline.visitorCheckedIn);
-    expect(labels()).toContain(dictionary.timeline.visitorCheckedOut);
-    expect(labels()).toContain(dictionary.timeline.visitCompleted);
+    expect(labels()).not.toContain(dictionary.timeline.visitorCheckedIn);
+    expect(labels()).not.toContain(dictionary.timeline.visitorCheckedOut);
+    expect(labels()).not.toContain(dictionary.timeline.visitCompleted);
     const approval = tree!.root.findAllByType('ThemedText' as any)
       .find(node => node.props.children === dictionary.timeline.visitorAccepted)!;
     expect(approval.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#222' })]));
@@ -131,7 +125,7 @@ describe.each([
     }
   });
 
-  it('retains movement event ordering and timestamp, with a pending checkout after a single check-in', () => {
+  it('retains recorded movement ordering and timestamps without a hypothetical checkout', () => {
     const history: VisitMovementHistory = {
       ...emptyHistory,
       data: [{
@@ -143,10 +137,8 @@ describe.each([
     render(approvedWalkIn, history);
     const text = labels();
     expect(text.indexOf(dictionary.timeline.visitorAccepted)).toBeLessThan(text.indexOf(dictionary.movementHistory.checkIn));
-    expect(text.indexOf(dictionary.movementHistory.checkIn)).toBeLessThan(text.indexOf(dictionary.timeline.visitCompleted));
-    expect(text).toContain(dictionary.timeline.visitorCheckedOut);
-    const checkout = tree!.root.findAllByType('ThemedText' as any).find(node => node.props.children === dictionary.timeline.visitorCheckedOut)!;
-    expect(checkout.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: '#777' })]));
+    expect(text).not.toContain(dictionary.timeline.visitCompleted);
+    expect(text).not.toContain(dictionary.timeline.visitorCheckedOut);
     expect(text).not.toContain(dictionary.movementHistory.legacyRecordedTime);
     expect(text).toContain(rtl ? '١١:٠٠ ص · ٣٠ سبتمبر' : '11:00 AM · Sep 30');
   });

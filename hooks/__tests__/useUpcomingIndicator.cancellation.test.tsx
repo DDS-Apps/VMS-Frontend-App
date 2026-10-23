@@ -47,7 +47,7 @@ import { useUpcomingIndicator } from '@/hooks/useUpcomingVisitTimer';
  * Positive  → future  (visit is `offsetMinutes` minutes away).
  * Negative  → past    (visit started `|offsetMinutes|` minutes ago).
  */
-function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: string } {
+function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: string; visitStartAt: string } {
   const target = new Date(Date.now() + offsetMinutes * 60 * 1000);
   const visitDate = [
     target.getFullYear(),
@@ -55,7 +55,7 @@ function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: st
     String(target.getDate()).padStart(2, '0'),
   ].join('-');
   const visitTime = `${String(target.getHours()).padStart(2, '0')}:${String(target.getMinutes()).padStart(2, '0')}`;
-  return { visitDate, visitTime };
+  return { visitDate, visitTime, visitStartAt: target.toISOString() };
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +63,7 @@ function buildVisitAt(offsetMinutes: number): { visitDate: string; visitTime: st
 // ---------------------------------------------------------------------------
 
 interface HostProps {
+  visitStartAt?: string;
   visitDate: string;
   visitTime: string;
   eligible: boolean;
@@ -73,8 +74,8 @@ interface HostProps {
  * Renders the hook and writes its return value into `resultRef` during every
  * render phase, so callers can inspect the latest value after act() settles.
  */
-function HostComponent({ visitDate, visitTime, eligible, resultRef }: HostProps): null {
-  resultRef.current = useUpcomingIndicator({ visitDate, visitTime, eligible });
+function HostComponent({ visitDate, visitTime, visitStartAt, eligible, resultRef }: HostProps): null {
+  resultRef.current = useUpcomingIndicator({ visitDate, visitTime, visitStartAt, eligible });
   return null;
 }
 
@@ -111,8 +112,7 @@ describe('useUpcomingIndicator — cancellation (component unmounted mid-session
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />
@@ -155,8 +155,7 @@ describe('useUpcomingIndicator — cancellation (component unmounted mid-session
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />
@@ -199,8 +198,7 @@ describe('useUpcomingIndicator — cancellation (component unmounted mid-session
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit20.visitDate}
-          visitTime={visit20.visitTime}
+          {...visit20}
           eligible={true}
           resultRef={resultRef}
         />
@@ -240,8 +238,7 @@ describe('useUpcomingIndicator — cancellation (component unmounted mid-session
     act(() => {
       renderer = create(
         <HostComponent
-          visitDate={visit5.visitDate}
-          visitTime={visit5.visitTime}
+          {...visit5}
           eligible={true}
           resultRef={resultRef}
         />

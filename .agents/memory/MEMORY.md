@@ -55,3 +55,4 @@
 - [Phone number policy](phone-number-policy.md) — use country-specific numbering rules, not a global nine-digit cap; retain existing labels and separate calling codes.
 - [App download scope](app-download-store-scope.md) — login QR codes target production store listings even when the frontend uses QA APIs.
 - [EAS release counters](eas-remote-release-counters.md) — query remote native counters before choosing increments; later auto-incrementing builds advance them again.
+- [Reminder instants](reminder-instant-contract.md) — retired local-time test expectations must not restore device-dependent reminders or guessed midnight starts.

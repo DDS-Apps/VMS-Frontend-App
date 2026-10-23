@@ -32,7 +32,7 @@ jest.mock('react-native', () => ({
 // ---------------------------------------------------------------------------
 
 import {
-  isUpcomingVisit,
+  parseVisitStartAt,
   isUpcomingVisitFromISO,
 } from '@/hooks/useUpcomingVisitTimer';
 
@@ -54,8 +54,7 @@ function nowBeforeMinutes(
   visitTime: string,
   minutesAway: number
 ): () => number {
-  const { parseVisitDateTime } = require('@/hooks/useUpcomingVisitTimer');
-  const start: Date = parseVisitDateTime(visitDate, visitTime);
+  const start = parseVisitStartAt(`${visitDate}T${visitTime}:00Z`)!;
   return () => start.getTime() - minutesAway * 60 * 1000;
 }
 
@@ -71,7 +70,7 @@ describe('BuffetUpcomingAlertIcon — eligible statuses within window', () => {
     it(`shows alert for status "${status}" when visit is 5 min away`, () => {
       const eligible = isBuffetEligible(status);
       const nowFn = nowBeforeMinutes(DATE, TIME, 5);
-      const isUpcoming = isUpcomingVisit(DATE, TIME, THRESHOLD, nowFn);
+      const isUpcoming = isUpcomingVisitFromISO(`${DATE}T${TIME}:00Z`, THRESHOLD, nowFn);
       // The hook returns isUpcoming only when eligible === true
       expect(eligible).toBe(true);
       expect(isUpcoming).toBe(true);
@@ -108,21 +107,20 @@ describe('BuffetUpcomingAlertIcon — visit outside threshold window', () => {
 
   it('does not show alert when visit is 60 min away (well beyond 15-min threshold)', () => {
     const nowFn = nowBeforeMinutes(DATE, TIME, 60);
-    const isUpcoming = isUpcomingVisit(DATE, TIME, THRESHOLD, nowFn);
+    const isUpcoming = isUpcomingVisitFromISO(`${DATE}T${TIME}:00Z`, THRESHOLD, nowFn);
     expect(isUpcoming).toBe(false);
   });
 
   it('does not show alert when visit is exactly 16 min away', () => {
     const nowFn = nowBeforeMinutes(DATE, TIME, 16);
-    const isUpcoming = isUpcomingVisit(DATE, TIME, THRESHOLD, nowFn);
+    const isUpcoming = isUpcomingVisitFromISO(`${DATE}T${TIME}:00Z`, THRESHOLD, nowFn);
     expect(isUpcoming).toBe(false);
   });
 
   it('does not show alert when the visit has already started (past)', () => {
-    const { parseVisitDateTime } = require('@/hooks/useUpcomingVisitTimer');
-    const start: Date = parseVisitDateTime(DATE, TIME);
+    const start = parseVisitStartAt(`${DATE}T${TIME}:00Z`)!;
     const nowFn = () => start.getTime() + 1_000; // 1 s after start
-    const isUpcoming = isUpcomingVisit(DATE, TIME, THRESHOLD, nowFn);
+    const isUpcoming = isUpcomingVisitFromISO(`${DATE}T${TIME}:00Z`, THRESHOLD, nowFn);
     expect(isUpcoming).toBe(false);
   });
 });
@@ -193,10 +191,8 @@ describe('BuffetUpcomingAlertIcon — visitStartAt ISO path', () => {
     expect(isUpcomingVisitFromISO(visitStartAt, THRESHOLD, () => fixedNow)).toBe(false);
   });
 
-  it('hides alert when visitStartAt is undefined (falls back to date+time path)', () => {
-    // When visitStartAt is undefined, the hook uses visitDate+visitTime.
-    // A past date → no alert.
-    expect(isUpcomingVisit('2020-01-01', '09:00', THRESHOLD, Date.now)).toBe(false);
+  it('hides alert when the backend has not supplied an absolute start', () => {
+    expect(isUpcomingVisitFromISO(undefined as any, THRESHOLD, Date.now)).toBe(false);
   });
 
   it('shows alert at ISO threshold boundary (inclusive)', () => {

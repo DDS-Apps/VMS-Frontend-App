@@ -129,7 +129,7 @@ describe("resolveEnvironment", () => {
         appVariant: "staging",
         env: { EXPO_PUBLIC_API_BASE_URL: url },
       });
-      expect(resolved.apiBaseUrl).toBe("https://vms.dallah.com");
+      expect(resolved.apiBaseUrl).toBe(QA_SHARED_ENV.EXPO_PUBLIC_API_BASE_URL);
     }
   });
 
@@ -382,7 +382,7 @@ describe("web dist finalize + verify", () => {
     ]);
     expect(() => verifyBundleHosts({
       distDir, environment: production, webBackendUrl: QA_SHARED_ENV.EXPO_PUBLIC_API_BASE_URL,
-    })).toThrow(/must be https:\/\/vms.dallah.com/);
+    })).toThrow(/must match the resolved build environment/);
   });
 
   it("reports placeholders a template forgot to fill", () => {
