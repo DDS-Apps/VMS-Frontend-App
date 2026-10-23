@@ -1695,49 +1695,26 @@ export default function RequestDetailsScreen({
           style={[styles.cardNew, { backgroundColor: theme.surface }]}
         >
           <DirectionalRow
+            testID="visit-details-header"
             style={{ alignItems: "center", justifyContent: "space-between" }}
           >
-            {isRTL ? (
-              <>
-                {request.isWalkIn ? (
-                  <WalkInVisitorBadge icon="user-check" />
-                ) : null}
-                <ThemedText
-                  style={[
-                    Typography.subtitle,
-                    {
-                      fontSize: 16,
-                      fontWeight: "600",
-                      color: theme.text,
-                      // textAlign: "right",
-                      flex: 1,
-                    },
-                  ]}
-                >
-                  {t("visitor.visitDetails")}
-                </ThemedText>
-              </>
-            ) : (
-              <>
-                <ThemedText
-                  style={[
-                    Typography.subtitle,
-                    {
-                      fontSize: 16,
-                      fontWeight: "600",
-                      color: theme.text,
-                      //   textAlign: "left",
-                      flex: 1,
-                    },
-                  ]}
-                >
-                  {t("visitor.visitDetails")}
-                </ThemedText>
-                {request.isWalkIn ? (
-                  <WalkInVisitorBadge icon="user-check" />
-                ) : null}
-              </>
-            )}
+            {/* DirectionalRow mirrors the header; do not also reverse its children. */}
+            <ThemedText
+              style={[
+                Typography.subtitle,
+                {
+                  fontSize: 16,
+                  fontWeight: "600",
+                  color: theme.text,
+                  flex: 1,
+                },
+              ]}
+            >
+              {t("visitor.visitDetails")}
+            </ThemedText>
+            {request.isWalkIn ? (
+              <WalkInVisitorBadge icon="user-check" />
+            ) : null}
           </DirectionalRow>
           <Spacer height={Spacing.xl} />
 
