@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   TextInput,
@@ -26,10 +26,9 @@ import {
   CountryData,
   DEFAULT_COUNTRY_CODE,
   getCountryByCode,
-  parsePhoneWithCountry,
   formatNationalNumber,
 } from '@/constants/countryData';
-import { isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits } from '@/utils/phonePolicy';
+import { isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits, normalizePhonePresentation, parsePhoneInputValue } from '@/utils/phonePolicy';
 
 interface PhoneInputWithCountryProps {
   value: string;
@@ -111,7 +110,7 @@ export const PhoneInputWithCountry = ({
   // Parse initial value to get country and national number
   const parsedValue = useMemo(() => {
     if (value) {
-      const parsed = parsePhoneWithCountry(value);
+      const parsed = parsePhoneInputValue(value);
       if (parsed) {
         return parsed;
       }
@@ -127,11 +126,23 @@ export const PhoneInputWithCountry = ({
   );
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const lastEmittedValue = useRef<string | null>(null);
+  const emitPhoneChange = useCallback((fullNumber: string) => {
+    lastEmittedValue.current = fullNumber;
+    onChangeText(fullNumber);
+  }, [onChangeText]);
 
   // Update internal state when value prop changes
   useEffect(() => {
+    const echoed = lastEmittedValue.current;
+    const identity = (phone: string) => normalizePhonePresentation(phone)
+      .replace(/[\s()-]/g, '').replace(/^\+/, '');
+    // An echo is not a new country selection. In particular, +1 242... can be
+    // represented by a US ten-digit field or a Bahamas seven-digit field.
+    if (echoed !== null && identity(value) === identity(echoed)) return;
+    lastEmittedValue.current = null;
     if (value) {
-      const parsed = parsePhoneWithCountry(value);
+      const parsed = parsePhoneInputValue(value, selectedCountry.code);
       if (parsed) {
         // A calling code can represent multiple countries (e.g. US/Canada).
         // Keep the user's selection when the parent echoes the same dial code.
@@ -170,13 +181,13 @@ export const PhoneInputWithCountry = ({
     // Update the full number with new country code
     const digits = normalizePhoneDigits(nationalNumber).replace(/\D/g, '');
     if (digits) {
-      onChangeText(`${country.dialCode}${digits}`);
+      emitPhoneChange(`${country.dialCode}${digits}`);
     }
-  }, [nationalNumber, onChangeText]);
+  }, [nationalNumber, emitPhoneChange]);
 
   const handlePhoneChange = useCallback((text: string) => {
     if (!editable) return;
-    const normalized = normalizePhoneDigits(text);
+    const normalized = normalizePhonePresentation(text);
     const compact = normalized.replace(/[\s()-]/g, '');
     // Phone autofill/paste may include the already-selected calling code.
     // Do not duplicate that code or silently switch countries.
@@ -195,11 +206,11 @@ export const PhoneInputWithCountry = ({
     
     // Send full international format to parent
     if (digits) {
-      onChangeText(`${selectedCountry.dialCode}${digits}`);
+      emitPhoneChange(`${selectedCountry.dialCode}${digits}`);
     } else {
-      onChangeText('');
+      emitPhoneChange('');
     }
-  }, [editable, selectedCountry, nationalNumber, onChangeText]);
+  }, [editable, selectedCountry, nationalNumber, emitPhoneChange]);
 
   const renderCountryItem = useCallback(({ item }: { item: CountryData }) => {
     const isSelected = item.code === selectedCountry.code;

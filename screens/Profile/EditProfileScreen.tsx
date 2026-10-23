@@ -24,6 +24,7 @@ import { ApiException } from "@/api/errors";
 import { normalizePhoneNumber, formatPhoneNumber, getInitials } from "@/utils/formatters";
 import { PhoneInputWithCountry } from "@/components/PhoneInputWithCountry";
 import { validatePhone } from "@/utils/validation";
+import { normalizePhonePresentation, parsePhoneInputValue } from "@/utils/phonePolicy";
 import { apiConfig } from "@/api/config";
 
 interface EditProfileScreenProps {
@@ -59,8 +60,10 @@ export default function EditProfileScreen({
   // Normalize phone number to ensure it has "+" prefix for proper parsing
   const normalizePhoneForDisplay = (phoneStr: string): string => {
     if (!phoneStr) return "";
-    // If phone doesn't start with "+", add it
-    return phoneStr.startsWith('+') ? phoneStr : `+${phoneStr}`;
+    const parsed = parsePhoneInputValue(phoneStr);
+    return parsed
+      ? `${parsed.country.dialCode}${parsed.nationalNumber}`
+      : normalizePhonePresentation(phoneStr);
   };
 
   const [name, setName] = useState(user?.name || '');

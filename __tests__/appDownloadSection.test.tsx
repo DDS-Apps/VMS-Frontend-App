@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { Linking, Platform, StyleSheet } from 'react-native';
+import { Dimensions, Linking, Platform, StyleSheet } from 'react-native';
 import AppDownloadSection from '@/components/auth/AppDownloadSection';
 import { APP_STORE_LINKS } from '@/constants/appStoreLinks';
 import { getTranslation } from '@/constants/i18n';
@@ -81,6 +81,18 @@ describe.each([
     expect(cardStyle.flexShrink).toBe(1);
     expect(cardStyle.flexBasis).toBeGreaterThan(0);
     expect(cardStyle.width).toBeUndefined();
+  });
+
+  it.each([360, 390, 768, 1280])('keeps downloads on web at a %ipx viewport', width => {
+    const window = Dimensions.get('window');
+    try {
+      act(() => { Dimensions.set({ window: { ...window, width } }); });
+      expect(tree.root.findByProps({ testID: 'download-ios' })).toBeDefined();
+      expect(tree.root.findByProps({ testID: 'download-android' })).toBeDefined();
+      expect(tree.root.findAllByType('QRCode' as any)).toHaveLength(2);
+    } finally {
+      act(() => { Dimensions.set({ window }); });
+    }
   });
 
   it('shows a translated opening error, then clears it when retrying succeeds', async () => {

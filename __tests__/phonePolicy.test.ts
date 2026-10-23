@@ -1,11 +1,24 @@
 import { COUNTRIES } from '@/constants/countryData';
 import { getExampleNumber, type CountryCode } from 'libphonenumber-js/max';
 import examples from 'libphonenumber-js/examples.mobile.json';
+import { formatPhoneNumber } from '@/utils/formatters';
 import { getTranslation } from '@/constants/i18n';
 import { validatePhone } from '@/utils/validation';
-import { getNationalPhoneRules, isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits } from '@/utils/phonePolicy';
+import { getNationalPhoneRules, isAllowedNationalPhoneDraft, isValidNationalPhone, normalizePhoneDigits, parsePhoneInputValue } from '@/utils/phonePolicy';
 
 describe('application phone policy', () => {
+  it('accepts the existing API display formatter without treating direction marks as phone digits', () => {
+    expect(validatePhone(formatPhoneNumber('+923001234567'))).toBe(true);
+    expect(validatePhone(`${formatPhoneNumber('+923001234567')} ext. 123`)).toBe(false);
+  });
+
+  it.each(['512345678', '966512345678', '+966 51 234 5678', '\u200e+966512345678'])(
+    'rehydrates Saudi legacy values without mistaking the national prefix for another country: %s', value => {
+      const parsed = parsePhoneInputValue(value);
+      expect(parsed?.country.code).toBe('SA');
+      expect(parsed?.nationalNumber).toBe('512345678');
+    },
+  );
   it.each(['', '5', '51', '51234567', '512345678'])('allows the editable national draft %s', value => {
     expect(isAllowedNationalPhoneDraft(value)).toBe(true);
   });

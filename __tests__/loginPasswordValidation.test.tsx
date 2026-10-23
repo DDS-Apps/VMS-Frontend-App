@@ -1,11 +1,12 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { TextInput } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import { getTranslation } from '@/constants/i18n';
 import { MIN_PASSWORD_LENGTH, newPasswordPolicyError } from '@/utils/newPasswordPolicy';
 import LoginScreen from '@/screens/Auth/LoginScreen';
 
 let mockLocale: 'en' | 'ar' = 'en';
+const originalPlatform = Platform.OS;
 const mockLogin = jest.fn();
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
@@ -42,7 +43,10 @@ describe.each(['en', 'ar'] as const)('login minimum password length (%s)', local
     act(() => tree.root.findAllByType(TextInput).find(input => input.props.keyboardType === 'email-address')!
       .props.onChangeText('fixture@example.test'));
   });
-  afterEach(() => { act(() => tree.unmount()); });
+  afterEach(() => {
+    act(() => tree.unmount());
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: originalPlatform });
+  });
   const enterPassword = (password: string) => act(() => {
     tree.root.findAllByType(TextInput).find(input => input.props.placeholder === getTranslation(locale, 'auth.passwordPlaceholder'))!
       .props.onChangeText(password);
@@ -79,10 +83,21 @@ describe.each(['en', 'ar'] as const)('login minimum password length (%s)', local
     expect(JSON.stringify(tree.toJSON())).not.toContain(getTranslation(locale, 'auth.passwordMinLength'));
   });
 
-  it('places both download links after the sign-in form', () => {
+  it('places both download links after the sign-in form on web', () => {
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+    act(() => tree.update(<LoginScreen />));
     const rendered = JSON.stringify(tree.toJSON());
     expect(rendered.indexOf('download-ios')).toBeGreaterThan(rendered.indexOf('LoginAction'));
     expect(tree.root.findByProps({ testID: 'download-ios' }).props.accessibilityRole).toBe('link');
     expect(tree.root.findByProps({ testID: 'download-android' }).props.accessibilityRole).toBe('link');
+  });
+
+  it.each(['ios', 'android'] as const)('keeps sign-in available without download blocks on native %s', platform => {
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: platform });
+    act(() => tree.update(<LoginScreen />));
+    expect(tree.root.findAllByProps({ testID: 'download-ios' })).toHaveLength(0);
+    expect(tree.root.findAllByProps({ testID: 'download-android' })).toHaveLength(0);
+    expect(tree.root.findByType('LoginAction' as any)).toBeDefined();
+    expect(tree.root.findAllByType(TextInput)).toHaveLength(2);
   });
 });

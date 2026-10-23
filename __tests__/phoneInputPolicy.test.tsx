@@ -4,6 +4,7 @@ import { FlatList, TextInput } from 'react-native';
 import { PhoneInputWithCountry } from '@/components/PhoneInputWithCountry';
 import { getTranslation } from '@/constants/i18n';
 import { getCountryByCode } from '@/constants/countryData';
+import { formatPhoneNumber, normalizePhoneNumber } from '@/utils/formatters';
 
 let mockLocale: 'en' | 'ar' = 'en';
 let mockDark = false;
@@ -22,6 +23,29 @@ jest.mock('@/hooks/useTheme', () => ({
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
 jest.mock('@/components/DDIcon', () => ({ DDIcon: () => null }));
 jest.mock('expo-image', () => ({ Image: 'PhoneFlag' }));
+
+function ControlledPhoneField({
+  formatEcho = (value: string) => value,
+  externalValue,
+}: {
+  formatEcho?: (value: string) => string;
+  externalValue?: string;
+}) {
+  const [value, setValue] = React.useState(externalValue ?? '');
+  React.useEffect(() => {
+    if (externalValue !== undefined) setValue(externalValue);
+  }, [externalValue]);
+  return (
+    <PhoneInputWithCountry
+      testID="national-phone"
+      value={value}
+      onChangeText={full => {
+        mockChange(full);
+        setValue(formatEcho(full));
+      }}
+    />
+  );
+}
 
 describe.each([
   ['en', false], ['ar', false], ['en', true], ['ar', true],
@@ -50,6 +74,15 @@ describe.each([
     expect(mockChange).toHaveBeenLastCalledWith('');
     expect(text()).not.toContain(error());
   });
+
+  it.each(['923001234567', '\u200e+923001234567', '+٩٢٣٠٠١٢٣٤٥٦٧'])(
+    'rehydrates supported API presentation without losing digits: %s', value => {
+      act(() => tree.update(<PhoneInputWithCountry {...props} value={value} />));
+      expect(input().props.value.replace(/\D/g, '')).toBe('3001234567');
+      expect(text()).not.toContain(error());
+      expect(mockChange).not.toHaveBeenCalled();
+    },
+  );
 
   it('blocks a leading zero rather than inserting or silently removing it', () => {
     change('0');
@@ -194,6 +227,35 @@ describe.each([
     const picker = tree.root.findByProps({ testID: 'national-phone-country-picker' });
     const flag = picker.findByType('PhoneFlag' as any);
     expect(flag.props.source.uri).toContain('/ca.png');
+    expect(text()).not.toContain(error());
+  });
+
+  it.each([
+    ['canonical', (value: string) => value],
+    ['digits only', normalizePhoneNumber],
+    ['existing display formatter', formatPhoneNumber],
+  ] as const)('preserves the selected US country with an embedded territory prefix (%s echo)', (_, formatEcho) => {
+    act(() => tree.update(<ControlledPhoneField formatEcho={formatEcho} />));
+    selectCountry('US');
+    change('2423591234');
+    expect(mockChange).toHaveBeenLastCalledWith('+12423591234');
+    expect(input().props.value.replace(/\D/g, '')).toBe('2423591234');
+    const picker = tree.root.findByProps({ testID: 'national-phone-country-picker' });
+    expect(picker.findByType('PhoneFlag' as any).props.source.uri).toContain('/us.png');
+    expect(text()).not.toContain(error());
+    change('242359123');
+    expect(input().props.value.replace(/\D/g, '')).toBe('242359123');
+    expect(text()).toContain(error());
+  });
+
+  it('still loads genuinely external values after a controlled edit', () => {
+    act(() => tree.update(<ControlledPhoneField />));
+    selectCountry('US');
+    change('2423591234');
+    act(() => tree.update(<ControlledPhoneField externalValue="+447400123456" />));
+    expect(input().props.value.replace(/\D/g, '')).toBe('7400123456');
+    const picker = tree.root.findByProps({ testID: 'national-phone-country-picker' });
+    expect(picker.findByType('PhoneFlag' as any).props.source.uri).toContain('/gb.png');
     expect(text()).not.toContain(error());
   });
 

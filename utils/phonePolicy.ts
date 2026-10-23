@@ -32,6 +32,28 @@ export function normalizePhoneDigits(value: string): string {
     .replace(/[\u06f0-\u06f9]/g, digit => String(digit.charCodeAt(0) - 0x06f0));
 }
 
+/** Remove only presentation direction marks; preserve every digit and prefix. */
+export function normalizePhonePresentation(value: string): string {
+  return normalizePhoneDigits(value).replace(/[\u200e\u200f\u061c]/g, '').trim();
+}
+
+/** Rehydrate existing API formats without emitting edits or dropping digits. */
+export function parsePhoneInputValue(value: string, countryCode = DEFAULT_COUNTRY_CODE) {
+  const normalized = normalizePhonePresentation(value);
+  if (!/^\+?[\d\s()-]+$/.test(normalized)) return null;
+  const compact = normalized.replace(/[\s()-]/g, '');
+  if (compact.startsWith('+')) return parsePhoneWithCountry(compact);
+  const country = getCountryByCode(countryCode);
+  if (!country) return null;
+  // National-only legacy values use the current/default country, not a guessed
+  // international prefix (e.g. a Saudi number beginning with 51 is not Peru).
+  if (isValidNationalPhone(compact, countryCode)) return { country, nationalNumber: compact };
+  const international = parsePhoneWithCountry(`+${compact}`);
+  if (international && (isValidNationalPhone(international.nationalNumber, international.country.code)
+    || compact.length > (getNationalPhoneRules(countryCode)?.maxLength ?? 0))) return international;
+  return { country, nationalNumber: compact };
+}
+
 export function isValidNationalPhone(value: string, countryCode = DEFAULT_COUNTRY_CODE): boolean {
   const country = getCountryByCode(countryCode);
   if (!country || !isAllowedNationalPhoneDraft(value, countryCode) || !value) return false;
@@ -51,7 +73,7 @@ export function isAllowedNationalPhoneDraft(value: string, countryCode = DEFAULT
 
 /** Validate the national portion, never counting the country calling code. */
 export function validatePhone(value: string, countryCode = DEFAULT_COUNTRY_CODE): boolean {
-  const normalized = normalizePhoneDigits(value).trim();
+  const normalized = normalizePhonePresentation(value);
   if (!/^\+?[\d\s()-]+$/.test(normalized)) return false;
   const compact = normalized.replace(/[\s()-]/g, '');
   // Support national-only legacy values as well as international API values.
