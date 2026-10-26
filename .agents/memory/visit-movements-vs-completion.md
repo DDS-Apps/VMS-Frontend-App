@@ -29,6 +29,12 @@ Actual In is the first recorded physical check-in; Actual Out is the most recent
 
 **How to apply:** Preserve existing current-presence fields. Agree an explicit first-IN/latest-OUT backend contract rather than relabeling a latest-IN field as first-IN. Keep all physical cycles in the timeline. Investigations requested as report-only must not change application code or call live APIs.
 
+Keep first-arrival rollout separate from the historical latest-IN preparation. The first-IN wire contract is a proposal until backend acceptance and authenticated endpoint evidence exist; old fixtures do not establish readiness.
+
+**Why:** Enabling the existing latest-IN display would contradict the confirmed first-arrival requirement, even if that older contract passed QA.
+
+**How to apply:** Use the first-arrival/last-departure backend handoff for acceptance, preserve old-client semantics, and leave presentation disabled until the new contract and its full endpoint coverage are verified.
+
 Historical-summary rollout must wait for backend contract confirmation and authenticated QA. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
 
 **Why:** Backend implementation and frontend preparation can proceed concurrently, but source-only fixtures cannot prove deployed endpoint readiness. Enabling new semantics against mixed endpoint versions could label incomplete current-cycle values as historical summaries.

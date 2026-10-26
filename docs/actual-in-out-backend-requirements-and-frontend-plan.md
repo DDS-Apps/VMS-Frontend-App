@@ -1,5 +1,14 @@
 # Actual In / Actual Out: backend requirements and frontend implementation plan
 
+> **Superseded display requirement (2026-10-26):** Actual In must now be the
+> **first** valid physical check-in, not the latest. Actual Out remains the latest
+> valid physical checkout, independently of re-entry. This document records the
+> historical version-1 implementation and handoff; its examples and latest-IN
+> release criteria must not be used to activate the new requirement. See
+> [the version-2 backend handoff](first-arrival-last-departure-backend-handoff.md)
+> for the proposed additive contract, acceptance matrix and blocked release gates.
+> Version 1 retains its original meaning and its runtime switch stays disabled.
+
 Date: 2026-10-07  
 Status: frontend support implemented behind a disabled rollout switch; backend handoff supersedes earlier proposed endpoint/availability assumptions. See section 9 for current evidence and release blockers.
 
