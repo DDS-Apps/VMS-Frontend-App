@@ -435,6 +435,68 @@ describe("VisitorMatrixTable purpose labels", () => {
   );
 });
 
+describe("VisitorMatrixTable host and status columns", () => {
+  it.each((["en", "ar"] as const).flatMap(locale => [
+    { locale, isExpired: false },
+    { locale, isExpired: true },
+  ]))("centers host and status in $locale (expired=$isExpired) without changing approval eligibility", ({ locale, isExpired }) => {
+    const onApprove = jest.fn();
+    const onReject = jest.fn();
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        <LanguageContext.Provider value={localeContextValue(locale)}>
+          <VisitorMatrixTable
+            variant="matrix"
+            visitors={[{ ...baseVisitor, status: "pending_approval", isExpired }]}
+            showApproveReject onApprove={onApprove} onReject={onReject}
+          />
+        </LanguageContext.Provider>,
+      );
+    });
+    const text = (value: string) => renderer.root.findAllByType("ThemedText")
+      .find(node => textContent(node.props.children) === value)!;
+    const statusLabel = getTranslation(locale, "common.status").toUpperCase();
+    if (locale === "ar") expect(statusLabel).toBe("الحالة");
+    for (const value of [
+      getTranslation(locale, "dashboard.requestedBy").toUpperCase(),
+      statusLabel, baseVisitor.hostName!, baseVisitor.hostDepartment!,
+    ]) {
+      expect(text(value)).toBeDefined();
+      expect(StyleSheet.flatten(text(value).props.style).textAlign).toBe("center");
+    }
+    expect(themedTexts(renderer)).not.toContain(getTranslation(locale, "common.actions").toUpperCase());
+    const groups = renderer.root.findAllByType("ApprovalActionGroup");
+    if (isExpired) {
+      expect(groups).toHaveLength(0);
+      const badge = renderer.root.findByType("RequestStatusBadge");
+      expect(badge.props.status).toBe("pending_approval");
+      expect(badge.props.alignSelf).toBe("center");
+      expect(themedTexts(renderer)).toContain(getTranslation(locale, "status.visitExpired"));
+    } else {
+      expect(groups).toHaveLength(1);
+      act(() => { groups[0].props.onApprove(); groups[0].props.onReject(); });
+      expect(onApprove).toHaveBeenCalledWith(baseVisitor.id);
+      expect(onReject).toHaveBeenCalledWith(baseVisitor.id);
+    }
+    act(() => renderer.unmount());
+  });
+
+  it.each(["check", "edit"] as const)("retains the Actions heading for %s controls", mode => {
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        <LanguageContext.Provider value={localeContextValue("ar")}>
+          <VisitorMatrixTable variant="matrix" visitors={[baseVisitor]}
+            showCheckActions={mode === "check"} showEditDelete={mode === "edit"} />
+        </LanguageContext.Provider>,
+      );
+    });
+    expect(themedTexts(renderer)).toContain(getTranslation("ar", "common.actions").toUpperCase());
+    act(() => renderer.unmount());
+  });
+});
+
 describe("VisitorMatrixTable host department wrapping", () => {
   it.each(["card", "matrix"] as const)(
     "renders host and long department in separate wrapping text blocks for %s rows",

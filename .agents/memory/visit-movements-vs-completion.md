@@ -13,7 +13,7 @@ The backend handoff supplied on 2026-10-09 supersedes the prior scheduled-end co
 
 **Why:** These are explicitly confirmed product behaviors in the supplied reader-based movement handoff. Parking departure is not independently measured, and backend source changes do not prove deployed activation.
 
-**How to apply:** Preserve backend status and independent latest IN/OUT values, never implement scan-parity classification, and do not restore Receptionist manual movement buttons. Automatic Matrix activation remains backend-owned and requires the approved mapping version and UTC activation time; frontend publication does not enable it.
+**How to apply:** Preserve backend status and keep historical movement summaries separate from current presence. Never implement scan-parity classification or restore Receptionist manual movement buttons. Automatic Matrix activation remains backend-owned and requires the approved mapping version and UTC activation time; frontend publication does not enable it.
 
 **How to apply:** On visit detail screens consume the server's movement-history events for physical history; keep unrecorded movement milestones pending rather than inventing completed events. On status and action screens use the server's `completed` status for lifecycle completion. Avoid fabricating movement records from summary timestamps when the history is absent.
 
@@ -23,11 +23,11 @@ For table Actual In/Actual Out columns, confirm the backend response contract an
 
 **How to apply:** Obtain sanitized responses covering entry, exit, re-entry, and completion; confirm the intended table summary and null behavior. Do not derive a pair from arbitrary event-array positions or download detail/history for every table row without an explicit design decision.
 
-The product owner clarified that Actual In is the latest recorded physical check-in and Actual Out is the latest recorded physical checkout independently, even from an earlier cycle. After IN 09:00, OUT 10:00, IN 11:00, show 11:00 and 10:00. Administrative completion and QR expiry never supply checkout.
+Actual In is the first recorded physical check-in; Actual Out is the most recent recorded physical checkout, independently of later re-entry. After IN 09:00, OUT 10:00, IN 11:00, show 09:00 and 10:00. Administrative completion and QR expiry never supply checkout.
 
-**Why:** A latest-cycle checkout that clears on re-entry does not meet the required historical summary. An OUT earlier than IN is valid, not corrupt data.
+**Why:** On 2026-10-26 the user explicitly requested first check-in and last checkout for repeated movements, superseding the earlier latest-IN/latest-OUT rule. These are historical summaries, not current-presence indicators.
 
-**How to apply:** Preserve existing current-presence field semantics unless an explicit contract change is agreed. Distinguish independent movement summaries from the current cycle. Investigations requested as report-only must not change application code or call live APIs.
+**How to apply:** Preserve existing current-presence fields. Agree an explicit first-IN/latest-OUT backend contract rather than relabeling a latest-IN field as first-IN. Keep all physical cycles in the timeline. Investigations requested as report-only must not change application code or call live APIs.
 
 Historical-summary rollout must wait for backend contract confirmation and authenticated QA. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
 

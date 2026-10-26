@@ -527,11 +527,11 @@ function MatrixContactCell({ item }: { item: VisitorMatrixItem }) {
 }
 
 /** A header cell shared by both the fixed name column and the scrollable data columns. */
-function MatrixHeaderCell({ label, width }: { label: string; width?: number }) {
+function MatrixHeaderCell({ label, width, centered = false }: { label: string; width?: number; centered?: boolean }) {
   const { theme } = useTheme();
   return (
-    <View style={[styles.matrixHeaderCell, width ? { width } : { flex: 1 }]}>
-      <ThemedText style={[styles.matrixHeaderLabel, { color: theme.textSecondary }]}>
+    <View style={[styles.matrixHeaderCell, width ? { width } : { flex: 1 }, centered && styles.matrixCenteredCell]}>
+      <ThemedText style={[styles.matrixHeaderLabel, { color: theme.textSecondary }, centered && styles.matrixCenteredText]}>
         {label}
       </ThemedText>
     </View>
@@ -578,7 +578,7 @@ function MatrixTable({
     ...MATRIX_LAYOUT,
     matrixColWidth: Math.max(MATRIX_LAYOUT.matrixColWidth, (tableWidth - 3) / columnCount),
   };
-  const statusHeaderLabel = showApproveReject || showCheckActions || showEditDelete
+  const statusHeaderLabel = showCheckActions || showEditDelete
     ? t("common.actions").toUpperCase()
     : t("common.status").toUpperCase();
   // The frozen names and the scrolling cells are sibling stacks. A wrapped name,
@@ -699,7 +699,7 @@ function MatrixTable({
                   <MatrixHeaderCell label={t("visitor.actualIn").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   <MatrixHeaderCell label={t("visitor.actualOut").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   <MatrixHeaderCell label={t("form.company").toUpperCase()} width={LAYOUT.matrixColWidth} />
-                  <MatrixHeaderCell label={t("dashboard.requestedBy").toUpperCase()} width={LAYOUT.matrixColWidth} />
+                  <MatrixHeaderCell label={t("dashboard.requestedBy").toUpperCase()} width={LAYOUT.matrixColWidth} centered />
                   {showPurposeColumn ? (
                     <MatrixHeaderCell label={t("form.purpose").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   ) : null}
@@ -709,7 +709,7 @@ function MatrixTable({
               {showContactColumn ? (
                 <MatrixHeaderCell label={t("security.manualEntry").toUpperCase().split(" ")[0]} width={LAYOUT.matrixColWidth} />
               ) : null}
-              <MatrixHeaderCell label={statusHeaderLabel} width={LAYOUT.matrixColWidth} />
+              <MatrixHeaderCell label={statusHeaderLabel} width={LAYOUT.matrixColWidth} centered />
             </View>
 
             {visitors.map((item, idx) => (
@@ -908,12 +908,12 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <View style={styles.matrixHostIdentity}>
-              <ThemedText style={[styles.matrixCellValue, styles.hostNameValue]} numberOfLines={2}>
+            <View style={[styles.matrixHostIdentity, { justifyContent: "center" }]}>
+              <ThemedText style={[styles.matrixCellValue, styles.hostNameValue, styles.matrixCenteredText]} numberOfLines={2}>
                 {item.hostName || "—"}
               </ThemedText>
               {item.hostName && item.hostDepartment ? (
-                <ThemedText style={[styles.matrixHostDepartmentValue, { color: theme.textSecondary }]}>
+                <ThemedText style={[styles.matrixHostDepartmentValue, styles.matrixCenteredText, { color: theme.textSecondary }]}>
                   {item.hostDepartment}
                 </ThemedText>
               ) : null}
@@ -940,7 +940,7 @@ function MatrixDataRowCells({
         </>
       )}
 
-      <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
+      <View style={[styles.matrixDataCell, styles.matrixCenteredCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
         {canCheckIn ? (
           <Pressable
             onPress={() => onCheckIn?.(item.id)}
@@ -995,9 +995,9 @@ function MatrixDataRowCells({
             ) : null}
           </DirectionalRow>
         ) : showApprovalExpiredBanner ? (
-          <View style={{ gap: Spacing.xs }}>
-            <RequestStatusBadge status={item.status} />
-            <ExpiredVisitBadge />
+          <View style={{ gap: Spacing.xs, alignItems: "center" }}>
+            <RequestStatusBadge status={item.status} alignSelf="center" />
+            <ExpiredVisitBadge alignSelf="center" />
           </View>
         ) : canApproveReject ? (
           <>
@@ -1014,12 +1014,12 @@ function MatrixDataRowCells({
             />
           </>
         ) : showReadOnlyExpiredBanner ? (
-          <View style={{ gap: Spacing.xs }}>
-            <RequestStatusBadge status={item.status} />
-            <ExpiredVisitBadge />
+          <View style={{ gap: Spacing.xs, alignItems: "center" }}>
+            <RequestStatusBadge status={item.status} alignSelf="center" />
+            <ExpiredVisitBadge alignSelf="center" />
           </View>
         ) : (
-          <RequestStatusBadge status={item.status} />
+          <RequestStatusBadge status={item.status} alignSelf="center" />
         )}
       </View>
       </View>
@@ -1255,6 +1255,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 1,
+  },
+  matrixCenteredCell: {
+    alignItems: "center",
+  },
+  matrixCenteredText: {
+    textAlign: "center",
   },
   matrixDataCell: {
     minHeight: LAYOUT.matrixRowMinHeight,
