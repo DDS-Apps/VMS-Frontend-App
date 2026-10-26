@@ -258,6 +258,59 @@ const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
   purpose,
 }));
 
+describe("Matrix actual-time timezone formatting", () => {
+  const actualTimes = {
+    actualInTime: "2026-10-25T11:43:35.000Z",
+    actualOutTime: "2026-10-25T11:44:11.000Z",
+  };
+  const normalizedTexts = (renderer: ReturnType<typeof create>) =>
+    themedTexts(renderer).map(value => value.replace(/[\u200e\u200f]/g, "").replace(/\s+/g, " ").trim());
+
+  it.each([
+    { locale: "en" as const, timezone: "Asia/Riyadh", expected: ["2:43 PM", "2:44 PM"] },
+    { locale: "ar" as const, timezone: "Asia/Riyadh", expected: ["٢:٤٣ م", "٢:٤٤ م"] },
+    { locale: "en" as const, timezone: undefined, expected: ["2:43 PM", "2:44 PM"] },
+    { locale: "ar" as const, timezone: undefined, expected: ["٢:٤٣ م", "٢:٤٤ م"] },
+    { locale: "en" as const, timezone: "Asia/Dubai", expected: ["3:43 PM", "3:44 PM"] },
+  ])("uses $timezone for actual times in $locale, with Riyadh fallback only when absent", ({ locale, timezone, expected }) => {
+    const renderer = renderTable("matrix", [{ ...baseVisitor, ...actualTimes, timezone }], locale);
+    const values = normalizedTexts(renderer);
+    expected.forEach(value => expect(values).toContain(value));
+    expect(values).toContain(`09:00 ${getTranslation(locale, "visitor.timeRangeTo")} 10:00`);
+    act(() => renderer.unmount());
+  });
+
+  it("formats equivalent offset timestamps and cross-midnight instants in the visit timezone", () => {
+    const renderer = renderTable("matrix", [{
+      ...baseVisitor, timezone: "Asia/Riyadh",
+      actualInTime: "2026-10-25T16:43:35+05:00",
+      actualOutTime: "2026-10-25T21:08:00.000Z",
+    }]);
+    expect(normalizedTexts(renderer)).toEqual(expect.arrayContaining(["2:43 PM", "12:08 AM"]));
+    act(() => renderer.unmount());
+  });
+
+  it.each([
+    { ...actualTimes, timezone: "Invalid/Timezone" },
+    { actualInTime: "2026-10-25T11:43:35", actualOutTime: "2026-10-25Tinvalid", timezone: "Asia/Riyadh" },
+    { actualInTime: undefined, actualOutTime: undefined, timezone: "Asia/Riyadh" },
+  ])("shows dashes instead of device-local or fabricated times for invalid/missing data: %p", fields => {
+    const renderer = renderTable("matrix", [{ ...baseVisitor, ...fields }]);
+    const values = normalizedTexts(renderer);
+    expect(values.filter(value => value === "—").length).toBeGreaterThanOrEqual(2);
+    expect(values).not.toEqual(expect.arrayContaining(["2:43 PM", "2:44 PM"]));
+    expect(values).not.toContain(fields.actualInTime);
+    expect(values).not.toContain(fields.actualOutTime);
+    act(() => renderer.unmount());
+  });
+
+  it("keeps legacy wall-clock actual values and scheduled times unchanged", () => {
+    const renderer = renderTable("matrix", [{ ...baseVisitor, timezone: "Asia/Dubai" }]);
+    expect(normalizedTexts(renderer)).toEqual(expect.arrayContaining(["09:05", "09:55", "09:00 to 10:00"]));
+    act(() => renderer.unmount());
+  });
+});
+
 describe("Buffet request table scheduled time", () => {
   it.each(["en", "ar"] as const)("shows the existing scheduled time in the simple table in %s", locale => {
     const renderer = renderTable("matrix", [{
