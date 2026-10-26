@@ -439,7 +439,7 @@ describe("VisitorMatrixTable host and status columns", () => {
   it.each((["en", "ar"] as const).flatMap(locale => [
     { locale, isExpired: false },
     { locale, isExpired: true },
-  ]))("centers host and status in $locale (expired=$isExpired) without changing approval eligibility", ({ locale, isExpired }) => {
+  ]))("aligns host to language start and centers status in $locale (expired=$isExpired) without changing approval eligibility", ({ locale, isExpired }) => {
     const onApprove = jest.fn();
     const onReject = jest.fn();
     let renderer!: ReturnType<typeof create>;
@@ -460,11 +460,20 @@ describe("VisitorMatrixTable host and status columns", () => {
     if (locale === "ar") expect(statusLabel).toBe("الحالة");
     for (const value of [
       getTranslation(locale, "dashboard.requestedBy").toUpperCase(),
-      statusLabel, baseVisitor.hostName!, baseVisitor.hostDepartment!,
+      baseVisitor.hostName!, baseVisitor.hostDepartment!,
     ]) {
       expect(text(value)).toBeDefined();
-      expect(StyleSheet.flatten(text(value).props.style).textAlign).toBe("center");
+      expect(text(value).props.align).toBe("start");
+      expect(StyleSheet.flatten(text(value).props.style).textAlign).not.toBe("center");
     }
+    expect(StyleSheet.flatten(text(statusLabel).props.style).textAlign).toBe("center");
+    let hostContainer = text(baseVisitor.hostName!).parent;
+    while (hostContainer && hostContainer.type !== "View") hostContainer = hostContainer.parent;
+    expect(StyleSheet.flatten(hostContainer!.props.style)).toMatchObject({
+      flexDirection: locale === "ar" ? "row-reverse" : "row",
+      direction: "ltr",
+      flexWrap: "wrap",
+    });
     expect(themedTexts(renderer)).not.toContain(getTranslation(locale, "common.actions").toUpperCase());
     const groups = renderer.root.findAllByType("ApprovalActionGroup");
     if (isExpired) {
@@ -527,7 +536,7 @@ describe("VisitorMatrixTable host department wrapping", () => {
         width: "100%",
         minWidth: 0,
         flexShrink: 1,
-        flexDirection: "row",
+        flexDirection: variant === "matrix" ? "row-reverse" : "row",
         flexWrap: "wrap",
         alignItems: "flex-start",
       });

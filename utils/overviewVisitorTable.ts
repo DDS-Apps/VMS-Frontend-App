@@ -17,6 +17,8 @@ export function mapOverviewRequestToMatrixItem(
     visitDate: request.visitDate,
     plannedInTime: request.visitTime,
     plannedOutTime: request.endTime,
+    actualInTime: request.checkedInAt,
+    actualOutTime: request.checkedOutAt,
     status: request.status,
     hostName: request.employeeName || undefined,
     hasParking: resolveParkingDisplayDecision(request) === 'required',

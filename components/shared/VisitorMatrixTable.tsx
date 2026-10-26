@@ -531,7 +531,7 @@ function MatrixHeaderCell({ label, width, centered = false }: { label: string; w
   const { theme } = useTheme();
   return (
     <View style={[styles.matrixHeaderCell, width ? { width } : { flex: 1 }, centered && styles.matrixCenteredCell]}>
-      <ThemedText style={[styles.matrixHeaderLabel, { color: theme.textSecondary }, centered && styles.matrixCenteredText]}>
+      <ThemedText align={centered ? "center" : "start"} style={[styles.matrixHeaderLabel, { color: theme.textSecondary }, centered && styles.matrixCenteredText]}>
         {label}
       </ThemedText>
     </View>
@@ -699,7 +699,7 @@ function MatrixTable({
                   <MatrixHeaderCell label={t("visitor.actualIn").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   <MatrixHeaderCell label={t("visitor.actualOut").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   <MatrixHeaderCell label={t("form.company").toUpperCase()} width={LAYOUT.matrixColWidth} />
-                  <MatrixHeaderCell label={t("dashboard.requestedBy").toUpperCase()} width={LAYOUT.matrixColWidth} centered />
+                  <MatrixHeaderCell label={t("dashboard.requestedBy").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   {showPurposeColumn ? (
                     <MatrixHeaderCell label={t("form.purpose").toUpperCase()} width={LAYOUT.matrixColWidth} />
                   ) : null}
@@ -908,12 +908,12 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <View style={[styles.matrixHostIdentity, { justifyContent: "center" }]}>
-              <ThemedText style={[styles.matrixCellValue, styles.hostNameValue, styles.matrixCenteredText]} numberOfLines={2}>
+            <View style={[styles.matrixHostIdentity, getTableColumnStyle(isRTL)]}>
+              <ThemedText align="start" style={[styles.matrixCellValue, styles.hostNameValue]} numberOfLines={2}>
                 {item.hostName || "—"}
               </ThemedText>
               {item.hostName && item.hostDepartment ? (
-                <ThemedText style={[styles.matrixHostDepartmentValue, styles.matrixCenteredText, { color: theme.textSecondary }]}>
+                <ThemedText align="start" style={[styles.matrixHostDepartmentValue, { color: theme.textSecondary }]}>
                   {item.hostDepartment}
                 </ThemedText>
               ) : null}

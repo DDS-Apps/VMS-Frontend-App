@@ -8,3 +8,12 @@ Table header rows and data rows must use the same layout direction convention, i
 **Why:** Inherited RTL direction and different host elements for headers and clickable data rows left ambiguity about their physical column order; matching style props alone did not prove the date value appeared under its Arabic heading.
 
 **How to apply:** Keep the frozen/scrollable parent and both header and data row direction rules identical, with explicit web direction; conditional cells must be inserted in the same logical sequence on both sides. Test actual header/value mapping, not just equality of helper output. For controls that must remain physically grid-left/list-right, use a separate physical-order rule.
+
+Host/requested-by headings, names and departments align to language start:
+right in Arabic, left in English. Status headings and badges remain centered.
+
+**Why:** The user explicitly corrected the earlier centering of host identity;
+the host column should not inherit the status column's alignment.
+
+**How to apply:** Preserve wrapping and use language-aware text alignment and
+row direction together, including for mixed-language host names and departments.
