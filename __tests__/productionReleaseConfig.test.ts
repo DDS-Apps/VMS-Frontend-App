@@ -31,20 +31,42 @@ describe('production release configuration', () => {
     expect(environment.microsoftAuthUrl).toBe('https://vms.dallah.com');
   });
 
-  it('uses QA for Replit web preview and publishing without changing production IIS builds', () => {
+  it('keeps web publishing on QA and IIS on production while preview inherits APP_VARIANT', () => {
     const config = fs.readFileSync(path.join(root, '.replit'), 'utf8');
     const deployment = config.split('[deployment]')[1].split('\n[')[0];
     expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"qa"/);
-    expect(config).toContain('APP_VARIANT=qa CI=1');
+    const preview = config.split('name = "Start application"')[1].split('[[workflows.workflow]]')[0];
+    expect(preview).toContain('start --web');
+    expect(preview).not.toMatch(/APP_VARIANT=/);
     const pkg = require('../package.json');
     expect(pkg.scripts['build:web']).toContain('--variant qa');
     expect(pkg.scripts['build:web:production']).toContain('--variant production');
-    expect(pkg.scripts['dev:web']).toContain('APP_VARIANT=qa');
-    expect(pkg.scripts.web).toContain('APP_VARIANT=qa');
+    expect(pkg.scripts['dev:web']).not.toMatch(/APP_VARIANT=/);
+    expect(pkg.scripts.web).not.toMatch(/APP_VARIANT=/);
     const environment = resolveEnvironment({ appVariant: 'qa' });
     expect(environment.apiBaseUrl).toBe('https://vms-backend-app-qa.replit.app');
     expect(environment.microsoftAuthUrl).toBe(environment.apiBaseUrl);
     expect(() => assertProductionConfig(environment)).not.toThrow();
+  });
+
+  it.each([
+    ['qa', 'https://vms-backend-app-qa.replit.app'],
+    ['production', 'https://vms.dallah.com'],
+  ])('resolves preview API and sign-in from APP_VARIANT=%s', (variant, origin) => {
+    const previousVariant = process.env.APP_VARIANT;
+    try {
+      process.env.APP_VARIANT = variant;
+      jest.isolateModules(() => {
+        const configure = require('../app.config');
+        const resolved = configure({ config: app });
+        expect(resolved.extra.environment).toBe(variant);
+        expect(resolved.extra.apiBaseUrl).toBe(origin);
+        expect(resolved.extra.microsoftAuthUrl).toBe(origin);
+      });
+    } finally {
+      if (previousVariant === undefined) delete process.env.APP_VARIANT;
+      else process.env.APP_VARIANT = previousVariant;
+    }
   });
 
   it('includes the built website in deployment while keeping it out of Git', () => {

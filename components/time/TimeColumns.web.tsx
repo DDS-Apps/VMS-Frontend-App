@@ -77,7 +77,7 @@ export function TimeColumns({ id, value, onChange, onDone }: {
   };
   function change(part: 'hour' | 'minute' | 'period', selected: string) {
     const next = parseTime12(
-      `${part === 'hour' ? selected : hour}:${part === 'minute' ? selected : String(minute).padStart(2, '0')} ${part === 'period' ? selected : period}`,
+      `${part === 'hour' ? selected : hour}:${String(part === 'minute' ? selected : minute).padStart(2, '0')} ${part === 'period' ? selected : period}`,
       value,
     );
     if (next) onChange(next);
