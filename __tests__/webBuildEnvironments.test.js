@@ -22,6 +22,15 @@ const {
 } = require("../scripts/lib/web-dist");
 
 const ROOT = path.resolve(__dirname, "..");
+
+it("keeps the published web build explicitly on production", () => {
+  const replit = fs.readFileSync(path.join(ROOT, ".replit"), "utf8");
+  const deployment = replit.match(/\[deployment\]([\s\S]*?)(?=\n\[|$)/)?.[1];
+  expect(deployment).toBeDefined();
+  expect(deployment).toMatch(/"--variant"\s*,\s*"production"/);
+  expect(deployment).not.toMatch(/"--variant"\s*,\s*"qa"/);
+});
+
 const QA_SHARED_ENV = {
   EXPO_PUBLIC_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
   EXPO_PUBLIC_VMS_API_BASE_URL: "https://vms-backend-app-qa.replit.app",
