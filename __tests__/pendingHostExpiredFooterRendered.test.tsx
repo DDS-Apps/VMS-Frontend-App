@@ -958,16 +958,18 @@ describe("pending-host expired detail footer rendering", () => {
     expect(mockApproveMutate).toHaveBeenCalledTimes(1);
   });
 
-  describe("Overview grouped visitor grid widths", () => {
+  describe("Overview grouped visitor carousels", () => {
     it.each((["en", "ar"] as const).flatMap(locale =>
       [390, 768, 1440].flatMap(width =>
         [1, 3, 4].map(count => ({ locale, width, count }))
       )
-    ))("keeps column width with $count cards at $width px in $locale", ({ locale, width, count }) => {
+    ))("matches Pending Approvals with $count cards at $width px in $locale", ({ locale, width, count }) => {
       configureScreen("manager", locale, width);
       mockRenderDateGroups = true;
       jest.setSystemTime(new Date("2026-09-12T06:00:00Z"));
-      mockPendingApprovalData = { data: [] };
+      mockPendingApprovalData = { data: [{
+        ...pendingManagerApprovalRequest(), id: "comparison-pending",
+      }] };
       mockUpcomingData = { pages: [{ data: Array.from({ length: count }, (_, index) => ({
         ...pendingManagerApprovalRequest(),
         id: `grid-visit-${index}`, status: "approved", isWalkIn: false,
@@ -986,17 +988,29 @@ describe("pending-host expired detail footer rendering", () => {
         const cards = renderer.root.findAllByType("VisitorRequestCard").filter(node =>
           node.props.request.id.startsWith("grid-visit-"));
         expect(cards).toHaveLength(count);
-        for (const card of cards) {
-          let wrapper = card.parent!;
-          while (!wrapper.props.style) wrapper = wrapper.parent!;
-          if (width < 600) {
-            expect(wrapper.props.style).toMatchObject({ width: "100%" });
-          } else {
-            const percentage = width >= 900 ? "32%" : "48%";
-            expect(wrapper.props.style).toMatchObject({
-              flexBasis: percentage, maxWidth: percentage, flexGrow: 0, minWidth: 0,
-            });
-            expect(wrapper.props.style.flex).toBeUndefined();
+        const pending = renderer.root.findAllByType("VisitorRequestCard").find(node =>
+          node.props.request.id === "comparison-pending")!;
+        const { Spacing } = require("@/constants/theme");
+        const expectedWidth = Math.min(width - 2 * Spacing.lg, 320);
+        const carouselOf = (card: typeof pending) => {
+          let parent = card.parent!;
+          while (parent.type !== "RTLHorizontalScrollView") parent = parent.parent!;
+          return parent;
+        };
+        const pendingCarousel = carouselOf(pending);
+        for (const [index, card] of cards.entries()) {
+          expect(card.props.width).toBe(expectedWidth);
+          expect(card.props.width).toBe(pending.props.width);
+          expect(card.props.style).toEqual(index === 0 ? undefined :
+            locale === "ar" ? { marginEnd: Spacing.md } : { marginStart: Spacing.md });
+          const carousel = carouselOf(card);
+          expect(carousel.props.snapToInterval).toBe(expectedWidth + Spacing.md);
+          for (const prop of [
+            "contentContainerStyle", "decelerationRate", "nestedScrollEnabled",
+            "keyboardShouldPersistTaps", "directionalLockEnabled", "scrollEventThrottle",
+            "showsHorizontalScrollIndicator",
+          ]) {
+            expect(carousel.props[prop]).toEqual(pendingCarousel.props[prop]);
           }
         }
       } finally {

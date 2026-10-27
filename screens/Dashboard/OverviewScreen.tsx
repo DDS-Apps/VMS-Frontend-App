@@ -623,36 +623,37 @@ export default function OverviewScreen({
 
                       <Spacer height={Spacing.md} />
 
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                          gap: Spacing.sm,
-                        }}
+                      <RTLHorizontalScrollView
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.carouselContainer}
+                        snapToInterval={cardWidth + Spacing.md}
+                        decelerationRate="fast"
+                        nestedScrollEnabled={true}
+                        keyboardShouldPersistTaps="handled"
+                        directionalLockEnabled={true}
+                        scrollEventThrottle={16}
                       >
-                        {group.visits.map((request) => (
-                          <View
+                        {group.visits.map((request, index) => (
+                          <VisitorRequestCard
                             key={request.id}
+                            request={request}
+                            width={cardWidth}
                             style={
-                              screenWidth >= 900
-                                ? { flexBasis: '32%', maxWidth: '32%', flexGrow: 0, minWidth: 0 }
-                                : screenWidth >= 600
-                                ? { flexBasis: '48%', maxWidth: '48%', flexGrow: 0, minWidth: 0 }
-                                : { width: '100%' }
+                              index > 0
+                                ? isRTL
+                                  ? { marginEnd: Spacing.md }
+                                  : { marginStart: Spacing.md }
+                                : undefined
                             }
-                          >
-                            <VisitorRequestCard
-                              request={request}
-                              onPress={() =>
-                                navigation.navigate(
-                                  ROUTES.REQUEST_DETAILS as any,
-                                  { requestId: request.id } as any,
-                                )
-                              }
-                            />
-                          </View>
+                            onPress={() =>
+                              navigation.navigate(
+                                ROUTES.REQUEST_DETAILS as any,
+                                { requestId: request.id } as any,
+                              )
+                            }
+                          />
                         ))}
-                      </View>
+                      </RTLHorizontalScrollView>
 
                       {index < groupedDashboardRequests.length - 1 ? (
                         <Spacer height={Spacing.xl} />

@@ -18,3 +18,15 @@ card stretched across the desktop row. Sparse data must not change card width.
 **How to apply:** Reserve each card's responsive column instead of growing it
 to consume an incomplete row. Keep date headers full-width and horizontal
 carousels separate from grid behavior. Do not confuse this with KPI grids.
+
+The Overview dashboard's date-grouped top visitor section is an explicit
+exception: it must match Pending Approvals' card width, spacing, and horizontal
+scrolling rather than use the 3/2/1 visitor grid.
+
+**Why:** After the layout difference was explained, the user explicitly chose
+"Match Pending Approvals" instead of applying 3/2/1 columns to both dashboard
+sections. This supersedes the earlier grid rule for this section only.
+
+**How to apply:** Retain full-width date headers and a separate matching carousel
+per group. Keep card content, data limits, filters, and navigation intact; do not
+change standalone request grids or KPI grids to match this dashboard exception.
