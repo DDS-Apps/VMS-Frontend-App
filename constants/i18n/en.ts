@@ -152,6 +152,7 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     others: 'Other',
   },
   bulkActions: {
+    noItemsToSelect: 'No item(s) to select',
     selectMode: 'Select',
     cancelSelection: 'Cancel',
     selected: 'selected',

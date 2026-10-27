@@ -152,6 +152,7 @@ export interface TranslationKeys {
     other: string;
   };
   bulkActions: {
+    noItemsToSelect: string;
     selectMode: string;
     cancelSelection: string;
     selected: string;

@@ -953,6 +953,8 @@ describe("pending-host expired detail footer rendering", () => {
     const named = (name: string) => dashboard.root.find(node =>
       typeof node.type === "function" && node.type.name === name);
     const table = () => dashboard.root.findByType("VisitorMatrixTable");
+    const texts = () => dashboard.root.findAllByType("ThemedText")
+      .map(node => node.props.children).filter(value => typeof value === "string");
     const mount = () => {
       act(() => {
         dashboard = create(React.createElement(ManagerDashboardScreen, {
@@ -971,6 +973,72 @@ describe("pending-host expired detail footer rendering", () => {
       ] };
     });
     afterEach(() => { act(() => dashboard?.unmount()); });
+
+    it.each((["en", "ar"] as const).flatMap(locale =>
+      ["empty", "expired", "approved", "rejected", "server-blocked"].map(state => ({ locale, state }))
+    ))("disables Select and explains no eligible items in $locale for $state rows", ({ locale, state }) => {
+      mockLocale = locale;
+      mockHandoffTranslations = true;
+      const record = {
+        ...pendingManagerApprovalRequest(), id: "blocked", isWalkIn: false,
+        endTime: state === "expired" ? "11:30" : "13:00",
+        status: state === "approved" || state === "rejected" ? state : "pending_approval",
+        canApprove: state !== "server-blocked",
+      };
+      mockPendingApprovalData = { data: state === "empty" ? [] : [record] };
+      mount();
+      const header = named("SectionHeader");
+      expect(header.props.selectionDisabled).toBe(true);
+      const button = dashboard.root.findAllByType("Pressable").find(node =>
+        node.props.onPress === header.props.onToggleSelectionMode)!;
+      expect(button.props.disabled).toBe(true);
+      expect(button.props.accessibilityState).toEqual({ disabled: true });
+      const language = locale === "ar" ? require("@/constants/i18n/ar").ar : require("@/constants/i18n/en").en;
+      expect(texts()).toContain(language.bulkActions.noItemsToSelect);
+      act(() => header.props.onToggleSelectionMode());
+      expect(named("SectionHeader").props.isSelectionMode).toBe(false);
+      expect(mockApproveMutate).not.toHaveBeenCalled();
+      expect(mockBulkApproveMutate).not.toHaveBeenCalled();
+    });
+
+    it("keeps Select enabled for mixed rows and selects only eligible requests", () => {
+      mount();
+      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
+      expect(texts()).not.toContain("bulkActions.noItemsToSelect");
+      act(() => named("SectionHeader").props.onToggleSelectionMode());
+      act(() => named("SelectAllBar").props.onToggleAll());
+      expect([...table().props.selectedIds].sort()).toEqual(["later", "soon"]);
+      expect(mockBulkApproveMutate).not.toHaveBeenCalled();
+    });
+
+    it("updates the empty-selection notice and button when search hides and restores eligible rows", () => {
+      mount();
+      const search = dashboard.root.findAllByType("TextInput")[0];
+      act(() => search.props.onChangeText("no-matching-visitor"));
+      expect(named("SectionHeader").props.selectionDisabled).toBe(true);
+      expect(texts()).toContain("bulkActions.noItemsToSelect");
+      act(() => search.props.onChangeText(""));
+      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
+      expect(texts()).not.toContain("bulkActions.noItemsToSelect");
+    });
+
+    it("keeps Cancel available when the last eligible selection expires", () => {
+      mockPendingApprovalData = { data: [
+        { ...pendingManagerApprovalRequest(), id: "soon", isWalkIn: false },
+      ] };
+      mount();
+      act(() => table().props.onLongPressRow("soon"));
+      jest.setSystemTime(new Date("2026-09-12T09:00:00Z"));
+      mockBoundaryTick = 1;
+      act(() => dashboard.update(React.createElement(ManagerDashboardScreen, { navigation: { navigate: jest.fn() } })));
+      expect(named("SectionHeader").props.isSelectionMode).toBe(true);
+      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
+      expect(texts()).toContain("bulkActions.noItemsToSelect");
+      expect(dashboard.root.findAll(node => typeof node.type === "function" && node.type.name === "SelectAllBar")).toHaveLength(0);
+      act(() => named("SectionHeader").props.onToggleSelectionMode());
+      expect(named("SectionHeader").props.isSelectionMode).toBe(false);
+      expect(named("SectionHeader").props.selectionDisabled).toBe(true);
+    });
 
     it("blocks a captured single handler at the exact end without waiting for a render", () => {
       mount();

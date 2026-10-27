@@ -152,6 +152,7 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     others: 'أخرى',
   },
   bulkActions: {
+    noItemsToSelect: 'لا توجد عناصر للاختيار',
     selectMode: 'تحديد',
     cancelSelection: 'إلغاء',
     selected: 'محدد',

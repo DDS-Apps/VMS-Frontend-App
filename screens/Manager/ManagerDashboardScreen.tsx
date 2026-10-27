@@ -62,6 +62,7 @@ const SectionHeader = ({
   viewMode, 
   onViewModeChange,
   isSelectionMode,
+  selectionDisabled,
   onToggleSelectionMode,
   theme,
   t,
@@ -70,6 +71,7 @@ const SectionHeader = ({
   viewMode: 'card' | 'list'; 
   onViewModeChange: (mode: 'card' | 'list') => void;
   isSelectionMode: boolean;
+  selectionDisabled: boolean;
   onToggleSelectionMode: () => void;
   theme: Theme;
   t: (key: string) => string;
@@ -88,12 +90,16 @@ const SectionHeader = ({
   
   const selectButton = (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: selectionDisabled }}
+      disabled={selectionDisabled}
       onPress={onToggleSelectionMode}
       style={[
         styles.selectButton,
         { 
           backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
           borderColor: isSelectionMode ? theme.primary : theme.border,
+          opacity: selectionDisabled ? 0.45 : 1,
         }
       ]}
     >
@@ -561,9 +567,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   );
 
   const selectableRequests = filteredRequests.filter(r => approvalPolicy.canApprove(r.id));
+  const hasSelectableRequests = selectableRequests.length > 0;
   const allSelected = selectableRequests.length > 0 && selectableRequests.every(r => selectedIds.has(r.id));
 
   const toggleSelectionMode = () => {
+    if (!isSelectionMode && !filteredRequests.some(request => approvalPolicy.canApprove(request.id))) return;
     if (isSelectionMode) {
       setSelectedIds(new Set());
     }
@@ -786,11 +794,21 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         isSelectionMode={isSelectionMode}
+        selectionDisabled={!isSelectionMode && !hasSelectableRequests}
         onToggleSelectionMode={toggleSelectionMode}
         theme={theme}
         t={t}
         isRTL={isRTL}
       />
+
+      {hasUsablePendingData && !hasSelectableRequests ? (
+        <ThemedText
+          accessibilityLiveRegion="polite"
+          style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}
+        >
+          {t('bulkActions.noItemsToSelect')}
+        </ThemedText>
+      ) : null}
 
       <Spacer height={Spacing.lg} />
 
@@ -810,7 +828,7 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         ) : null}
       </View>
 
-      {isSelectionMode && filteredRequests.length > 0 ? (
+      {isSelectionMode && hasSelectableRequests ? (
         <>
           <Spacer height={Spacing.md} />
           <SelectAllBar
