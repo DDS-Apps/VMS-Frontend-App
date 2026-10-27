@@ -1,6 +1,12 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
 
+const mockSelectionInfo = jest.fn();
+jest.mock("@/utils/globalToast", () => ({
+  ...jest.requireActual("@/utils/globalToast"),
+  showGlobalInfo: (...args: unknown[]) => mockSelectionInfo(...args),
+}));
+
 jest.mock("expo-constants", () => ({
   expoConfig: { extra: { environment: "production", apiBaseUrl: "https://vms.dallah.com" } },
 }));
@@ -963,6 +969,7 @@ describe("pending-host expired detail footer rendering", () => {
       });
     };
     beforeEach(() => {
+      mockSelectionInfo.mockClear();
       configureScreen("manager", "en", 390);
       jest.setSystemTime(new Date("2026-09-12T08:59:59Z"));
       mockBulkApproveMutate.mockReset();
@@ -976,7 +983,7 @@ describe("pending-host expired detail footer rendering", () => {
 
     it.each((["en", "ar"] as const).flatMap(locale =>
       ["empty", "expired", "approved", "rejected", "server-blocked"].map(state => ({ locale, state }))
-    ))("disables Select and explains no eligible items in $locale for $state rows", ({ locale, state }) => {
+    ))("shows info only after Select is pressed in $locale for $state rows", ({ locale, state }) => {
       mockLocale = locale;
       mockHandoffTranslations = true;
       const record = {
@@ -988,14 +995,17 @@ describe("pending-host expired detail footer rendering", () => {
       mockPendingApprovalData = { data: state === "empty" ? [] : [record] };
       mount();
       const header = named("SectionHeader");
-      expect(header.props.selectionDisabled).toBe(true);
       const button = dashboard.root.findAllByType("Pressable").find(node =>
         node.props.onPress === header.props.onToggleSelectionMode)!;
-      expect(button.props.disabled).toBe(true);
-      expect(button.props.accessibilityState).toEqual({ disabled: true });
+      expect(button.props.disabled).not.toBe(true);
+      expect(button.props.accessibilityRole).toBe("button");
       const language = locale === "ar" ? require("@/constants/i18n/ar").ar : require("@/constants/i18n/en").en;
-      expect(texts()).toContain(language.bulkActions.noItemsToSelect);
-      act(() => header.props.onToggleSelectionMode());
+      expect(texts()).not.toContain(language.bulkActions.noItemsToSelect);
+      expect(mockSelectionInfo).not.toHaveBeenCalled();
+      act(() => button.props.onPress());
+      expect(mockSelectionInfo).toHaveBeenCalledTimes(1);
+      expect(mockSelectionInfo).toHaveBeenCalledWith(language.bulkActions.noItemsToSelect);
+      expect(texts()).not.toContain(language.bulkActions.noItemsToSelect);
       expect(named("SectionHeader").props.isSelectionMode).toBe(false);
       expect(mockApproveMutate).not.toHaveBeenCalled();
       expect(mockBulkApproveMutate).not.toHaveBeenCalled();
@@ -1003,7 +1013,7 @@ describe("pending-host expired detail footer rendering", () => {
 
     it("keeps Select enabled for mixed rows and selects only eligible requests", () => {
       mount();
-      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
+      expect(mockSelectionInfo).not.toHaveBeenCalled();
       expect(texts()).not.toContain("bulkActions.noItemsToSelect");
       act(() => named("SectionHeader").props.onToggleSelectionMode());
       act(() => named("SelectAllBar").props.onToggleAll());
@@ -1011,14 +1021,19 @@ describe("pending-host expired detail footer rendering", () => {
       expect(mockBulkApproveMutate).not.toHaveBeenCalled();
     });
 
-    it("updates the empty-selection notice and button when search hides and restores eligible rows", () => {
+    it("checks current search results on click without showing a default notice", () => {
       mount();
       const search = dashboard.root.findAllByType("TextInput")[0];
       act(() => search.props.onChangeText("no-matching-visitor"));
-      expect(named("SectionHeader").props.selectionDisabled).toBe(true);
-      expect(texts()).toContain("bulkActions.noItemsToSelect");
+      expect(mockSelectionInfo).not.toHaveBeenCalled();
+      expect(texts()).not.toContain("bulkActions.noItemsToSelect");
+      act(() => named("SectionHeader").props.onToggleSelectionMode());
+      expect(mockSelectionInfo).toHaveBeenCalledWith("bulkActions.noItemsToSelect");
+      expect(named("SectionHeader").props.isSelectionMode).toBe(false);
       act(() => search.props.onChangeText(""));
-      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
+      act(() => named("SectionHeader").props.onToggleSelectionMode());
+      expect(named("SectionHeader").props.isSelectionMode).toBe(true);
+      expect(mockSelectionInfo).toHaveBeenCalledTimes(1);
       expect(texts()).not.toContain("bulkActions.noItemsToSelect");
     });
 
@@ -1032,12 +1047,15 @@ describe("pending-host expired detail footer rendering", () => {
       mockBoundaryTick = 1;
       act(() => dashboard.update(React.createElement(ManagerDashboardScreen, { navigation: { navigate: jest.fn() } })));
       expect(named("SectionHeader").props.isSelectionMode).toBe(true);
-      expect(named("SectionHeader").props.selectionDisabled).toBe(false);
-      expect(texts()).toContain("bulkActions.noItemsToSelect");
+      expect(mockSelectionInfo).not.toHaveBeenCalled();
+      expect(texts()).not.toContain("bulkActions.noItemsToSelect");
       expect(dashboard.root.findAll(node => typeof node.type === "function" && node.type.name === "SelectAllBar")).toHaveLength(0);
       act(() => named("SectionHeader").props.onToggleSelectionMode());
       expect(named("SectionHeader").props.isSelectionMode).toBe(false);
-      expect(named("SectionHeader").props.selectionDisabled).toBe(true);
+      expect(mockSelectionInfo).not.toHaveBeenCalled();
+      act(() => named("SectionHeader").props.onToggleSelectionMode());
+      expect(mockSelectionInfo).toHaveBeenCalledWith("bulkActions.noItemsToSelect");
+      expect(named("SectionHeader").props.isSelectionMode).toBe(false);
     });
 
     it("blocks a captured single handler at the exact end without waiting for a render", () => {

@@ -12,6 +12,7 @@
 - [Async form save revisions](async-form-save-revisions.md) — a completed save must not mark newer in-flight edits clean; clear dirty state only when the submitted revision is still current.
 - [React Query overlapping mutations](react-query-overlapping-mutations.md) — use per-invocation promises or variable-keyed settled callbacks; repeated mutate callbacks can skip earlier cleanup.
 - [Derived expiration scope](derived-expiration-scope.md) — keep expiration eligibility, display overrides, boundary refresh, and mutation guards aligned without changing non-target workflows.
+- [Approval selection feedback](approval-selection-feedback.md) — show the no-eligible-items notice only after Select is pressed; do not display it by default.
 - [Request ordering scope](request-ordering-scope.md) — My Requests and Manager All Requests use backend-default newest-created-first ordering without sort parameters.
 - [Metro source duplication](metro-source-duplication.md) — duplicate declaration errors can be repeated whole modules; restore one canonical copy and export web.
 - [Apple build authentication](apple-build-auth.md) — missing iTunes service keys can be public configuration failures; verify upstream before changing account credentials.

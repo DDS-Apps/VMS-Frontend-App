@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
+import { showGlobalInfo } from "@/utils/globalToast";
 import { View, StyleSheet, Pressable, ScrollView, TextInput, Modal, FlatList, Alert, useWindowDimensions, ActivityIndicator } from "react-native";
 import { ROUTES } from "@/constants";
 import { useRefetchOnRefocus } from "@/hooks/useRefetchOnRefocus";
@@ -62,7 +63,6 @@ const SectionHeader = ({
   viewMode, 
   onViewModeChange,
   isSelectionMode,
-  selectionDisabled,
   onToggleSelectionMode,
   theme,
   t,
@@ -71,7 +71,6 @@ const SectionHeader = ({
   viewMode: 'card' | 'list'; 
   onViewModeChange: (mode: 'card' | 'list') => void;
   isSelectionMode: boolean;
-  selectionDisabled: boolean;
   onToggleSelectionMode: () => void;
   theme: Theme;
   t: (key: string) => string;
@@ -91,15 +90,12 @@ const SectionHeader = ({
   const selectButton = (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: selectionDisabled }}
-      disabled={selectionDisabled}
       onPress={onToggleSelectionMode}
       style={[
         styles.selectButton,
         { 
           backgroundColor: isSelectionMode ? theme.primary : theme.surfaceSecondary,
           borderColor: isSelectionMode ? theme.primary : theme.border,
-          opacity: selectionDisabled ? 0.45 : 1,
         }
       ]}
     >
@@ -571,7 +567,10 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
   const allSelected = selectableRequests.length > 0 && selectableRequests.every(r => selectedIds.has(r.id));
 
   const toggleSelectionMode = () => {
-    if (!isSelectionMode && !filteredRequests.some(request => approvalPolicy.canApprove(request.id))) return;
+    if (!isSelectionMode && !filteredRequests.some(request => approvalPolicy.canApprove(request.id))) {
+      showGlobalInfo(t('bulkActions.noItemsToSelect'));
+      return;
+    }
     if (isSelectionMode) {
       setSelectedIds(new Set());
     }
@@ -794,21 +793,11 @@ export default function ManagerDashboardScreen({ navigation }: ManagerDashboardS
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         isSelectionMode={isSelectionMode}
-        selectionDisabled={!isSelectionMode && !hasSelectableRequests}
         onToggleSelectionMode={toggleSelectionMode}
         theme={theme}
         t={t}
         isRTL={isRTL}
       />
-
-      {hasUsablePendingData && !hasSelectableRequests ? (
-        <ThemedText
-          accessibilityLiveRegion="polite"
-          style={[Typography.caption, { color: theme.textSecondary, marginTop: Spacing.sm, textAlign: isRTL ? 'right' : 'left' }]}
-        >
-          {t('bulkActions.noItemsToSelect')}
-        </ThemedText>
-      ) : null}
 
       <Spacer height={Spacing.lg} />
 
