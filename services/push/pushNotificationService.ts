@@ -670,7 +670,11 @@ class PushNotificationService {
     return Device.deviceName || `${Device.brand} ${Device.modelName}`;
   }
 
-  async unregister(accessSnapshot: string | null = getAccessToken(), forceLocalCleanup = false): Promise<void> {
+  async unregister(
+    accessSnapshot: string | null = getAccessToken(),
+    forceLocalCleanup = false,
+    logoutWebSession?: () => Promise<void>,
+  ): Promise<void> {
     const owner = this.owner;
     if (owner) owner.cancelled = true;
     const initializing = this.initializing;
@@ -702,6 +706,9 @@ class PushNotificationService {
         if (owner) owner.token = token;
       }
       if (token) await deviceApiService.unregisterToken(token, accessSnapshot);
+      // Keep the token and registration barrier until web-session revocation
+      // finishes. A failed logout must leave the token available for retry.
+      if (logoutWebSession) await logoutWebSession();
     });
     const completed = removal.then(async () => {
       if (this.owner === owner) {
@@ -710,7 +717,7 @@ class PushNotificationService {
         await this.clearLocalNotifications();
       }
     }, async error => {
-      console.warn('[Push] Device-token removal failed; unregistration not confirmed');
+      console.warn('[Push] Session cleanup failed; logout cleanup not confirmed');
       if (forceLocalCleanup && this.owner === owner) {
         if (Platform.OS === 'web') {
           try { await revokeWebFcmToken(); }
@@ -739,9 +746,6 @@ class PushNotificationService {
         const notifications = await registration?.getNotifications().catch(() => []);
         notifications?.forEach(notification => notification.close());
       }
-    } else {
-      await Notifications.setBadgeCountAsync(0).catch(() => {});
-      await Notifications.dismissAllNotificationsAsync().catch(() => {});
     }
     try {
       const storage = require('@react-native-async-storage/async-storage').default;

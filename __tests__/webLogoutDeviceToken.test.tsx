@@ -102,8 +102,11 @@ describe('web logout device-token isolation through the real HTTP clients', () =
     mockInitialize.mockReset().mockImplementation(async () => {
       await deviceApiService.registerToken({ deviceToken: browserToken, platform: 'web' });
     });
-    mockUnregister.mockReset().mockImplementation(async (snapshot: string) => {
+    mockUnregister.mockReset().mockImplementation(async (
+      snapshot: string, _forceLocalCleanup?: boolean, logoutWebSession?: () => Promise<void>,
+    ) => {
       await deviceApiService.unregisterToken(browserToken, snapshot);
+      if (logoutWebSession) await logoutWebSession();
     });
     await AsyncStorage.setItem('@vms_tokens', JSON.stringify({
       accessToken: accessA, refreshToken: refreshA, expiresAt: Date.now() + 3600_000,

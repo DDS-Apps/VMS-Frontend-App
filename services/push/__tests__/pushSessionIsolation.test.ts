@@ -227,4 +227,32 @@ describe('push ownership across web sessions', () => {
     await jest.advanceTimersByTimeAsync(60_000);
     expect(register.mock.calls[1][0].deviceToken).toBe('fixture-timer-rotation');
   });
+
+  it('retains the device token and blocks B registration until the web logout request finishes', async () => {
+    await service.initialize();
+    const gate = deferred();
+    const logoutWebSession = jest.fn(() => gate.promise);
+    const removal = service.unregister('fixture-access-A', false, logoutWebSession);
+    await flush();
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(logoutWebSession).toHaveBeenCalledTimes(1);
+    expect(svc.token).toBe('fixture-browser-token');
+    signIn('B');
+    const newInitialization = service.initialize();
+    await flush();
+    expect(register).toHaveBeenCalledTimes(1);
+    gate.resolve();
+    await removal;
+    expect(await newInitialization).toBe(true);
+    expect(register).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the device token available when DELETE succeeds but web-session logout fails', async () => {
+    await service.initialize();
+    const logoutWebSession = jest.fn().mockRejectedValue(new Error('Fixture logout 503'));
+    await expect(service.unregister('fixture-access-A', false, logoutWebSession)).rejects.toThrow();
+    expect(svc.token).toBe('fixture-browser-token');
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(logoutWebSession).toHaveBeenCalledTimes(1);
+  });
 });

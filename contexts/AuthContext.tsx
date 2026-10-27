@@ -205,8 +205,10 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     const operation = (async () => {
       try {
         if (!currentRefreshToken) throw new Error('Missing web session refresh token.');
-        await pushNotificationService.unregister(accessSnapshot);
-        await authService.logout(currentRefreshToken, accessSnapshot);
+        await pushNotificationService.unregister(
+          accessSnapshot, false,
+          () => authService.logout(currentRefreshToken, accessSnapshot),
+        );
         if (generation === sessionGenerationRef.current) {
           clearSessionLocally(null);
           await crashlyticsService.clearUserAttributes().catch(() => {});

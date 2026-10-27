@@ -39,3 +39,12 @@ HTTP locally does not prove a server-side write was cancelled. Keep newer
 initialization behind this cleanup boundary. Web Firebase has no token-refresh
 callback: check on focus/online and periodically while the session is current.
 Token rotation must register under that same session only.
+
+For manual web logout, this boundary includes both device detachment and web
+refresh-session revocation. Keep the device token and block newer registration
+until both finish; DELETE success alone must not discard retry state while
+the logout request remains pending or fails. Do not extend browser-specific
+cleanup into unrequested native notification-tray dismissal.
+
+**Why:** The requested ordering retains all current-session tokens through both
+requests, and native tray behavior was outside this web-only change.
