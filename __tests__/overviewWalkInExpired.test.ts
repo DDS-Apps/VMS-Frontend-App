@@ -101,7 +101,7 @@ describe("Manager dashboard walk-in expiration", () => {
       /showApprovalExpiredBanner \|\| showReadOnlyExpiredBanner[\s\S]*?t\("status\.visitExpired"\)/,
     );
     expect(tableSource).toMatch(
-      /showReadOnlyExpiredBanner \? \([\s\S]*?<RequestStatusBadge status=\{item\.status\} \/>[\s\S]*?<ExpiredVisitBadge/,
+      /showReadOnlyExpiredBanner \? \([\s\S]*?<RequestStatusBadge status=\{item\.status\}[^>]*\/>[\s\S]*?<ExpiredVisitBadge/,
     );
   });
 });

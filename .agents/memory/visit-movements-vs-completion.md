@@ -33,13 +33,13 @@ The revised backend contract deliberately reuses V1 `movementSummary`: its legac
 
 **Why:** The user supplied an explicit replacement backend handoff on 2026-10-27. Both old latest-IN and revised first-IN backends identify themselves as V1, so a matching schema/version cannot prove correct serving semantics.
 
-**How to apply:** Use the revised V1 handoff, not the earlier V2 proposal or old latest-IN fixtures. Never fall back to operational fields. Keep rollout disabled until the serving backend and authorized endpoint responses demonstrate first-arrival semantics; source verification without restart/publication is insufficient.
+**How to apply:** Use the revised V1 handoff, not the earlier V2 proposal or old latest-IN fixtures. Never fall back to operational fields. The user's subsequent explicit display handoff authorizes enabling this contract. Distinguish source enablement from authenticated endpoint verification and publication; do not claim a source fixture proves serving-backend readiness.
 
-Historical-summary rollout must wait for backend contract confirmation and authenticated QA. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
+Historical-summary display can be enabled following explicit user authorization of the revised contract, while authenticated QA and publication remain separate verification steps. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
 
-**Why:** Backend implementation and frontend preparation can proceed concurrently, but source-only fixtures cannot prove deployed endpoint readiness. Enabling new semantics against mixed endpoint versions could label incomplete current-cycle values as historical summaries.
+**Why:** The user explicitly requested enabling the display after supplying the revised V1 fixture. That instruction supersedes the earlier hold, but source-only fixtures still cannot prove deployed endpoint readiness.
 
-**How to apply:** Keep the display rollout disabled until integration verification. Once enabled, missing or invalid versioned summaries are unavailable, never a reason to fabricate values or fall back to completion/current-cycle checkout.
+**How to apply:** Honor the explicit enablement request and report any missing authenticated integration evidence. Missing or invalid versioned summaries are unavailable, never a reason to fabricate values or fall back to completion/current-cycle checkout. Already-visible compact summaries must not acquire new owner/team/history-permission checks; preserve genuine API availability restrictions.
 
 Availability restrictions override contradictory historical values. A successful movement followed by an unavailable summary is still a successful action: retry only the read.
 

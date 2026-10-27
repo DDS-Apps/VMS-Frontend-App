@@ -15,6 +15,12 @@ export function mapAdminRequestToMatrixItem(
   request: UnifiedRequest,
 ): VisitorMatrixItem {
   const baseItem: VisitorMatrixItem = {
+    movementSummary: request.movementSummary,
+    ...(request.movementSummaryAvailability !== undefined
+      ? { movementSummaryAvailability: request.movementSummaryAvailability }
+      : {}),
+    movementSummaryError: request.movementSummaryError,
+    timezone: request.timezone,
     id: request.id,
     visitorName: request.visitorName,
     company: request.company,
@@ -64,10 +70,6 @@ export function mapAdminRequestToMatrixItem(
     valet as ValetParkingVisitorDto & { parkingDecision?: unknown }
   ).parkingDecision;
   return {
-    movementSummary: request.movementSummary,
-    movementSummaryAvailability: request.movementSummaryAvailability,
-    movementSummaryError: request.movementSummaryError,
-    timezone: request.timezone,
     ...baseItem,
     hasParking:
       resolveParkingDisplayDecision({

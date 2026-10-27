@@ -8,7 +8,9 @@ export function mapOverviewRequestToMatrixItem(
 ): VisitorMatrixItem {
   return {
     movementSummary: request.movementSummary,
-    movementSummaryAvailability: request.movementSummaryAvailability,
+    ...(request.movementSummaryAvailability !== undefined
+      ? { movementSummaryAvailability: request.movementSummaryAvailability }
+      : {}),
     movementSummaryError: request.movementSummaryError,
     timezone: request.timezone,
     id: request.id,

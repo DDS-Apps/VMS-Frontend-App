@@ -15,8 +15,9 @@ import { mapPendingApprovalToVisitorRequest } from "@/utils/requestMappers";
 import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
 import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
 import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
+import { mapAdminRequestToMatrixItem } from "@/utils/adminAllRequestsTable";
+import { MOVEMENT_SUMMARY_ENABLED } from "@/constants/movementSummary";
 
-jest.mock("@/constants/movementSummary", () => ({ MOVEMENT_SUMMARY_ENABLED: true }));
 
 describe("Matrix table viewport widths", () => {
   it.each((["en", "ar"] as const).flatMap(locale => [
@@ -266,6 +267,101 @@ const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
 }));
 
 describe("Matrix actual-time timezone formatting", () => {
+  const backendSummary = {
+    version: 1 as const,
+    latestCheckInAt: "2026-10-25T10:08:30.000Z",
+    latestCheckOutAt: "2026-10-25T11:44:11.000Z",
+  };
+  it.each((["en", "ar"] as const).flatMap(locale => [
+    { locale, name: "supplied fixture", status: "approved", expired: false, entry: true, exit: true },
+    { locale, name: "completed visit", status: "completed", expired: false, entry: true, exit: true },
+    { locale, name: "expired visit", status: "approved", expired: true, entry: true, exit: true },
+    { locale, name: "completed expired visit", status: "completed", expired: true, entry: true, exit: true },
+    { locale, name: "re-entry retains previous departure", status: "checked_in", expired: false, entry: true, exit: true },
+    { locale, name: "no entry", status: "approved", expired: false, entry: false, exit: true },
+    { locale, name: "no departure", status: "checked_in", expired: false, entry: true, exit: false },
+    { locale, name: "no movements", status: "approved", expired: false, entry: false, exit: false },
+  ]))("renders actual API-to-row mappings in $locale: $name", ({ locale, status, expired, entry, exit }) => {
+    // Use the real display flag: a mocked true flag would miss the reported bug.
+    expect(MOVEMENT_SUMMARY_ENABLED).toBe(true);
+    const summary = {
+      ...backendSummary,
+      latestCheckInAt: entry ? backendSummary.latestCheckInAt : null,
+      latestCheckOutAt: exit ? backendSummary.latestCheckOutAt : null,
+    };
+    const dto = {
+      id: "backend-summary-fixture",
+      visitor: { fullName: "Fixture Visitor", email: "", phone: "" },
+      employeeName: "Fixture Host", visitDate: "2026-10-25",
+      visitTime: "13:00", endTime: "15:30", status,
+      // Deliberately contradictory current-cycle fields: never use as fallbacks.
+      checkedInAt: "2026-10-25T12:30:00Z", checkedOutAt: undefined,
+      createdAt: "2026-10-24T08:00:00Z",
+      approval: { requiresApproval: false },
+      timezone: "Asia/Riyadh", movementSummary: summary,
+    } as VisitListItemDto;
+    const request = mapVisitListItemToVisitorRequest(dto);
+    const rows = [
+      mapManagerRequestToMatrixItem(request, "", expired),
+      mapOverviewRequestToMatrixItem(request, expired),
+      mapAdminRequestToMatrixItem({
+        id: dto.id, type: "visitor", visitorName: dto.visitor.fullName,
+        hostName: dto.employeeName, date: dto.visitDate, time: dto.visitTime,
+        status: "approved", originalStatus: dto.status, location: "",
+        canApprove: false, canCancel: false, createdAt: dto.createdAt,
+        originalData: dto, movementSummary: request.movementSummary,
+        movementSummaryAvailability: request.movementSummaryAvailability,
+        timezone: request.timezone,
+      }),
+    ];
+    const expected = locale === "ar"
+      ? [entry ? "١:٠٨ م" : "—", exit ? "٢:٤٤ م" : "—"]
+      : [entry ? "1:08 PM" : "—", exit ? "2:44 PM" : "—"];
+    for (const row of rows) {
+      expect(row.movementSummary).toBe(summary);
+      expect(row.timezone).toBe("Asia/Riyadh");
+      expect(row).not.toHaveProperty("movementSummaryAvailability");
+      const renderer = renderTable("matrix", [row], locale);
+      try {
+        const cells = (["in", "out"] as const).map(kind => {
+          const cell = renderer.root.findAllByType("ThemedText").find(node =>
+            node.props.testID === `actual-${kind}-summary`)!;
+          return textContent(cell.props.children)
+            .replace(/[\u200e\u200f]/g, "").replace(/\s+/g, " ").trim();
+        });
+        expect(cells).toEqual(expected);
+        expect(row.status).toBe(request.status);
+        expect(request.checkedInAt).toBe(dto.checkedInAt);
+        expect(request.checkedOutAt).toBeUndefined();
+      } finally {
+        act(() => renderer.unmount());
+      }
+    }
+  });
+
+  it.each(["restricted", "unavailable"] as const)("preserves genuine API %s markers with valid timestamps", availability => {
+    const request = mapVisitListItemToVisitorRequest({
+      id: "blocked-fixture", visitor: { fullName: "Fixture Visitor" },
+      status: "completed", visitDate: "2026-10-25",
+      movementSummary: backendSummary, timezone: "Asia/Riyadh",
+      movementSummaryAvailability: availability,
+    } as VisitListItemDto);
+    for (const row of [
+      mapManagerRequestToMatrixItem(request, "", true),
+      mapOverviewRequestToMatrixItem(request, true),
+    ]) {
+      expect(row.movementSummaryAvailability).toBe(availability);
+      const renderer = renderTable("matrix", [row]);
+      try {
+        const expected = availability === "restricted" ? "Restricted" : "Unavailable";
+        expect(themedTexts(renderer).filter(value => value === expected)).toHaveLength(2);
+        expect(themedTexts(renderer)).not.toContain("1:08 PM");
+      } finally {
+        act(() => renderer.unmount());
+      }
+    }
+  });
+
   const actualTimes = {
     movementSummary: {
       version: 1 as const,
