@@ -42,3 +42,14 @@ empty-value suppression rule.
 **How to apply:** Keep movement history in the existing detail timeline. Preserve
 corrected card/table timestamps and operational check-in/out logic separately;
 enabling their summary display must not introduce a new detail-page section.
+
+Do not render standalone QR/access-status notices (such as the bare "Expired"
+label) on request or visitor detail pages.
+
+**Why:** The user asked to remove this added notice above the timeline, separately
+from the Actual In/Out block. Removing presentation is not authorization to change
+QR expiry, approval eligibility, or other established expired-visit warnings.
+
+**How to apply:** Omit the added QR-status notice on detail pages while retaining
+QR visibility/validity guards, existing timelines, and approval restrictions.
+Do not remove QR notices from invitation pages as part of this detail-only rule.

@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { canDisplayQr } from '@/utils/qrAccess';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 import type { VisitorDetailScreenProps } from "@/types/receptionistNavigation.types";
@@ -729,7 +728,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
             <ThemedText style={[Typography.subtitle, { fontSize: 16, fontWeight: '600', color: theme.text }]}>
               {t('invitation.qrCode')}
             </ThemedText>
-            {visitDetails ? <QrAccessNotice source={visitDetails} now={qrNow} /> : null}
             <Spacer height={Spacing.xl} />
             <View style={[styles.qrContainerNew, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
               {visitor.qrCode && visitDetails && canDisplayQr(visitDetails, qrNow) && !isCancelledVisit ? (

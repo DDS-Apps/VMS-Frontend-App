@@ -22,7 +22,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { canDisplayQr } from '@/utils/qrAccess';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -2304,7 +2303,6 @@ export default function RequestDetailsScreen({
               >
                 {t("invitation.qrCode")}
               </ThemedText>
-              {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
               <Spacer height={Spacing.xl} />
 
               <View

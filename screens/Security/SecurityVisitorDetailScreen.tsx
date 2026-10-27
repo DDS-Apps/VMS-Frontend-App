@@ -1,6 +1,4 @@
 import React from "react";
-import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
-import { useQrClock } from '@/hooks/useActiveVisitView';
 import { View, StyleSheet, ActivityIndicator, Pressable, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DDIcon, IconName } from "@/components/DDIcon";
@@ -41,7 +39,6 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
     isError,
     refetch,
   } = useSecurityVisitorQuery(visitorId);
-  const qrNow = useQrClock();
 
   const lifecycleSteps = useTimelineSteps({
     data: {
@@ -703,7 +700,6 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      {visitorData ? <QrAccessNotice source={visitorData} now={qrNow} /> : null}
       <RequestTimeline
         steps={visitorData.movementHistory ? lifecycleSteps : timelineSteps}
         movementHistory={visitorData.movementHistory}
