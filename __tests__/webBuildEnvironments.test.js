@@ -23,12 +23,14 @@ const {
 
 const ROOT = path.resolve(__dirname, "..");
 
-it("keeps the published web build explicitly on production", () => {
+it("lets the published web build follow APP_VARIANT", () => {
   const replit = fs.readFileSync(path.join(ROOT, ".replit"), "utf8");
   const deployment = replit.match(/\[deployment\]([\s\S]*?)(?=\n\[|$)/)?.[1];
   expect(deployment).toBeDefined();
-  expect(deployment).toMatch(/"--variant"\s*,\s*"production"/);
-  expect(deployment).not.toMatch(/"--variant"\s*,\s*"qa"/);
+  expect(deployment).toContain('"scripts/build-web.js"');
+  expect(deployment).not.toMatch(/"--variant"|APP_VARIANT=/);
+  expect(deployment).toContain('"--no-web-config"');
+  expect(deployment).toContain('"--precompress"');
 });
 
 const QA_SHARED_ENV = {

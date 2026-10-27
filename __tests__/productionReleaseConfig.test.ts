@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { spawnSync } from 'child_process';
 
 const { resolveEnvironment, assertProductionConfig } = require('../config/app-environments');
 const app = require('../app.json').expo;
@@ -31,15 +32,19 @@ describe('production release configuration', () => {
     expect(environment.microsoftAuthUrl).toBe('https://vms.dallah.com');
   });
 
-  it('keeps publishing and IIS on production while preview inherits APP_VARIANT and QA exports remain explicit', () => {
+  it('lets publishing and preview inherit APP_VARIANT while IIS remains explicitly production', () => {
     const config = fs.readFileSync(path.join(root, '.replit'), 'utf8');
     const deployment = config.split('[deployment]')[1].split('\n[')[0];
-    expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"production"/);
+    expect(deployment).toContain('"scripts/build-web.js"');
+    expect(deployment).not.toMatch(/--variant|APP_VARIANT=/);
+    expect(deployment).toContain('"--no-web-config"');
+    expect(deployment).toContain('"--precompress"');
     const preview = config.split('name = "Start application"')[1].split('[[workflows.workflow]]')[0];
     expect(preview).toContain('start --web');
     expect(preview).not.toMatch(/APP_VARIANT=/);
     const pkg = require('../package.json');
-    expect(pkg.scripts['build:web']).toContain('--variant qa');
+    expect(pkg.scripts['build:web']).toContain('scripts/build-web.js');
+    expect(pkg.scripts['build:web']).not.toMatch(/--variant|APP_VARIANT=/);
     expect(pkg.scripts['build:web:production']).toContain('--variant production');
     expect(pkg.scripts['dev:web']).not.toMatch(/APP_VARIANT=/);
     expect(pkg.scripts.web).not.toMatch(/APP_VARIANT=/);
@@ -47,6 +52,43 @@ describe('production release configuration', () => {
     expect(environment.apiBaseUrl).toBe('https://vms-backend-app-qa.replit.app');
     expect(environment.microsoftAuthUrl).toBe(environment.apiBaseUrl);
     expect(() => assertProductionConfig(environment)).not.toThrow();
+  });
+
+  it.each([
+    ['qa', 'https://vms-backend-app-qa.replit.app'],
+    ['production', 'https://vms.dallah.com'],
+  ])('publishing command exports API and sign-in settings for APP_VARIANT=%s', (variant, origin) => {
+    const config = fs.readFileSync(path.join(root, '.replit'), 'utf8');
+    const deployment = config.split('[deployment]')[1].split('\n[')[0];
+    const command = JSON.parse(deployment.match(/^build\s*=\s*(\[.*\])/m)![1]);
+    // Exercise the real build argument/environment selection, but intercept
+    // the exporter before it can run Metro or modify dist/.
+    const driver = `
+      require('child_process').spawnSync = (_command, _args, options) => {
+        console.log('BUILD_SELECTION=' + JSON.stringify({
+          variant: options.env.APP_VARIANT,
+          api: options.env.EXPO_PUBLIC_API_BASE_URL,
+          vmsApi: options.env.EXPO_PUBLIC_VMS_API_BASE_URL,
+          signIn: options.env.EXPO_PUBLIC_MICROSOFT_AUTH_URL,
+        }));
+        process.exit(0);
+      };
+      const command = ${JSON.stringify(command)};
+      process.argv = [process.execPath, ...command.slice(1)];
+      require(require('path').resolve(command[1]));
+    `;
+    const result = spawnSync(process.execPath, ['-e', driver], {
+      cwd: root, encoding: 'utf8',
+      env: { ...process.env, APP_VARIANT: variant },
+      timeout: 20_000,
+    });
+    expect(result.status).toBe(0);
+    const selection = JSON.parse(result.stdout.match(/BUILD_SELECTION=(.*)/)![1]);
+    // The export environment uses the established "staging" alias for QA.
+    expect(selection).toEqual({
+      variant: variant === 'qa' ? 'staging' : 'production',
+      api: origin, vmsApi: origin, signIn: origin,
+    });
   });
 
   it.each([

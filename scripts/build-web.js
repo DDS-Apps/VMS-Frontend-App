@@ -2,7 +2,7 @@
 /**
  * Builds the deployable web bundle for one environment.
  *
- *   npm run build:web                  production bundle for Replit publishing
+ *   npm run build:web                  APP_VARIANT-selected bundle for Replit publishing
  *   npm run build:web:production       production bundle for IIS at vms.dallah.com
  *
  * Options (also settable through the environment):

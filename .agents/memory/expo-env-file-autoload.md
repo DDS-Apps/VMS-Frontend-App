@@ -3,19 +3,20 @@ name: Expo variant isolation and dotenv loading
 description: Why variants resolve explicitly, how QA stays isolated, and why existing exports need rebuilding.
 ---
 
-Replit web publishing explicitly targets production, including Microsoft sign-in.
-Web preview follows the shared APP_VARIANT setting after a restart, without a
-command-level override. Native mobile profiles and the explicit production IIS
-export remain on production. Firebase stays unchanged.
+Replit web publishing and the ordinary web export follow APP_VARIANT, including
+Microsoft sign-in. Preview also follows APP_VARIANT after restart. Native mobile
+profiles and the explicit production IIS export remain on production. Firebase
+stays unchanged.
 
-**Why:** On 2026-10-27 the user requested switching the APIs back to production,
-superseding the earlier QA publishing selection. The old explicit QA publishing
-command overrode their shared production variant.
+**Why:** On 2026-10-27 the user explicitly chose “Follow APP_VARIANT” for published
+web, superseding the production publishing pin. A command-level variant override
+had caused republishing to ignore their selected environment.
 
-**How to apply:** Isolate cached authentication by backend. Keep web publishing,
-native EAS profiles, and the production IIS export explicitly production unless
-the user requests another publishing target. Preview commands inherit APP_VARIANT;
-changing only that setting does not override the explicit publishing command.
+**How to apply:** Isolate cached authentication by backend. Keep publishing and
+ordinary web-export commands free of variant overrides. The APP_VARIANT available
+to the publishing build selects QA or production; it can differ from preview's
+setting. Keep native EAS profiles and the explicit production IIS export pinned
+to production. If no variant is provided, the existing production default applies.
 Do not reuse QA sessions for production or silently fall back to live APIs when QA
 metadata is invalid. Existing published exports/binaries require a
 separate rebuild and publish; changing workspace variables does not update them.
