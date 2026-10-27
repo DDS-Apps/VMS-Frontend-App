@@ -577,8 +577,10 @@ describe("rendered Receptionist dashboard service icons", () => {
     act(() => renderer.unmount());
   });
 
-  it("shows host, calendar date, duration and historical first-IN/last-OUT sections on cards after rollout", () => {
+  it.each(["en", "ar"] as const)("preserves scheduled/actual-IN/actual-OUT card order and styling in %s after rollout", locale => {
     mockMovementSummaryEnabled = true;
+    mockIsRTL = locale === "ar";
+    mockLocaleCode = locale === "ar" ? "ar-SA" : "en-US";
     mockTodayResponse = {
       ...mockTodayData,
       data: [{
@@ -605,10 +607,10 @@ describe("rendered Receptionist dashboard service icons", () => {
     pressCardViewToggle(renderer);
 
     const output = renderedText(renderer);
-    expect(output).toContain("Host Name");
+    expect(output).toContain(mockIsRTL ? "اسم المضيف" : "Host Name");
     expect(output).toContain("Waleed Alahdal");
     expect(output).toContain("Long department name that should wrap below the host name");
-    expect(output).toContain("12, Sep 2026");
+    expect(output).toContain(formatVisitDateLabel("2026-09-12", mockLocaleCode));
     expect(output).toContain("visitor.duration");
     expect(output).toContain("1 time.hour");
     expect(output).toContain("visitor.scheduledTime");
@@ -617,8 +619,29 @@ describe("rendered Receptionist dashboard service icons", () => {
     expect(textValues).toContain("09:00 visitor.timeRangeTo 10:00");
     expect(output).toContain("visitor.actualIn");
     expect(output).toContain("visitor.actualOut");
-    expect(output).toContain("8:30");
-    expect(output).toContain("3:17");
+    expect(textValues.indexOf("visitor.scheduledTime")).toBeLessThan(textValues.indexOf("visitor.actualIn"));
+    expect(textValues.indexOf("visitor.actualIn")).toBeLessThan(textValues.indexOf("visitor.actualOut"));
+    for (const [kind, timestamp] of [
+      ["in", "2026-09-12T05:30:00Z"],
+      ["out", "2026-09-12T12:17:00Z"],
+    ]) {
+      const cell = renderer.root.findAllByType("ThemedText" as any).find(node =>
+        node.props.testID === `actual-${kind}-summary`)!;
+      expect(cell.props.children).toBe(new Intl.DateTimeFormat(mockLocaleCode, {
+        timeZone: "Asia/Riyadh", hour: "numeric", minute: "2-digit", hour12: true,
+      }).format(new Date(timestamp)));
+      expect(require("react-native").StyleSheet.flatten(cell.props.style)).toMatchObject({
+        fontSize: 12, fontWeight: "600",
+        color: kind === "in" ? mockTheme.success : mockTheme.textSecondary,
+      });
+    }
+    for (const label of ["visitor.scheduledTime", "visitor.actualIn", "visitor.actualOut"]) {
+      const node = renderer.root.findAllByType("ThemedText" as any).find(node =>
+        node.props.children === label)!;
+      expect(require("react-native").StyleSheet.flatten(node.props.style)).toMatchObject({
+        fontSize: 10, fontWeight: "500", marginBottom: 2, color: mockTheme.textSecondary,
+      });
+    }
     expect(output).not.toContain("12:30");
     expect(output).not.toContain("15:17:00Z");
 
@@ -675,6 +698,33 @@ describe("rendered Receptionist dashboard service icons", () => {
     expect(flatten(department.props.style).maxWidth).toBe("100%");
     expect(department.props.numberOfLines).toBeUndefined();
     act(() => renderer.unmount());
+  });
+
+  it.each([
+    { name: "none", entry: null, exit: null },
+    { name: "arrival only", entry: "2026-09-12T05:30:00Z", exit: null },
+    { name: "departure only", entry: null, exit: "2026-09-12T12:17:00Z" },
+  ])("retains the original card's hidden empty timing cells: $name", ({ entry, exit }) => {
+    mockMovementSummaryEnabled = true;
+    mockTodayResponse = {
+      ...mockTodayData,
+      data: [{
+        ...mockNoParkingVisitor,
+        movementSummary: { version: 1, latestCheckInAt: entry, latestCheckOutAt: exit },
+        timezone: "Asia/Riyadh",
+      }],
+    };
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderDashboard({ navigate: jest.fn() }); });
+    try {
+      pressCardViewToggle(renderer);
+      const values = renderer.root.findAllByType("ThemedText" as any).map(node => node.props.children);
+      expect(values.includes("visitor.actualIn")).toBe(entry !== null);
+      expect(values.includes("visitor.actualOut")).toBe(exit !== null);
+      expect(values).toContain("visitor.scheduledTime");
+    } finally {
+      act(() => renderer.unmount());
+    }
   });
 
   it("keeps the shared card's omission behavior when no actual movements or schedule end exist", () => {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ActualMovementSummary } from "./ActualMovementSummary";
+import { ActualMovementValue } from "./ActualMovementSummary";
+import { readMovementDisplay } from "@/utils/movementSummary";
 import { MOVEMENT_SUMMARY_ENABLED } from "@/constants/movementSummary";
 import { View, StyleSheet, ViewStyle, Platform } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -291,14 +292,22 @@ export function VisitorRequestCard({
 
   const renderActualTimes = () => {
     const hasScheduledTime = !!request.visitTime && !!request.endTime;
+    const movement = readMovementDisplay(request);
+    // Keep the original card's omission of unrecorded movements. Non-supported
+    // summaries still render their honest availability label, never a fallback.
+    const hasActualIn = MOVEMENT_SUMMARY_ENABLED && (
+      movement.state !== 'supported' || movement.summary.latestCheckInAt !== null
+    );
+    const hasActualOut = MOVEMENT_SUMMARY_ENABLED && (
+      movement.state !== 'supported' || movement.summary.latestCheckOutAt !== null
+    );
 
-    if (!hasScheduledTime && !MOVEMENT_SUMMARY_ENABLED) return null;
+    if (!hasScheduledTime && !hasActualIn && !hasActualOut) return null;
 
     return (
       <>
         <Spacer height={Spacing.xs} />
         <View style={[styles.timingRow, { borderTopColor: theme.border }]}>
-          <ActualMovementSummary source={request} />
           {hasScheduledTime ? (
             <View style={styles.timingCell}>
               <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
@@ -308,6 +317,23 @@ export function VisitorRequestCard({
                 {formatTime(request.visitTime)} {t('visitor.timeRangeTo')} {formatTime(request.endTime!)}
               </ThemedText>
             </View>
+          ) : null}
+          {hasActualIn || hasActualOut ? (
+            <>
+              {(['in', 'out'] as const).filter(kind => kind === 'in' ? hasActualIn : hasActualOut).map(kind => (
+                <View key={kind} style={styles.timingCell}>
+                  <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
+                    {t(kind === 'in' ? 'visitor.actualIn' : 'visitor.actualOut')}
+                  </ThemedText>
+                  <ActualMovementValue
+                    source={request}
+                    kind={kind}
+                    includeDate={false}
+                    style={[styles.timingValue, { color: kind === 'in' ? theme.success : theme.textSecondary }]}
+                  />
+                </View>
+              ))}
+            </>
           ) : null}
         </View>
       </>

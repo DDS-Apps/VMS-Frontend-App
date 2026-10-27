@@ -890,11 +890,11 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ActualMovementValue source={item} kind="in" includeDate={false} />
+            <ActualMovementValue source={item} kind="in" includeDate={false} style={styles.matrixCellValue} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ActualMovementValue source={item} kind="out" includeDate={false} />
+            <ActualMovementValue source={item} kind="out" includeDate={false} style={styles.matrixCellValue} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>

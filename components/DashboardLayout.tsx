@@ -310,7 +310,13 @@ export default function DashboardLayout({
                   />
                 </Pressable>
               ) : (
-                <Pressable onPress={openSidebar} style={styles.menuButton}>
+                <Pressable
+                  testID="sidebar-menu-toggle"
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: sidebarOpen && isOverlayActive }}
+                  onPress={sidebarOpen && isOverlayActive ? closeSidebar : openSidebar}
+                  style={styles.menuButton}
+                >
                   <DDIcon name="menu" size={24} color={theme.text} />
                 </Pressable>
               )}
@@ -538,6 +544,7 @@ export default function DashboardLayout({
           {/* Mobile Overlay - Rendered first so sidebar appears on top */}
           {!isLargeScreen && sidebarOpen && (
             <Animated.View
+              testID="sidebar-overlay"
               style={[
                 styles.overlay,
                 overlayAnimatedStyle,
@@ -552,6 +559,7 @@ export default function DashboardLayout({
           {!isLargeScreen && sidebarOpen && (
             <GestureDetector gesture={sidebarSwipeGesture}>
               <Animated.View
+                testID="mobile-sidebar"
                 style={[
                   styles.sidebarContainer,
                   styles.sidebarMobile,

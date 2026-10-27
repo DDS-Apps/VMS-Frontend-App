@@ -1073,17 +1073,18 @@ export default function VisitorRequestsScreen({
   }
 
   // Card View Layout - CRITICAL: ScreenFlatList as ROOT element for infinite scroll
-  // Responsive columns: 1 on mobile (<768), 2 on tablet (768-1024), 3 on desktop (>1024)
+  // Responsive columns: 1 below 600px, 2 below 900px, otherwise 3.
   const numColumns = screenWidth >= 900 ? 3 : screenWidth >= 600 ? 2 : 1;
   
   // Get item style based on numColumns - use flexBasis percentage for reliable multi-column layout
   const getItemStyle = () => {
     if (numColumns === 1) return styles.paddedContent;
-    // Use percentage-based flexBasis that accounts for gaps
-    // Each item takes equal space, flexShrink allows items to shrink to fit
+    // Reserve a column even in an incomplete row; never stretch a lone card.
     return { 
-      flex: 1,
-      minWidth: 0, // Allow items to shrink below content size
+      flexBasis: numColumns === 3 ? '32%' as const : '48%' as const,
+      maxWidth: numColumns === 3 ? '32%' as const : '48%' as const,
+      flexGrow: 0,
+      minWidth: 0,
     };
   };
   

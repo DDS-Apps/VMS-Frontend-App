@@ -8,3 +8,13 @@ When a visitor card grid needs date grouping, render date groups as the items of
 **Why:** The React Native SectionList types used by this project do not support `numColumns`, while the responsive visitor cards require one, two, or three columns.
 
 **How to apply:** Use the filtered and sorted records as the source for date groups, render a full-width date header per group, then render that group's cards in a wrapped row. Keep filters and pagination on the outer FlatList.
+
+Visitor card grids retain three columns on desktop, two on tablet, and one on
+mobile, including groups or last rows with fewer records than columns.
+
+**Why:** The user reiterated the agreed column counts after a single grouped
+card stretched across the desktop row. Sparse data must not change card width.
+
+**How to apply:** Reserve each card's responsive column instead of growing it
+to consume an incomplete row. Keep date headers full-width and horizontal
+carousels separate from grid behavior. Do not confuse this with KPI grids.

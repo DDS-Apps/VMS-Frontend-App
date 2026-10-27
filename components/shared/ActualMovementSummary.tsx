@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, type StyleProp, type TextStyle } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -7,10 +7,11 @@ import { formatActualMovement, readMovementDisplay, reportMovementDisplayIssue, 
 import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
 
 /** Read-only historical values. Never feeds action guards or lifecycle timelines. */
-export function ActualMovementValue({ source, kind, includeDate = true }: {
+export function ActualMovementValue({ source, kind, includeDate = true, style }: {
   source: MovementSummarySource;
   kind: 'in' | 'out';
   includeDate?: boolean;
+  style?: StyleProp<TextStyle>;
 }) {
   const { isRTL } = useLanguage();
   const result = readMovementDisplay(source);
@@ -25,7 +26,7 @@ export function ActualMovementValue({ source, kind, includeDate = true }: {
     : formatActualMovement(timestamp, source.timezone, isRTL, includeDate);
   const accessibleLabel = MOVEMENT_SUMMARY_ENABLED && result.state === 'supported'
     ? formatActualMovement(timestamp, source.timezone, isRTL, true) : label;
-  return <ThemedText accessibilityLabel={accessibleLabel} style={{ fontSize: 12 }} testID={`actual-${kind}-summary`}>
+  return <ThemedText accessibilityLabel={accessibleLabel} style={[{ fontSize: 12 }, style]} testID={`actual-${kind}-summary`}>
     {label}
   </ThemedText>;
 }

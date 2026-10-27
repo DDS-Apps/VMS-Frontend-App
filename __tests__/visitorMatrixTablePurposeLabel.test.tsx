@@ -326,6 +326,9 @@ describe("Matrix actual-time timezone formatting", () => {
         const cells = (["in", "out"] as const).map(kind => {
           const cell = renderer.root.findAllByType("ThemedText").find(node =>
             node.props.testID === `actual-${kind}-summary`)!;
+          expect(StyleSheet.flatten(cell.props.style)).toMatchObject({
+            fontSize: 14, lineHeight: 20,
+          });
           return textContent(cell.props.children)
             .replace(/[\u200e\u200f]/g, "").replace(/\s+/g, " ").trim();
         });

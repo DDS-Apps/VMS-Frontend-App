@@ -644,8 +644,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
     [getItemIsExpired, items, rejectMutation, queryClient, t]
   );
 
-  const isWebLayout = width > 768;
-  const numColumns = isWebLayout && viewMode === "card" ? 3 : 1;
+  const numColumns = viewMode === "card" ? (width >= 900 ? 3 : width >= 600 ? 2 : 1) : 1;
 
   const toMatrixItem = useCallback((item: ApprovalHistoryItemDto): VisitorMatrixItem => {
     const request = mapHistoryToVisitorRequest(item);
@@ -715,7 +714,7 @@ export default function ManagerAllRequestsScreen({ navigation, route }: ScreenPr
         <View
           style={
             numColumns > 1
-              ? { width: "33.33%", flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm }
+              ? { width: numColumns === 2 ? "50%" : "33.33%", flexGrow: 0, marginBottom: LAYOUT.contentGap, paddingRight: Spacing.sm }
               : { width: "100%", marginBottom: LAYOUT.contentGap }
           }
         >

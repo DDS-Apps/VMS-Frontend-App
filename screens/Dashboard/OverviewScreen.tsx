@@ -4,6 +4,7 @@ import {
   View,
   StyleSheet,
   Dimensions,
+  useWindowDimensions,
   Pressable,
   Platform,
   Modal,
@@ -67,7 +68,8 @@ import { getLocalizedApiErrorMessage } from "@/utils/apiErrorMessage";
 import { getApprovalErrorMessage, getApprovalServerRejectionCode } from "@/utils/approvalErrorMessage";
 import { getApprovalOutcomeMessage } from "@/utils/approvalOutcome";
 
-const { width: screenWidth } = Dimensions.get("window");
+// Retain existing legacy style defaults; the live visitor grid uses the hook.
+const initialScreenWidth = Dimensions.get("window").width;
 
 interface OverviewScreenProps {
   userRole: UserRole;
@@ -82,6 +84,7 @@ export default function OverviewScreen({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { isRTL, localeCode } = useLanguage();
+  const { width: screenWidth } = useWindowDimensions();
   const { formatDate: fmtDate } = useFormatters();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const insets = useSafeAreaInsets();
@@ -632,9 +635,9 @@ export default function OverviewScreen({
                             key={request.id}
                             style={
                               screenWidth >= 900
-                                ? { flex: 1, minWidth: 260 }
+                                ? { flexBasis: '32%', maxWidth: '32%', flexGrow: 0, minWidth: 0 }
                                 : screenWidth >= 600
-                                ? { flex: 1, minWidth: 280 }
+                                ? { flexBasis: '48%', maxWidth: '48%', flexGrow: 0, minWidth: 0 }
                                 : { width: '100%' }
                             }
                           >
@@ -1556,7 +1559,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -Spacing.xs,
   },
   kpiCard: {
-    width: screenWidth > 768 ? "23%" : "48%",
+    width: initialScreenWidth > 768 ? "23%" : "48%",
     margin: "1%",
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -1599,7 +1602,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   chartsRow: {
-    flexDirection: screenWidth > 768 ? "row" : "column",
+    flexDirection: initialScreenWidth > 768 ? "row" : "column",
   },
   chartCard: {
     flex: 1,

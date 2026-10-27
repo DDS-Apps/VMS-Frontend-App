@@ -14,3 +14,14 @@ with a circular-reference error even though rendering and behavior are correct.
 controls, inspect native disabled/accessibility props and test the handler guard.
 Do not strip React ownership fields or change application behavior to make a
 whole-tree serialization assertion pass.
+
+Preserve lazy native exports when partially mocking React Native; do not spread
+the entire module namespace into a new object.
+
+**Why:** Spreading eagerly initializes unrelated native modules that are absent
+from the Jest runtime, even when the component under test never uses them.
+
+**How to apply:** Override only the required exports without evaluating the
+remaining getters. Real Pressable host nodes expose responder props rather
+than the component's `onPress`; handler tests must select the component that
+owns the callback, and still do not prove physical touch delivery.

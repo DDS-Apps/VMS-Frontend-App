@@ -12,6 +12,7 @@ jest.mock("expo-constants", () => ({
 }));
 
 let mockWidth = 390;
+let mockRenderDateGroups = false;
 let mockFontScale = 1;
 let mockLocale: "en" | "ar" = "en";
 let mockHandoffTranslations = false;
@@ -391,7 +392,9 @@ jest.mock("@/utils/statusStyles", () => ({
 
 jest.mock("@/utils/groupVisitsByDate", () => ({
   formatVisitDateLabel: (date: string) => date,
-  groupVisitsByDate: () => [],
+  groupVisitsByDate: (visits: unknown[]) => mockRenderDateGroups
+    ? jest.requireActual("@/utils/groupVisitsByDate").groupVisitsByDate(visits)
+    : [],
 }));
 
 jest.mock("@/utils/formatters", () => ({
@@ -510,6 +513,7 @@ function configureScreen(
   width: number,
 ) {
   mockScreen = screen;
+  mockRenderDateGroups = false;
   mockHandoffTranslations = false;
   mockLocale = locale;
   mockWidth = width;
@@ -952,6 +956,53 @@ describe("pending-host expired detail footer rendering", () => {
       table.props.onApprove("manager-pending-approval");
     });
     expect(mockApproveMutate).toHaveBeenCalledTimes(1);
+  });
+
+  describe("Overview grouped visitor grid widths", () => {
+    it.each((["en", "ar"] as const).flatMap(locale =>
+      [390, 768, 1440].flatMap(width =>
+        [1, 3, 4].map(count => ({ locale, width, count }))
+      )
+    ))("keeps column width with $count cards at $width px in $locale", ({ locale, width, count }) => {
+      configureScreen("manager", locale, width);
+      mockRenderDateGroups = true;
+      jest.setSystemTime(new Date("2026-09-12T06:00:00Z"));
+      mockPendingApprovalData = { data: [] };
+      mockUpcomingData = { pages: [{ data: Array.from({ length: count }, (_, index) => ({
+        ...pendingManagerApprovalRequest(),
+        id: `grid-visit-${index}`, status: "approved", isWalkIn: false,
+        visitDate: "2026-09-13",
+      })) }] };
+      let renderer!: ReturnType<typeof create>;
+      act(() => { renderer = create(React.createElement(OverviewScreen, { userRole: "manager" })); });
+      try {
+        expect(renderer.root.findAllByType("VisitorMatrixTable").flatMap(node =>
+          node.props.visitors?.map((visitor: { id: string }) => visitor.id) ?? []
+        )).toContain("grid-visit-0");
+        const gridIcon = renderer.root.findAllByType("DDIcon").find(node => node.props.name === "grid")!;
+        let toggle = gridIcon.parent!;
+        while (!toggle.props.onPress) toggle = toggle.parent!;
+        act(() => toggle.props.onPress());
+        const cards = renderer.root.findAllByType("VisitorRequestCard").filter(node =>
+          node.props.request.id.startsWith("grid-visit-"));
+        expect(cards).toHaveLength(count);
+        for (const card of cards) {
+          let wrapper = card.parent!;
+          while (!wrapper.props.style) wrapper = wrapper.parent!;
+          if (width < 600) {
+            expect(wrapper.props.style).toMatchObject({ width: "100%" });
+          } else {
+            const percentage = width >= 900 ? "32%" : "48%";
+            expect(wrapper.props.style).toMatchObject({
+              flexBasis: percentage, maxWidth: percentage, flexGrow: 0, minWidth: 0,
+            });
+            expect(wrapper.props.style.flex).toBeUndefined();
+          }
+        }
+      } finally {
+        act(() => renderer.unmount());
+      }
+    });
   });
 
   describe("scheduled Manager dashboard approvals", () => {
