@@ -17,6 +17,7 @@
 - [Metro source duplication](metro-source-duplication.md) — duplicate declaration errors can be repeated whole modules; restore one canonical copy and export web.
 - [Apple build authentication](apple-build-auth.md) — missing iTunes service keys can be public configuration failures; verify upstream before changing account credentials.
 - [Startup session restore](startup-session-restore.md) — cached profile renders first; only a definitive 4xx refresh rejection signs out; logout/login epoch invalidates in-flight refreshes.
+- [Push session ownership](push-session-ownership.md) — capture identity before async SDK work; transport epochs alone cannot prevent delayed registration or old cleanup crossing logins.
 - [Web fonts runtime injection](web-fonts-runtime-injection.md) — web uses injected @font-face under expo-font key names with swap; keep per-weight families, no useFonts on web.
 - [Static server precompression](static-server-precompression.md) — build-time .br/.gz variants, immutable only for hashed paths, q-value aware Accept-Encoding.
 - [Dashboard focus refetch](dashboard-focus-refetch.md) — shared refocus hook skips the first focus and joins in-flight fetches; Upcoming Visits queries start at today.
