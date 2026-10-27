@@ -6,6 +6,10 @@ import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 let mockLocaleCode = "en-US";
 let mockIsRTL = false;
 let mockWindowWidth = 400;
+let mockMovementSummaryEnabled = false;
+jest.mock("@/constants/movementSummary", () => ({
+  get MOVEMENT_SUMMARY_ENABLED() { return mockMovementSummaryEnabled; },
+}));
 
 const mockTheme = {
   background: "#ffffff",
@@ -422,6 +426,7 @@ function expectClocheIcon(node: RenderedNode) {
 
 describe("rendered Receptionist dashboard service icons", () => {
   beforeEach(() => {
+    mockMovementSummaryEnabled = false;
     mockLocaleCode = "en-US";
     mockIsRTL = false;
     mockWindowWidth = 400;
@@ -572,7 +577,8 @@ describe("rendered Receptionist dashboard service icons", () => {
     act(() => renderer.unmount());
   });
 
-  it("shows host, calendar date, duration and the scheduled/actual movement sections on cards", () => {
+  it("shows host, calendar date, duration and historical first-IN/last-OUT sections on cards after rollout", () => {
+    mockMovementSummaryEnabled = true;
     mockTodayResponse = {
       ...mockTodayData,
       data: [{
@@ -584,6 +590,12 @@ describe("rendered Receptionist dashboard service icons", () => {
         endTime: "10:00",
         checkedInAt: "2026-09-12T09:30:00Z",
         checkedOutAt: "2026-09-12T12:17:00Z",
+        movementSummary: {
+          version: 1,
+          latestCheckInAt: "2026-09-12T05:30:00Z",
+          latestCheckOutAt: "2026-09-12T12:17:00Z",
+        },
+        timezone: "Asia/Riyadh",
         // A lifecycle completion timestamp must never be presented as physical checkout.
         completedAt: "2026-09-12T15:17:00Z",
       }],
@@ -605,6 +617,9 @@ describe("rendered Receptionist dashboard service icons", () => {
     expect(textValues).toContain("09:00 visitor.timeRangeTo 10:00");
     expect(output).toContain("visitor.actualIn");
     expect(output).toContain("visitor.actualOut");
+    expect(output).toContain("8:30");
+    expect(output).toContain("3:17");
+    expect(output).not.toContain("12:30");
     expect(output).not.toContain("15:17:00Z");
 
     const textNodes = renderer.root.findAllByType("ThemedText");

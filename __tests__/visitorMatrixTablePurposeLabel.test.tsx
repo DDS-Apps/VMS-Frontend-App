@@ -16,6 +16,8 @@ import { mapManagerRequestToMatrixItem } from "@/utils/managerDashboardTable";
 import { mapVisitListItemToVisitorRequest } from "@/utils/requestMappers";
 import { mapOverviewRequestToMatrixItem } from "@/utils/overviewVisitorTable";
 
+jest.mock("@/constants/movementSummary", () => ({ MOVEMENT_SUMMARY_ENABLED: true }));
+
 describe("Matrix table viewport widths", () => {
   it.each((["en", "ar"] as const).flatMap(locale => [
     { locale, columns: "simple" as const, optional: false, count: 5 },
@@ -195,6 +197,11 @@ const baseVisitor: VisitorMatrixItem = {
   plannedOutTime: "10:00",
   actualInTime: "09:05",
   actualOutTime: "09:55",
+  movementSummary: {
+    version: 1,
+    latestCheckInAt: "2026-01-01T06:05:00.000Z",
+    latestCheckOutAt: "2026-01-01T06:55:00.000Z",
+  },
   status: "approved",
   hostName: "Host One",
   hostDepartment: "Operations",
@@ -260,8 +267,11 @@ const allMappedVisitors = mappedPurposeEntries.map(([purpose, key], index) => ({
 
 describe("Matrix actual-time timezone formatting", () => {
   const actualTimes = {
-    actualInTime: "2026-10-25T11:43:35.000Z",
-    actualOutTime: "2026-10-25T11:44:11.000Z",
+    movementSummary: {
+      version: 1 as const,
+      latestCheckInAt: "2026-10-25T11:43:35.000Z",
+      latestCheckOutAt: "2026-10-25T11:44:11.000Z",
+    },
   };
   const normalizedTexts = (renderer: ReturnType<typeof create>) =>
     themedTexts(renderer).map(value => value.replace(/[\u200e\u200f]/g, "").replace(/\s+/g, " ").trim());
@@ -283,8 +293,11 @@ describe("Matrix actual-time timezone formatting", () => {
   it("formats equivalent offset timestamps and cross-midnight instants in the visit timezone", () => {
     const renderer = renderTable("matrix", [{
       ...baseVisitor, timezone: "Asia/Riyadh",
-      actualInTime: "2026-10-25T16:43:35+05:00",
-      actualOutTime: "2026-10-25T21:08:00.000Z",
+      movementSummary: {
+        version: 1,
+        latestCheckInAt: "2026-10-25T16:43:35+05:00",
+        latestCheckOutAt: "2026-10-25T21:08:00.000Z",
+      },
     }]);
     expect(normalizedTexts(renderer)).toEqual(expect.arrayContaining(["2:43 PM", "12:08 AM"]));
     act(() => renderer.unmount());
@@ -292,21 +305,36 @@ describe("Matrix actual-time timezone formatting", () => {
 
   it.each([
     { ...actualTimes, timezone: "Invalid/Timezone" },
-    { actualInTime: "2026-10-25T11:43:35", actualOutTime: "2026-10-25Tinvalid", timezone: "Asia/Riyadh" },
-    { actualInTime: undefined, actualOutTime: undefined, timezone: "Asia/Riyadh" },
+    { movementSummary: { version: 1 as const, latestCheckInAt: null, latestCheckOutAt: null }, timezone: "Asia/Riyadh" },
   ])("shows dashes instead of device-local or fabricated times for invalid/missing data: %p", fields => {
     const renderer = renderTable("matrix", [{ ...baseVisitor, ...fields }]);
     const values = normalizedTexts(renderer);
     expect(values.filter(value => value === "—").length).toBeGreaterThanOrEqual(2);
     expect(values).not.toEqual(expect.arrayContaining(["2:43 PM", "2:44 PM"]));
-    expect(values).not.toContain(fields.actualInTime);
-    expect(values).not.toContain(fields.actualOutTime);
     act(() => renderer.unmount());
   });
 
-  it("keeps legacy wall-clock actual values and scheduled times unchanged", () => {
-    const renderer = renderTable("matrix", [{ ...baseVisitor, timezone: "Asia/Dubai" }]);
-    expect(normalizedTexts(renderer)).toEqual(expect.arrayContaining(["09:05", "09:55", "09:00 to 10:00"]));
+  it("uses historical first arrival instead of operational values, without shifting scheduled times", () => {
+    const renderer = renderTable("matrix", [{
+      ...baseVisitor, timezone: "Asia/Riyadh", actualInTime: "14:43", actualOutTime: undefined,
+      movementSummary: { version: 1, latestCheckInAt: "2026-10-25T10:08:30Z", latestCheckOutAt: "2026-10-25T11:44:11Z" },
+      status: "checked_in",
+    }]);
+    const values = normalizedTexts(renderer);
+    expect(values).toEqual(expect.arrayContaining(["1:08 PM", "2:44 PM", "09:00 to 10:00"]));
+    expect(values).not.toContain("14:43");
+    act(() => renderer.unmount());
+  });
+
+  it.each(["restricted", "unavailable", undefined] as const)("never falls back to operational times when summary availability is %s", availability => {
+    const renderer = renderTable("matrix", [{
+      ...baseVisitor, movementSummary: undefined, movementSummaryAvailability: availability,
+    }]);
+    const values = normalizedTexts(renderer);
+    const expected = availability === "restricted" ? "Restricted" : "Unavailable";
+    expect(values.filter(value => value === expected)).toHaveLength(2);
+    expect(values).not.toContain("09:05");
+    expect(values).not.toContain("09:55");
     act(() => renderer.unmount());
   });
 });

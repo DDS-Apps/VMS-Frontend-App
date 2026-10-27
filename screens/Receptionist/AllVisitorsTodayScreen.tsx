@@ -199,9 +199,7 @@ const TodayVisitorTableRow = React.memo(({ item, onPress }: { item: TodayVisitor
               {t('visitor.actualIn').toUpperCase()}
             </ThemedText>
             <Spacer height={8} />
-            <ActualMovementValue source={item} kind="in" legacy={<ThemedText style={[tableStyles.colValue, item.checkedInAt ? { color: theme.success, fontWeight: '700' } : {}]}>
-              {fmtTime(item.checkedInAt)}
-            </ThemedText>} />
+            <ActualMovementValue source={item} kind="in" includeDate={false} />
           </View>
 
           {/* Actual Out */}
@@ -210,7 +208,7 @@ const TodayVisitorTableRow = React.memo(({ item, onPress }: { item: TodayVisitor
               {t('visitor.actualOut').toUpperCase()}
             </ThemedText>
             <Spacer height={8} />
-            <ActualMovementValue source={item} kind="out" legacy={<ThemedText style={tableStyles.colValue}>{fmtTime(item.checkedOutAt)}</ThemedText>} />
+            <ActualMovementValue source={item} kind="out" includeDate={false} />
           </View>
         </ScrollView>
       </View>

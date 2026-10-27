@@ -7,7 +7,10 @@
 > release criteria must not be used to activate the new requirement. See
 > [the version-2 backend handoff](first-arrival-last-departure-backend-handoff.md)
 > for the proposed additive contract, acceptance matrix and blocked release gates.
-> Version 1 retains its original meaning and its runtime switch stays disabled.
+> **Further superseded by the 2026-10-27 backend handoff:** the backend deliberately
+> reused V1 `movementSummary.latestCheckInAt` for FIRST arrival. There is no V2.
+> The linked handoff now documents this accepted revised contract and the blocked
+> serving-build verification gate. The older content below is historical only.
 
 Date: 2026-10-07  
 Status: frontend support implemented behind a disabled rollout switch; backend handoff supersedes earlier proposed endpoint/availability assumptions. See section 9 for current evidence and release blockers.

@@ -33,7 +33,7 @@
 - [Status dropdown source scope](status-dropdown-source-scope.md) — a status option must match its screen's source and filtering path, not just the global request lifecycle.
 - [Visit purpose choices](visit-purpose-choices.md) — restrict new/edit picker choices without discarding translations for historical purpose values.
 - [Compact status badge preference](compact-status-badges.md) — keep read-only status and Visit Expired badges at the original compact size; standardize without enlarging.
-- [Visit movements vs completion](visit-movements-vs-completion.md) — physical exits are separate from lifecycle completion; only the backend can finalize a visit after its scheduled window.
+- [Visit movements vs completion](visit-movements-vs-completion.md) — physical history, revised first-arrival summaries, presence and backend lifecycle completion remain separate.
 - [Admin count request budget](admin-count-request-budget.md) — no per-status probes or count-driven full downloads; missing backend aggregates must be explicit.
 - [Reminder delay removal scope](reminder-delay-removal-scope.md) — remove the configurable delay only; do not infer authorization to disable automatic cancellation.
 - [Native touch verification](native-touch-verification.md) — direct handler tests do not prove iPhone tap delivery; diagnose before changing RTL or modal behavior.

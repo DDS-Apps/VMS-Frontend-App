@@ -33,7 +33,6 @@ import { getStatusConfig, applyOpacity } from "@/utils/statusStyles";
 import { formatVisitDateLabel } from "@/utils/groupVisitsByDate";
 import { getPurposeLabel } from "@/constants/requestConstants";
 import { ActualMovementValue } from './ActualMovementSummary';
-import { formatActualMovement } from '@/utils/movementSummary';
 
 export interface VisitorMatrixItem {
   movementSummary?: import('@/types/movementSummary').MovementSummary;
@@ -434,20 +433,6 @@ function formatMatrixCellTime(val: string | undefined, formatTimeFromString: (v:
       : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
   }
   return formatTimeFromString(val) || "—";
-}
-
-/** Physical instants use the visit timezone, never the browser/device timezone. */
-function formatMatrixActualTime(
-  val: string | undefined,
-  timezone: string | undefined,
-  isRTL: boolean,
-  formatTimeFromString: (v: string) => string,
-): string {
-  if (val && (val.includes("T") || val.includes("Z"))) {
-    return formatActualMovement(val, timezone, isRTL);
-  }
-  // Preserve existing wall-clock-only legacy values without inventing an instant.
-  return formatMatrixCellTime(val, formatTimeFromString);
 }
 
 function formatScheduleRange(
@@ -905,15 +890,11 @@ function MatrixDataRowCells({
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ActualMovementValue source={item} kind="in" legacy={<ThemedText style={styles.matrixCellValue} numberOfLines={1}>
-              {formatMatrixActualTime(item.actualInTime, item.timezone, isRTL, formatTimeFromString)}
-            </ThemedText>} />
+            <ActualMovementValue source={item} kind="in" includeDate={false} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>
-            <ActualMovementValue source={item} kind="out" legacy={<ThemedText style={styles.matrixCellValue} numberOfLines={1}>
-              {formatMatrixActualTime(item.actualOutTime, item.timezone, isRTL, formatTimeFromString)}
-            </ThemedText>} />
+            <ActualMovementValue source={item} kind="out" includeDate={false} />
           </View>
 
           <View style={[styles.matrixDataCell, { width: LAYOUT.matrixColWidth }, rowBorderStyle]}>

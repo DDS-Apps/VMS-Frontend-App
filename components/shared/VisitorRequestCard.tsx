@@ -290,12 +290,9 @@ export function VisitorRequestCard({
   };
 
   const renderActualTimes = () => {
-    const checkedOutAt = request.checkedOutAt || request.timeline?.checkedOutAt;
     const hasScheduledTime = !!request.visitTime && !!request.endTime;
-    const hasActualIn  = !MOVEMENT_SUMMARY_ENABLED && !!request.checkedInAt;
-    const hasActualOut = !MOVEMENT_SUMMARY_ENABLED && !!checkedOutAt;
 
-    if (!hasScheduledTime && !hasActualIn && !hasActualOut && !MOVEMENT_SUMMARY_ENABLED) return null;
+    if (!hasScheduledTime && !MOVEMENT_SUMMARY_ENABLED) return null;
 
     return (
       <>
@@ -309,26 +306,6 @@ export function VisitorRequestCard({
               </ThemedText>
               <ThemedText style={[styles.timingValue, { color: theme.text }]}>
                 {formatTime(request.visitTime)} {t('visitor.timeRangeTo')} {formatTime(request.endTime!)}
-              </ThemedText>
-            </View>
-          ) : null}
-          {hasActualIn ? (
-            <View style={styles.timingCell}>
-              <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
-                {t('visitor.actualIn')}
-              </ThemedText>
-              <ThemedText style={[styles.timingValue, { color: theme.success }]}>
-                {formatTime(request.checkedInAt!)}
-              </ThemedText>
-            </View>
-          ) : null}
-          {hasActualOut ? (
-            <View style={styles.timingCell}>
-              <ThemedText style={[styles.timingLabel, { color: theme.textSecondary }]}>
-                {t('visitor.actualOut')}
-              </ThemedText>
-              <ThemedText style={[styles.timingValue, { color: theme.textSecondary }]}>
-                {formatTime(checkedOutAt!)}
               </ThemedText>
             </View>
           ) : null}

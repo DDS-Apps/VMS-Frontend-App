@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
-import { MOVEMENT_SUMMARY_ENABLED } from '@/constants/movementSummary';
 import { View, StyleSheet, Pressable, RefreshControl, ActivityIndicator, Modal, TextInput, Alert, Platform, Keyboard, KeyboardAvoidingView, useWindowDimensions } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -368,26 +367,6 @@ function RequestCard({ request, onPress, onApprove, onReject, theme, t, formatDa
                     </ThemedText>
                     <ThemedText style={[styles.timingValue, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
                       {scheduledTime}
-                    </ThemedText>
-                  </View>
-                ) : null}
-                {request.checkedInAt && !MOVEMENT_SUMMARY_ENABLED ? (
-                  <View style={styles.timingCell}>
-                    <ThemedText style={[styles.timingLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {t('visitor.actualIn')}
-                    </ThemedText>
-                    <ThemedText style={[styles.timingValue, { color: theme.success, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {formatTimeFromString(request.checkedInAt)}
-                    </ThemedText>
-                  </View>
-                ) : null}
-                {request.checkedOutAt && !MOVEMENT_SUMMARY_ENABLED ? (
-                  <View style={styles.timingCell}>
-                    <ThemedText style={[styles.timingLabel, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {t('visitor.actualOut')}
-                    </ThemedText>
-                    <ThemedText style={[styles.timingValue, { color: theme.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
-                      {formatTimeFromString(request.checkedOutAt)}
                     </ThemedText>
                   </View>
                 ) : null}

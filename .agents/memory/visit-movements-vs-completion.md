@@ -27,13 +27,13 @@ Actual In is the first recorded physical check-in; Actual Out is the most recent
 
 **Why:** On 2026-10-26 the user explicitly requested first check-in and last checkout for repeated movements, superseding the earlier latest-IN/latest-OUT rule. These are historical summaries, not current-presence indicators.
 
-**How to apply:** Preserve existing current-presence fields. Agree an explicit first-IN/latest-OUT backend contract rather than relabeling a latest-IN field as first-IN. Keep all physical cycles in the timeline. Investigations requested as report-only must not change application code or call live APIs.
+**How to apply:** Preserve existing current-presence fields and all physical cycles in the timeline. Follow the latest explicit backend handoff for historical-summary meaning. Investigations requested as report-only must not change application code or call live APIs.
 
-Keep first-arrival rollout separate from the historical latest-IN preparation. The first-IN wire contract is a proposal until backend acceptance and authenticated endpoint evidence exist; old fixtures do not establish readiness.
+The revised backend contract deliberately reuses V1 `movementSummary`: its legacy-named `latestCheckInAt` now means first physical arrival including parking, and `latestCheckOutAt` means the last physical departure retained across re-entry. The proposed V2 contract was rejected.
 
-**Why:** Enabling the existing latest-IN display would contradict the confirmed first-arrival requirement, even if that older contract passed QA.
+**Why:** The user supplied an explicit replacement backend handoff on 2026-10-27. Both old latest-IN and revised first-IN backends identify themselves as V1, so a matching schema/version cannot prove correct serving semantics.
 
-**How to apply:** Use the first-arrival/last-departure backend handoff for acceptance, preserve old-client semantics, and leave presentation disabled until the new contract and its full endpoint coverage are verified.
+**How to apply:** Use the revised V1 handoff, not the earlier V2 proposal or old latest-IN fixtures. Never fall back to operational fields. Keep rollout disabled until the serving backend and authorized endpoint responses demonstrate first-arrival semantics; source verification without restart/publication is insufficient.
 
 Historical-summary rollout must wait for backend contract confirmation and authenticated QA. Keep rollback independent of backend event storage; do not repurpose legacy current-cycle fields.
 

@@ -358,7 +358,6 @@ export default function Sidebar({
               {userRole.replace('_', ' ')}
             </ThemedText>
           </View>
-          <DDIcon name={isRTL ? "chevron-left" : "chevron-right"} size={18} color={theme.sidebarTextMuted} />
         </DirectionalRow>
       </Pressable>
 

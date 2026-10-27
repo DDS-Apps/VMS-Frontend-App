@@ -20,6 +20,7 @@ import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { canDisplayQr, httpErrorStatus, hasInvalidQrSchedule } from '@/utils/qrAccess';
 import { getInviteResponseStatus } from '@/utils/inviteResponseStatus';
+import { formatBuildingAddress } from '@/utils/buildingAddress';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 
 // Dallah Albaraka Light Theme Colors for this page
@@ -596,7 +597,7 @@ export default function VisitorInviteScreen({ route }: VisitorInviteScreenProps)
   };
 
   const getBuildingAddress = (invite: PublicInviteDto): string => {
-    return invite.location?.address || invite.building?.address || '';
+    return formatBuildingAddress(invite.location?.address || invite.building?.address);
   };
 
   // The current query response always wins over a previous acceptance result.
