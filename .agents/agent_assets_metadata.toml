@@ -84,3 +84,17 @@ mtime_ms = 1791532304060
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/b5e30440-ac08-4be4-9cbd-70c719016b61/fc52320e-c9fe-4e43-9799-11542c5952c7"
 storage_version_token = "1791532745313872"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "IflZiT4ujMW0K-X-7vJ_K"
+uri = "file://docs/handoffs/actual-in-out-frontend-reference.md"
+type = "text"
+title = "Actual In/Out — Frontend Reference"
+description = "One document with the table rendering excerpt, shared display component, formatting helpers, types, feature flag, and exact label conditions."
+logical_id = "bd85a052-33f3-4b90-8646-da5ba970f0b5"
+content_hash = "sha256:4f081144a87d6d8ad948338f8e44ecdee8a8727ff10aed1a722c8a8749c5a0fd"
+size = 10629
+mtime_ms = 1793089396323
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:d02f58f1-0735-43a7-a13a-9cffc6e5f093/bd85a052-33f3-4b90-8646-da5ba970f0b5/215e0607-0d14-4be4-b9e0-898bab10fd69"
+storage_version_token = "1793089404085093"
+content_type = "text/markdown"
