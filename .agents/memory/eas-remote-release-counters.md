@@ -17,3 +17,8 @@ separately from the numbers a later auto-incrementing build will receive.
 The EAS version-setting command prompts interactively even though its read
 command accepts non-interactive mode; in a headless session it requires a PTY.
 Never start a paid remote build or store submission merely to inspect counters.
+
+When replacing the interactive value in a PTY, send Backspace characters rather
+than Ctrl+U. The iOS string prompt can retain Ctrl+U as an invisible invalid
+character even though the Android numeric prompt accepts the resulting input.
+**Why:** This caused iOS version validation to reject an otherwise valid integer.
