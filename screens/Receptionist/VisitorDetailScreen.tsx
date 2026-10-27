@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import { View, StyleSheet, Pressable, Modal, TextInput, Alert, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
@@ -716,7 +715,6 @@ export default function VisitorDetailScreen({ navigation, route }: VisitorDetail
       {/* Responsive 2-column layout: Timeline left, QR Code right (web) / stacked (mobile) */}
       <View style={isWebLayout ? { flexDirection: 'row', gap: Spacing.lg } : undefined}>
         <View style={isWebLayout ? { width: '48%' } : undefined}>
-          <ActualMovementSummary source={visitDetails} />
           <ReceptionistVisitTimeline
             data={timelineData}
             movementHistory={visitDetails?.movementHistory}

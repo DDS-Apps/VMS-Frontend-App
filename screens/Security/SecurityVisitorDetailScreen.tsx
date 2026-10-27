@@ -1,5 +1,4 @@
 import React from "react";
-import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 import { View, StyleSheet, ActivityIndicator, Pressable, useWindowDimensions } from "react-native";
@@ -704,7 +703,6 @@ export default function SecurityVisitorDetailScreen({ route }: SecurityVisitorDe
 
       <Spacer height={Spacing.lg} />
 
-      <ActualMovementSummary source={visitorData} />
       {visitorData ? <QrAccessNotice source={visitorData} now={qrNow} /> : null}
       <RequestTimeline
         steps={visitorData.movementHistory ? lifecycleSteps : timelineSteps}

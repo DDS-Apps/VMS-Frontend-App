@@ -31,3 +31,14 @@ superseding the older cutoff handoff's allowance for supplemental legacy rows.
 Legacy attendance still blocks No-show; an identified cutoff can supply missing
 completion time but never checkout. Keep actionable future controls outside the
 recorded-event track rather than removing existing permitted actions.
+
+Do not add a standalone Actual In/Out summary block to request or visitor detail
+pages, even when valid movement-summary timestamps are available.
+
+**Why:** The user explicitly corrected this scope: timestamp fixes for cards and
+tables were not authorization to add UI to detail pages. This is not an
+empty-value suppression rule.
+
+**How to apply:** Keep movement history in the existing detail timeline. Preserve
+corrected card/table timestamps and operational check-in/out logic separately;
+enabling their summary display must not introduce a new detail-page section.

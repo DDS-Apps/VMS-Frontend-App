@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useManagerApprovalPolicy } from "@/hooks/useManagerApprovalPolicy";
-import { ActualMovementSummary } from '@/components/shared/ActualMovementSummary';
 import { QrAccessNotice } from '@/components/shared/QrAccessNotice';
 import { useQrClock } from '@/hooks/useActiveVisitView';
 import {
@@ -2040,7 +2039,6 @@ export default function ManagerApprovalDetailScreen({
 
         <Spacer height={LAYOUT.sectionSpacing} />
 
-        <ActualMovementSummary source={visitData} />
         {visitData ? <QrAccessNotice source={visitData} now={qrNow} /> : null}
         <RequestTimeline
           steps={timelineSteps}
