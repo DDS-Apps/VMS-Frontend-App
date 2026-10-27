@@ -53,3 +53,12 @@ cannot prove wheel text is visible on actual hardware.
 app translations and palettes in automation, then verify native rendering on
 devices. For Android app-language parity, assess native localization support
 rather than adding an unsupported `locale` prop.
+
+The Arabic time-picker header keeps its title on the right and close icon on
+the physical left; English keeps the opposite arrangement.
+
+**Why:** The user explicitly requested the Arabic close icon on the left,
+separate from the right-aligned title.
+
+**How to apply:** Preserve that physical ordering regardless of native system
+RTL configuration, without changing wheel language or selection behavior.

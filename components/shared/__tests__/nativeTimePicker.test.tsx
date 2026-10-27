@@ -52,7 +52,7 @@ describe('shared native time picker', () => {
       mode: 'time', display: 'spinner', is24Hour: false,
       themeVariant: dark ? 'dark' : 'light', textColor: Colors[dark ? 'dark' : 'light'].text, locale: 'en-US',
     });
-    expect(StyleSheet.flatten(picker.props.style)).toMatchObject({ width: '100%', height: 216 });
+    expect(StyleSheet.flatten(picker.props.style)).toMatchObject({ height: 216, alignSelf: 'center', maxWidth: '100%' });
   });
 
   it('does not commit wheel changes when Cancel is pressed', () => {
@@ -126,12 +126,23 @@ describe('shared native time picker', () => {
       textColor: theme.text, themeVariant: dark ? 'dark' : 'light',
       locale: rtl ? 'ar-SA' : 'en-US', is24Hour: false,
     });
+    const picker = renderer.root.findByType('NativeSpinner' as any);
+    // Preserve intrinsic localized sizing and center it, rather than forcing
+    // full-width wheels whose contents can shift to the trailing edge in RTL.
+    const pickerStyle = StyleSheet.flatten(picker.props.style);
+    expect(pickerStyle).toMatchObject({ height: 216, alignSelf: 'center', maxWidth: '100%' });
+    expect(pickerStyle.width).toBeUndefined();
+    expect(StyleSheet.flatten(picker.parent!.props.style)).toMatchObject({ width: '100%', alignItems: 'center' });
     expect(StyleSheet.flatten(renderer.root.findAllByType(View)[0].props.style).backgroundColor).toBe(theme.surface);
     expect(theme.text).not.toBe(theme.surface);
     const heading = renderer.root.findAllByType('ThemedText' as any)[0];
     expect(heading.props.children).toBe(strings.time.selectTime);
-    expect(StyleSheet.flatten(heading.props.style).color).toBe(theme.text);
-    expect(StyleSheet.flatten(renderer.root.findAllByType(View)[1].props.style).flexDirection).toBe(rtl ? 'row-reverse' : 'row');
+    expect(StyleSheet.flatten(heading.props.style)).toMatchObject({
+      color: theme.text, textAlign: rtl ? 'right' : 'left',
+    });
+    expect(StyleSheet.flatten(renderer.root.findAllByType(View)[1].props.style)).toMatchObject({
+      direction: 'ltr', flexDirection: rtl ? 'row-reverse' : 'row',
+    });
     expect(button('secondary').props.children).toBe(strings.common.cancel);
     expect(button('primary').props.children).toBe(strings.common.confirm);
     act(() => renderer.root.findByType('NativeSpinner' as any).props.onChange({ type: 'set' }, next));

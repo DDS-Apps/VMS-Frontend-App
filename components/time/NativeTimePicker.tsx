@@ -33,27 +33,31 @@ export function TimePickerContent({
   return (
     <View style={{ backgroundColor: theme.surface }}>
       <View style={[styles.header, { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <ThemedText style={[Typography.subtitle, { color: theme.text, flex: 1 }]}>{t('time.selectTime')}</ThemedText>
-        <Pressable onPress={onClose} accessibilityLabel={t('common.cancel')} hitSlop={10}>
+        <ThemedText style={[Typography.subtitle, { color: theme.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>{t('time.selectTime')}</ThemedText>
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.cancel')} hitSlop={10}>
           <DDIcon name="x" size={20} color={theme.textSecondary} />
         </Pressable>
       </View>
       {valid ? (
-        <DateTimePicker
-          value={pending}
-          mode="time"
-          display="spinner"
-          is24Hour={false}
-          locale={isRTL ? 'ar-SA' : 'en-US'}
-          themeVariant={isDark ? 'dark' : 'light'}
-          textColor={theme.text}
-          accentColor={theme.primary}
-          minuteInterval={interval}
-          style={{ width: '100%', height: 216, alignSelf: 'stretch' }}
-          onChange={(event, time) => {
-            if (event.type === 'set' && isValidTime(time)) setPending(new Date(time.getTime()));
-          }}
-        />
+        <View style={styles.spinnerContainer}>
+          <DateTimePicker
+            value={pending}
+            mode="time"
+            display="spinner"
+            is24Hour={false}
+            locale={isRTL ? 'ar-SA' : 'en-US'}
+            themeVariant={isDark ? 'dark' : 'light'}
+            textColor={theme.text}
+            accentColor={theme.primary}
+            minuteInterval={interval}
+            // Let iOS measure its localized wheel width instead of stretching it;
+            // a stretched UIDatePicker can offset the wheels in Arabic.
+            style={styles.spinner}
+            onChange={(event, time) => {
+              if (event.type === 'set' && isValidTime(time)) setPending(new Date(time.getTime()));
+            }}
+          />
+        </View>
       ) : (
         <ThemedText accessibilityRole="alert" style={[Typography.body, { color: theme.error, marginVertical: Spacing.lg }]}>
           {t('time.invalidTime')}
@@ -106,5 +110,9 @@ export function TimePicker({ visible, onClose, selectedTime, onTimeSelect, minut
 const styles = StyleSheet.create({
   overlay: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   dialog: { width: '92%', maxWidth: 420, flexGrow: 0, borderRadius: BorderRadius.lg, padding: Spacing.xl },
-  header: { alignItems: 'center', borderBottomWidth: 1, paddingBottom: Spacing.md, marginBottom: Spacing.md },
+  // Row order is chosen explicitly above; prevent inherited native RTL from
+  // reversing it a second time and putting the close button beside the title.
+  header: { direction: 'ltr', alignItems: 'center', borderBottomWidth: 1, paddingBottom: Spacing.md, marginBottom: Spacing.md },
+  spinnerContainer: { width: '100%', alignItems: 'center' },
+  spinner: { height: 216, maxWidth: '100%', alignSelf: 'center' },
 });
