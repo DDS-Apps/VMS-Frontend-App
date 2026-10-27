@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { StyleSheet, View, ActivityIndicator, Platform, AppState, Linking } from "react-native";
+import { StyleSheet, View, ActivityIndicator, Platform, AppState, Linking, Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as ExpoSplashScreen from "expo-splash-screen";
@@ -344,7 +344,15 @@ function AppContent({ isDarkMode }: { isDarkMode: boolean }) {
   };
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await logout();
+    } catch {
+      const message = isRTL
+        ? "تعذر إكمال تسجيل الخروج بأمان. يرجى المحاولة مرة أخرى."
+        : "Sign-out could not be completed safely. Please try again.";
+      if (Platform.OS === "web" && typeof window !== "undefined") window.alert(message);
+      else Alert.alert(isRTL ? "تسجيل الخروج" : "Sign out", message);
+    }
   };
 
   // Hold the splash while the locale is still being verified, unless the

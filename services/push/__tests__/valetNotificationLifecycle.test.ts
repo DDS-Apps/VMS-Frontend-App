@@ -59,6 +59,7 @@ import {
   isNotificationNavigationReady,
 } from '@/utils/notificationNavigator';
 import { invalidateQueriesForNotification } from '../notificationQueryMapper';
+import { beginSession, setAccessToken, clearTokens } from '@/api/httpClient';
 
 const mockLastResponse =
   Notifications.getLastNotificationResponseAsync as jest.Mock;
@@ -80,9 +81,16 @@ const makeResponse = (identifier: string) => ({
 describe('valet notification Android lifecycle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    beginSession();
+    setAccessToken('fixture-valet-access');
     (pushNotificationService as any).isInitialized = false;
     (pushNotificationService as any).handledResponseIds.clear();
     pushNotificationService.setQueryClient({ invalidateQueries: jest.fn() } as any);
+  });
+
+  afterEach(() => {
+    (pushNotificationService as any).cleanup();
+    clearTokens();
   });
 
   it('processes a notification tap that cold-launches the app', async () => {

@@ -9,6 +9,7 @@ import {
   setOnTokenRefreshFailed,
   setOnTokenRefreshed,
   getRefreshToken,
+  getAccessToken,
 } from '@/api/httpClient';
 import { authService } from '@/services/api/authService';
 import { isUnauthorizedError } from '@/api/errors';
@@ -141,6 +142,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   // A refresh can fail for several requests at once. Only the first failure
   // may end the current session; later callbacks belong to the same epoch.
   const runtimeLogoutGenerationRef = useRef<number | null>(null);
+  const explicitLogoutRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     const currentIdentity = state.user
@@ -183,18 +185,44 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     onLogout?.();
   }, [onLogout]);
 
-  const runLogoutCleanup = useCallback(async (refreshToken: string | null) => {
+  const runLogoutCleanup = useCallback(async (refreshToken: string | null, accessSnapshot: string | null) => {
     await Promise.allSettled([
-      pushNotificationService.unregister(),
+      pushNotificationService.unregister(accessSnapshot, true),
       crashlyticsService.clearUserAttributes(),
-      ...(refreshToken ? [authService.logout(refreshToken)] : []),
+      ...(refreshToken ? [authService.logout(refreshToken, accessSnapshot)] : []),
     ]);
   }, []);
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback((): Promise<void> => {
+    if (explicitLogoutRef.current) return explicitLogoutRef.current;
     const currentRefreshToken = getRefreshToken();
-    clearSessionLocally(null);
-    await runLogoutCleanup(currentRefreshToken);
+    const accessSnapshot = getAccessToken();
+    if (Platform.OS !== 'web') {
+      clearSessionLocally(null);
+      return runLogoutCleanup(currentRefreshToken, accessSnapshot);
+    }
+    const generation = sessionGenerationRef.current;
+    const operation = (async () => {
+      try {
+        if (!currentRefreshToken) throw new Error('Missing web session refresh token.');
+        await pushNotificationService.unregister(accessSnapshot);
+        await authService.logout(currentRefreshToken, accessSnapshot);
+        if (generation === sessionGenerationRef.current) {
+          clearSessionLocally(null);
+          await crashlyticsService.clearUserAttributes().catch(() => {});
+        }
+      } catch {
+        if (generation === sessionGenerationRef.current) {
+          setState(prev => ({ ...prev, error: 'Sign-out could not be completed. Please try again.' }));
+        }
+        throw new Error('Sign-out could not be completed. Please try again.');
+      }
+    })();
+    explicitLogoutRef.current = operation;
+    void operation.finally(() => {
+      if (explicitLogoutRef.current === operation) explicitLogoutRef.current = null;
+    }).catch(() => {});
+    return operation;
   }, [clearSessionLocally, runLogoutCleanup]);
 
   const handleRuntimeTokenRefreshFailed = useCallback(() => {
@@ -206,8 +234,9 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
     // Do not await push unregister, Crashlytics, or the server logout here.
     // The transport invokes this callback from an interceptor and another
     // login may begin before those operations complete.
+    const accessSnapshot = getAccessToken();
     clearSessionLocally(SESSION_EXPIRED_ERROR);
-    void runLogoutCleanup(null);
+    void runLogoutCleanup(null, accessSnapshot);
   }, [clearSessionLocally, runLogoutCleanup]);
 
   const persistTokens = useCallback(async (newAccessToken: string, newRefreshToken: string, expiresIn?: number) => {
@@ -604,6 +633,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [persistTokens]);
 
   const handleTokenResponse = useCallback(async (response: AuthTokenResponse) => {
+    if (explicitLogoutRef.current) await explicitLogoutRef.current;
     // Handle case where user might be at root level of response (API format variation)
     const userData = response.user || (response as unknown as { id?: string; email?: string });
     const user = mapLoginUserToAuthUser(userData as AuthTokenResponse['user']);
@@ -662,6 +692,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [persistTokens, onUserLanguageChanged]);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthTokenResponse> => {
+    if (explicitLogoutRef.current) await explicitLogoutRef.current;
     setState((prev) => ({ ...prev, error: null }));
 
     try {
@@ -678,6 +709,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [handleTokenResponse]);
 
   const azureLogin = useCallback(async (azureToken: string): Promise<AuthTokenResponse> => {
+    if (explicitLogoutRef.current) await explicitLogoutRef.current;
     setState((prev) => ({ ...prev, error: null }));
 
     try {
@@ -694,6 +726,7 @@ export function AuthProvider({ children, onLogout, onUserLanguageChanged }: Auth
   }, [handleTokenResponse]);
 
   const ssoLogin = useCallback(async (tokens: SSOTokens): Promise<AuthUser> => {
+    if (explicitLogoutRef.current) await explicitLogoutRef.current;
     setState((prev) => ({ ...prev, error: null }));
 
     try {

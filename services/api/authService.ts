@@ -1,3 +1,4 @@
+import { sendSessionCleanup } from '@/api/sessionCleanup';
 import { get, post, put, del } from '@/api/httpClient';
 import { apiConfig } from '@/api/config';
 import {
@@ -60,7 +61,11 @@ export const authService = {
     );
   },
 
-  logout: (refreshToken: string): Promise<void> => {
+  logout: (refreshToken: string, accessTokenSnapshot?: string | null): Promise<void> => {
+    if (!refreshToken?.trim()) return Promise.reject(new Error('A session refresh token is required for logout.'));
+    if (accessTokenSnapshot !== undefined) {
+      return sendSessionCleanup('post', auth.logout, { refreshToken }, accessTokenSnapshot);
+    }
     return post<void, LogoutPayload>(auth.logout, { refreshToken });
   },
 

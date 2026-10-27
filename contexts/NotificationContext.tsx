@@ -57,6 +57,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined' | 'unsupported' | null>(null);
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [toast, setToast] = useState<{
+    accountId?: string;
     visible: boolean;
     title: string;
     body: string;
@@ -72,6 +73,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const responseListenerRef = useRef<Notifications.EventSubscription | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const accountId = isAuthenticated ? user?.id : undefined;
+  const activeAccountRef = useRef(accountId);
+  activeAccountRef.current = accountId;
+  useEffect(() => {
+    setToast({ visible: false, title: '', body: '' });
+    setPushToken(null);
+    setManualRefreshLoading(false);
+  }, [accountId]);
   const unreadQuery = useUnreadNotificationCountQuery(accountId, {
     enabled: Boolean(accountId),
   });
@@ -244,7 +252,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
 
     void updatePermissionStatus();
-  }, [isAuthenticated, updatePermissionStatus]);
+  }, [isAuthenticated, accountId, updatePermissionStatus]);
 
   // Set up notification listeners for badge/count updates (not for navigation - that's in pushNotificationService)
   useEffect(() => {
@@ -296,8 +304,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // Register in-app toast callback with push service so it fires even after
   // initialize() has already been called without a callback (e.g. from AuthContext).
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !accountId) return;
     const handler = (notification: Notifications.Notification) => {
+      if (activeAccountRef.current !== accountId) return;
       const content = notification.request.content;
       const data = (content.data ?? {}) as Record<string, unknown>;
       const notificationType = data.type as string | undefined;
@@ -312,6 +321,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         locale,
       );
       setToast({
+        accountId,
         visible: true,
         title: notificationTitle,
         body: notificationBody,
@@ -325,7 +335,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       // Clear the callback on logout so the stale handler doesn't fire.
       pushNotificationService.setCallback(undefined);
     };
-  }, [isAuthenticated, fetchUnreadCount, locale]);
+  }, [isAuthenticated, accountId, fetchUnreadCount, locale]);
 
   // Refresh unread count when app comes to foreground
   useEffect(() => {
@@ -388,11 +398,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     <NotificationContext.Provider value={value}>
       {children}
       <InAppNotificationToast
-        visible={toast.visible}
+        visible={Boolean(accountId) && toast.accountId === accountId && toast.visible}
         title={toast.title}
         body={toast.body}
         onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
         onPress={toast.notificationType ? () => {
+          if (toast.accountId !== activeAccountRef.current) return;
           navigateFromInAppNotification({
             type: toast.notificationType!,
             data: toast.notificationData,

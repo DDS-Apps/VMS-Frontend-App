@@ -4,9 +4,11 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { QueryClient } from '@tanstack/react-query';
 import { deviceApiService } from '@/services/api/deviceApiService';
+import { getAccessToken, getSessionEpoch } from '@/api/httpClient';
 import {
   initializeFirebaseWeb,
   getWebFcmToken,
+  revokeWebFcmToken,
   onWebForegroundMessage,
   registerServiceWorker,
   getWebNotificationPermissionStatus,
@@ -44,6 +46,7 @@ Notifications.setNotificationHandler({
 });
 
 type NotificationCallback = (notification: Notifications.Notification) => void;
+type PushOwner = { epoch: number; cancelled: boolean; token: string | null };
 
 class PushNotificationService {
   private static instance: PushNotificationService;
@@ -60,6 +63,21 @@ class PushNotificationService {
   private shownToastIds = new Set<string>();
   private handledResponseIds = new Set<string>();
   private notificationCallback: NotificationCallback | undefined;
+  private owner: PushOwner | null = null;
+  private initializing: Promise<boolean> | null = null;
+  private removing: Promise<void> | null = null;
+  private backendQueue: Promise<unknown> = Promise.resolve();
+  private stopTokenMonitor: (() => void) | null = null;
+
+  private isCurrent(owner: PushOwner): boolean {
+    return this.owner === owner && !owner.cancelled && owner.epoch === getSessionEpoch();
+  }
+
+  private enqueueBackend<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.backendQueue.then(operation, operation);
+    this.backendQueue = result.catch(() => {});
+    return result;
+  }
 
   setQueryClient(client: QueryClient): void {
     this.queryClient = client;
@@ -280,38 +298,52 @@ class PushNotificationService {
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
     console.log('[Push] Initialize called, platform:', Platform.OS, 'already init:', this.isInitialized);
-    
-    if (this.isInitialized) {
-      return true;
+    const epoch = getSessionEpoch();
+    const pendingRemoval = this.removing;
+    if (pendingRemoval) {
+      await pendingRemoval.catch(() => {});
+      if (epoch !== getSessionEpoch() || !getAccessToken()) return false;
+      return this.initialize(onNotificationReceived);
     }
-
-    // Hydrate the deduplication Set from persistent storage before any
-    // listeners fire.  This prevents a cold-launch (e.g. tapping a push
-    // notification that opens the app) from re-showing a toast whose ID
-    // was already recorded in a previous session within the last 30 min.
-    await this.hydrateShownIds();
-
-    try {
-      let result: boolean;
-      if (Platform.OS === 'web') {
-        console.log('[Push] Calling initializeWeb...');
-        result = await this.initializeWeb(onNotificationReceived);
-        console.log('[Push] initializeWeb result:', result);
-      } else {
-        result = await this.initializeMobile(onNotificationReceived);
+    
+    if (this.owner && this.isCurrent(this.owner)) {
+      if (this.isInitialized) return true;
+      if (this.initializing) return this.initializing;
+    }
+    if (!getAccessToken()) return false;
+    if (this.owner) this.owner.cancelled = true;
+    this.cleanup();
+    const owner: PushOwner = { epoch: getSessionEpoch(), cancelled: false, token: null };
+    this.owner = owner;
+    const operation = (async () => {
+      if (!this.isCurrent(owner)) return false;
+      // Hydrate before listeners fire, but never initialize an ended session.
+      await this.hydrateShownIds();
+      if (!this.isCurrent(owner)) return false;
+      try {
+        return Platform.OS === 'web'
+          ? await this.initializeWeb(owner, onNotificationReceived)
+          : await this.initializeMobile(owner, onNotificationReceived);
+      } catch {
+        console.warn('[Push] Initialization failed');
+        return false;
       }
-      return result;
-    } catch (error) {
-      console.error('[Push] Initialization error:', error);
-      return false;
+    })();
+    this.initializing = operation;
+    try {
+      return await operation;
+    } finally {
+      if (this.owner === owner) this.initializing = null;
     }
   }
 
   private async initializeWeb(
+    owner: PushOwner,
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
     console.log('[Push Web] Step 1: initializeFirebaseWeb...');
     const initialized = await initializeFirebaseWeb();
+    if (!this.isCurrent(owner)) return false;
     console.log('[Push Web] Firebase initialized:', initialized);
     if (!initialized) {
       console.log('[Push Web] Firebase init failed, stopping');
@@ -320,9 +352,12 @@ class PushNotificationService {
 
     console.log('[Push Web] Step 2: registerServiceWorker...');
     await registerServiceWorker();
+    if (!this.isCurrent(owner)) return false;
 
     console.log('[Push Web] Step 3: getWebFcmToken...');
-    this.token = await getWebFcmToken();
+    owner.token = await getWebFcmToken();
+    if (!this.isCurrent(owner)) return false;
+    this.token = owner.token;
     console.log('[Push Web] Token obtained:', !!this.token);
     if (!this.token) {
       console.log('[Push Web] No token, stopping');
@@ -330,13 +365,15 @@ class PushNotificationService {
     }
 
     console.log('[Push Web] Step 4: registerTokenWithBackend...');
-    await this.registerTokenWithBackend();
+    await this.registerTokenWithBackend(owner);
+    if (!this.isCurrent(owner)) return false;
 
     if (onNotificationReceived) {
       this.notificationCallback = onNotificationReceived;
     }
 
     this.webUnsubscribe = onWebForegroundMessage((payload: unknown) => {
+      if (!this.isCurrent(owner)) return;
       const typedPayload = payload as Record<string, unknown>;
       const data = typedPayload.data as Record<string, unknown> || {};
       this.handleNotificationReceived(data);
@@ -374,6 +411,7 @@ class PushNotificationService {
     this.setupWebNotificationClickHandler();
 
     this.isInitialized = true;
+    this.startWebTokenMonitor(owner);
     console.log('[Push Web] Initialization COMPLETE!');
     return true;
   }
@@ -385,6 +423,7 @@ class PushNotificationService {
     }
 
     this.webMessageHandler = (event: MessageEvent) => {
+      if (!this.owner || !this.isCurrent(this.owner)) return;
       console.log('[Push Web] Received message from service worker:', event.data);
       
       if (event.data?.type === 'NOTIFICATION_CLICK') {
@@ -405,6 +444,7 @@ class PushNotificationService {
   }
 
   private async initializeMobile(
+    owner: PushOwner,
     onNotificationReceived?: NotificationCallback
   ): Promise<boolean> {
     console.log('[Push Mobile] Step 1: Checking if physical device...');
@@ -453,8 +493,10 @@ class PushNotificationService {
           console.error('[Push Mobile iOS] Check Firebase project APNs configuration');
           return false;
         }
+        owner.token = fcmToken;
+        if (!this.isCurrent(owner)) return false;
         this.token = fcmToken;
-        console.log('[Push Mobile iOS] FCM token obtained successfully:', fcmToken.substring(0, 30) + '...');
+        console.log('[Push Mobile iOS] FCM token obtained');
       } else {
         console.log('[Push Mobile Android] Step 2: Checking permissions...');
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -476,22 +518,24 @@ class PushNotificationService {
         
         console.log('[Push Mobile Android] Step 3: Getting device push token (native FCM)...');
         const tokenData = await Notifications.getDevicePushTokenAsync();
+        owner.token = tokenData.data;
+        if (!this.isCurrent(owner)) return false;
         this.token = tokenData.data;
         console.log('[Push Mobile Android] Token type:', tokenData.type);
-        console.log('[Push Mobile Android] FCM token obtained:', this.token);
+        console.log('[Push Mobile Android] FCM token obtained');
       }
       
       try {
-        const tokenExpo = await Notifications.getExpoPushTokenAsync();
-        console.log('[Push Mobile] Expo token (for reference):', tokenExpo.data);
+        await Notifications.getExpoPushTokenAsync();
       } catch {
         console.log('[Push Mobile] Could not get Expo push token (expected in production builds)');
       }
     } catch (error) {
-      console.error('[Push Mobile] ERROR getting token:', error);
+      console.warn('[Push Mobile] Could not acquire push token');
       return false;
     }
 
+    if (!this.isCurrent(owner)) return false;
     if (Platform.OS === 'android') {
       console.log('[Push Mobile] Step 5: Setting up Android notification channels...');
       await this.setupAndroidChannels();
@@ -499,7 +543,9 @@ class PushNotificationService {
     }
 
     console.log('[Push Mobile] Step 6: Registering token with backend...');
-    await this.registerTokenWithBackend();
+    if (!this.isCurrent(owner)) return false;
+    await this.registerTokenWithBackend(owner);
+    if (!this.isCurrent(owner)) return false;
     console.log('[Push Mobile] Backend registration complete');
 
     if (onNotificationReceived) {
@@ -508,6 +554,7 @@ class PushNotificationService {
 
     console.log('[Push Mobile] Step 7: Setting up notification listeners...');
     this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
+      if (!this.isCurrent(owner)) return;
       console.log('[Push Mobile] Notification received:', notification.request.content.title);
       const data = notification.request.content.data as Record<string, unknown>;
       this.handleNotificationReceived(data);
@@ -527,6 +574,7 @@ class PushNotificationService {
     });
 
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      if (!this.isCurrent(owner)) return;
       console.log('[Push Mobile] Notification tapped:', response.notification.request.content.title);
       if (this.handleNotificationResponse(response)) {
         Notifications.clearLastNotificationResponseAsync().catch((error) => {
@@ -574,8 +622,8 @@ class PushNotificationService {
     });
   }
 
-  private async registerTokenWithBackend(): Promise<void> {
-    if (!this.token) {
+  private async registerTokenWithBackend(owner: PushOwner): Promise<void> {
+    if (!owner.token || !this.isCurrent(owner)) {
       console.log('[Push Backend] No token available, skipping registration');
       return;
     }
@@ -590,20 +638,22 @@ class PushNotificationService {
       deviceName,
       deviceModel,
       appVersion,
-      tokenPreview: this.token.substring(0, 30) + '...',
     });
 
     try {
-      const response = await deviceApiService.registerToken({
-        deviceToken: this.token,
-        platform,
-        deviceName,
-        deviceModel,
-        appVersion,
+      await this.enqueueBackend(async () => {
+        if (!this.isCurrent(owner) || !owner.token) return;
+        await deviceApiService.registerToken({
+          deviceToken: owner.token,
+          platform,
+          deviceName,
+          deviceModel,
+          appVersion,
+        }, owner.epoch);
       });
-      console.log('[Push Backend] Registration successful:', response);
+      console.log('[Push Backend] Registration finished');
     } catch (error) {
-      console.error('[Push Backend] Registration FAILED:', error);
+      console.warn('[Push Backend] Registration failed');
       throw error;
     }
   }
@@ -620,29 +670,116 @@ class PushNotificationService {
     return Device.deviceName || `${Device.brand} ${Device.modelName}`;
   }
 
-  async unregister(): Promise<void> {
-    console.log('[Push] Unregistering push notifications...');
-    if (!this.token) {
-      console.log('[Push] No token to unregister, cleaning up listeners');
-      this.cleanup();
-      return;
+  async unregister(accessSnapshot: string | null = getAccessToken(), forceLocalCleanup = false): Promise<void> {
+    const owner = this.owner;
+    if (owner) owner.cancelled = true;
+    const initializing = this.initializing;
+    const tokenSnapshot = this.token;
+    const removal = this.enqueueBackend(async () => {
+      // Work already dispatched must settle before DELETE and the next user's
+      // registration. SDK work not yet dispatched observes the cancelled owner.
+      if (initializing) {
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            initializing,
+            new Promise<never>((_, reject) => {
+              timeout = setTimeout(() => reject(new Error('Push initialization did not settle.')), 15_000);
+            }),
+          ]);
+        } finally {
+          if (timeout) clearTimeout(timeout);
+        }
+      }
+      let token = owner?.token ?? tokenSnapshot;
+      if (!token && Platform.OS === 'web' && getWebNotificationPermissionStatus() === 'granted') {
+        // A restored tab may have a server registration even if SDK startup
+        // failed before populating our in-memory token. Do not claim detachment
+        // while notifications are allowed but the browser token is unknown.
+        if (!(await initializeFirebaseWeb())) throw new Error('Browser push token could not be accessed.');
+        token = await getWebFcmToken();
+        if (!token) throw new Error('Browser push token could not be accessed.');
+        if (owner) owner.token = token;
+      }
+      if (token) await deviceApiService.unregisterToken(token, accessSnapshot);
+    });
+    const completed = removal.then(async () => {
+      if (this.owner === owner) {
+        this.cleanup();
+        this.owner = null;
+        await this.clearLocalNotifications();
+      }
+    }, async error => {
+      console.warn('[Push] Device-token removal failed; unregistration not confirmed');
+      if (forceLocalCleanup && this.owner === owner) {
+        if (Platform.OS === 'web') {
+          try { await revokeWebFcmToken(); }
+          catch { console.warn('[Push] Browser subscription removal could not be confirmed'); }
+        }
+        this.cleanup();
+        this.owner = null;
+        await this.clearLocalNotifications();
+      }
+      throw error;
+    });
+    this.removing = completed;
+    try { await completed; } finally {
+      if (this.removing === completed) this.removing = null;
     }
+  }
 
-    const tokenToUnregister = this.token;
-    console.log('[Push] Unregistering token from backend:', tokenToUnregister.substring(0, 30) + '...');
-
+  private async clearLocalNotifications(): Promise<void> {
+    this.shownToastIds.clear();
+    if (Platform.OS === 'web') {
+      if (typeof navigator !== 'undefined' && 'clearAppBadge' in navigator) {
+        await (navigator as Navigator & { clearAppBadge: () => Promise<void> }).clearAppBadge().catch(() => {});
+      }
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined);
+        const notifications = await registration?.getNotifications().catch(() => []);
+        notifications?.forEach(notification => notification.close());
+      }
+    } else {
+      await Notifications.setBadgeCountAsync(0).catch(() => {});
+      await Notifications.dismissAllNotificationsAsync().catch(() => {});
+    }
     try {
-      await deviceApiService.unregisterToken(tokenToUnregister);
-      console.log('[Push] Token unregistered successfully');
-    } catch (error) {
-      console.error('[Push] Unregister failed:', error);
-    }
+      const storage = require('@react-native-async-storage/async-storage').default;
+      await storage.removeItem(PushNotificationService.SHOWN_IDS_STORAGE_KEY);
+    } catch { /* Notification cleanup must not restore an ended session. */ }
+  }
 
-    this.cleanup();
-    console.log('[Push] Cleanup complete');
+  private startWebTokenMonitor(owner: PushOwner): void {
+    if (typeof window === 'undefined') return;
+    let checking = false;
+    const check = async () => {
+      if (checking || !this.isCurrent(owner) || getWebNotificationPermissionStatus() !== 'granted') return;
+      checking = true;
+      try {
+        const token = await getWebFcmToken();
+        if (!token || !this.isCurrent(owner) || token === owner.token) return;
+        owner.token = token;
+        this.token = token;
+        await this.registerTokenWithBackend(owner);
+      } catch {
+        console.warn('[Push] Token rotation registration failed; will retry');
+        if (this.isCurrent(owner)) owner.token = null;
+      } finally { checking = false; }
+    };
+    const interval = setInterval(() => { void check(); }, 60_000);
+    const onFocus = () => { void check(); };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onFocus);
+    this.stopTokenMonitor = () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onFocus);
+    };
   }
 
   private cleanup(): void {
+    this.stopTokenMonitor?.();
+    this.stopTokenMonitor = null;
     if (this.notificationListener) {
       this.notificationListener.remove();
       this.notificationListener = null;
@@ -668,7 +805,7 @@ class PushNotificationService {
     try {
       return await deviceApiService.getPushStatus();
     } catch (error) {
-      console.error('[Push] Failed to get status:', error);
+      console.warn('[Push] Failed to get status');
       return null;
     }
   }
@@ -678,7 +815,7 @@ class PushNotificationService {
     debugInfo.push(`Platform: ${Platform.OS}`);
     debugInfo.push(`Initialized: ${this.isInitialized}`);
     debugInfo.push(`Token exists: ${!!this.token}`);
-    debugInfo.push(`Token (first 20 chars): ${this.token?.substring(0, 20) || 'none'}...`);
+    debugInfo.push(`Device token: ${this.token ? '[REDACTED]' : 'none'}`);
     
     if (!this.token) {
       const msg = 'No push token available. Push notifications not initialized.';
@@ -688,7 +825,7 @@ class PushNotificationService {
     
     try {
       const result = await deviceApiService.sendTestNotification();
-      debugInfo.push(`Backend response: ${JSON.stringify(result)}`);
+      debugInfo.push('Backend test request completed; response payload omitted.');
       return { success: result.success, debugInfo: debugInfo.join('\n') };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -703,7 +840,7 @@ class PushNotificationService {
     info.push(`Initialized: ${this.isInitialized}`);
     info.push(`Token exists: ${!!this.token}`);
     if (this.token) {
-      info.push(`Token preview: ${this.token.substring(0, 30)}...`);
+      info.push('Device token: [REDACTED]');
     }
     info.push(`Notification listener active: ${!!this.notificationListener}`);
     info.push(`Response listener active: ${!!this.responseListener}`);

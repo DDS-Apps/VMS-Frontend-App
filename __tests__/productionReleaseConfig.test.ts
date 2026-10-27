@@ -31,10 +31,10 @@ describe('production release configuration', () => {
     expect(environment.microsoftAuthUrl).toBe('https://vms.dallah.com');
   });
 
-  it('keeps web publishing on QA and IIS on production while preview inherits APP_VARIANT', () => {
+  it('keeps publishing and IIS on production while preview inherits APP_VARIANT and QA exports remain explicit', () => {
     const config = fs.readFileSync(path.join(root, '.replit'), 'utf8');
     const deployment = config.split('[deployment]')[1].split('\n[')[0];
-    expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"qa"/);
+    expect(deployment).toMatch(/build\s*=\s*\[.*"--variant",\s*"production"/);
     const preview = config.split('name = "Start application"')[1].split('[[workflows.workflow]]')[0];
     expect(preview).toContain('start --web');
     expect(preview).not.toMatch(/APP_VARIANT=/);

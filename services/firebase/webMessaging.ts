@@ -220,12 +220,7 @@ export async function initializeFirebaseWeb(): Promise<boolean> {
     }
     return false;
   } catch (error) {
-    console.error('[FCM] Init error:', error);
-    if (error instanceof Error) {
-      console.error('[FCM] Error name:', error.name);
-      console.error('[FCM] Error message:', error.message);
-      console.error('[FCM] Error stack:', error.stack);
-    }
+    console.warn('[FCM] Initialization failed');
     return false;
   }
 }
@@ -311,10 +306,9 @@ export async function getWebFcmToken(): Promise<string | null> {
     try {
       token = await getToken(messaging, tokenOptions);
     } catch (tokenError) {
-      console.error('[FCM] getToken: Firebase getToken threw error:', tokenError);
+      console.warn('[FCM] getToken: token acquisition failed');
       if (tokenError instanceof Error) {
         console.error('[FCM] getToken: Error name:', tokenError.name);
-        console.error('[FCM] getToken: Error message:', tokenError.message);
         
         // Firefox-specific error handling
         if (browserInfo.name === 'firefox') {
@@ -334,18 +328,11 @@ export async function getWebFcmToken(): Promise<string | null> {
       return null;
     }
     
-    console.log('[FCM] getToken: SUCCESS! Token obtained:', token.substring(0, 20) + '...');
+    console.log('[FCM] getToken: token obtained');
     return token;
   } catch (error) {
-    console.error('[FCM] getToken: ERROR:', error);
+    console.warn('[FCM] getToken failed');
     
-    if (error instanceof Error) {
-      console.error('[FCM] getToken: Full error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack?.substring(0, 500)
-      });
-    }
     
     if (isLocalDevEnvironment()) {
       console.warn('[FCM] FCM requires HTTPS');
@@ -362,20 +349,33 @@ export async function getWebFcmToken(): Promise<string | null> {
   }
 }
 
+/** Browser-only fallback when an expired session cannot detach at the API. */
+export async function revokeWebFcmToken(): Promise<void> {
+  if (!messaging && !(await initializeFirebaseWeb())) {
+    throw new Error('Browser push subscription could not be accessed.');
+  }
+  const { deleteToken } = await import('firebase/messaging');
+  const removed = await deleteToken(messaging);
+  if (!removed) throw new Error('Browser push subscription removal was not confirmed.');
+}
+
 export function onWebForegroundMessage(callback: (payload: unknown) => void): () => void {
   if (Platform.OS !== 'web' || !messaging) {
     return () => {};
   }
 
   let unsubscribe: (() => void) | null = null;
+  let active = true;
 
   import('firebase/messaging').then(({ onMessage }) => {
+    if (!active) return;
     unsubscribe = onMessage(messaging, (payload) => {
-      callback(payload);
+      if (active) callback(payload);
     });
-  });
+  }).catch(() => { console.warn('[FCM] Foreground listener could not be attached'); });
 
   return () => {
+    active = false;
     if (unsubscribe) {
       unsubscribe();
     }

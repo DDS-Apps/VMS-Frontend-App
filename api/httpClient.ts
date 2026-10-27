@@ -486,8 +486,11 @@ export function get<T>(
   );
 }
 
-export async function post<T, D = unknown>(url: string, data?: D): Promise<T> {
-  const response = await httpClient.post(url, data);
+export async function post<T, D = unknown>(
+  url: string, data?: D,
+  options?: import('axios').AxiosRequestConfig & { __sessionEpoch?: number },
+): Promise<T> {
+  const response = await httpClient.post(url, data, options);
   return unwrapResponse<T>(response.data);
 }
 
