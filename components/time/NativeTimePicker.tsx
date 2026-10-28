@@ -76,7 +76,7 @@ export function TimePickerContent({
 
 export function TimePicker({ visible, onClose, selectedTime, onTimeSelect, minuteInterval = 5 }: TimePickerProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const { height } = useWindowDimensions();
   if (!visible || Platform.OS === 'web') return null;
   if (Platform.OS === 'android' && isValidTime(selectedTime)) {
@@ -99,7 +99,10 @@ export function TimePicker({ visible, onClose, selectedTime, onTimeSelect, minut
     <Modal visible transparent animationType="fade" presentationStyle="overFullScreen" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('common.cancel')} />
-        <ScrollView style={[styles.dialog, { backgroundColor: theme.surface, maxHeight: height * 0.85 }]}>
+        <ScrollView
+          style={[styles.dialog, isRTL ? styles.rtlDialog : { padding: Spacing.xl }, { backgroundColor: theme.surface, maxHeight: height * 0.85 }]}
+          contentContainerStyle={isRTL ? styles.dialogContent : undefined}
+        >
           <TimePickerContent selectedTime={selectedTime} onTimeSelect={onTimeSelect} onClose={onClose} minuteInterval={minuteInterval} />
         </ScrollView>
       </View>
@@ -109,7 +112,11 @@ export function TimePicker({ visible, onClose, selectedTime, onTimeSelect, minut
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  dialog: { width: '92%', maxWidth: 420, flexGrow: 0, borderRadius: BorderRadius.lg, padding: Spacing.xl },
+  // Pad the scroll content, not the native scroll viewport. Keep its geometry
+  // LTR so native RTL content offsets cannot consume the right-hand inset.
+  dialog: { width: '92%', maxWidth: 420, flexGrow: 0, borderRadius: BorderRadius.lg },
+  rtlDialog: { direction: 'ltr' },
+  dialogContent: { direction: 'ltr', padding: Spacing.xl },
   // Row order is chosen explicitly above; prevent inherited native RTL from
   // reversing it a second time and putting the close button beside the title.
   header: { direction: 'ltr', alignItems: 'center', borderBottomWidth: 1, paddingBottom: Spacing.md, marginBottom: Spacing.md },

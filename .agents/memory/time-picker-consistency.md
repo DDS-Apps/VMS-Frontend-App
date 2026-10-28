@@ -62,3 +62,12 @@ separate from the right-aligned title.
 
 **How to apply:** Preserve that physical ordering regardless of native system
 RTL configuration, without changing wheel language or selection behavior.
+
+Treat Arabic dialog-spacing corrections as spacing-only changes; retain the
+existing close-icon placement and English layout.
+
+**Why:** The user clarified that the icon was already fixed and requested only
+the missing right-side spacing, not another header or control rearrangement.
+
+**How to apply:** Keep RTL inset fixes isolated from header ordering, selection
+semantics, and the working English layout.

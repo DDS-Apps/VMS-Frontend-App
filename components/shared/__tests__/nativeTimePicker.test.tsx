@@ -1,8 +1,8 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { TimePicker, TimePickerContent } from '@/components/TimePicker';
-import { Colors } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { en } from '@/constants/i18n/en';
 import { ar } from '@/constants/i18n/ar';
 
@@ -94,6 +94,27 @@ describe('shared native time picker', () => {
     const renderer = mount();
     expect(renderer.root.findByType('NativeSpinner' as any).props.locale).toBe('ar-SA');
     expect(button('secondary').props.children).toBe(ar.common.cancel);
+  });
+
+  it.each([false, true])('keeps dialog content inset on both sides in Arabic (dark=%s)', dark => {
+    mockRTL = true;
+    mockDark = dark;
+    act(() => { tree = create(<TimePicker visible selectedTime={selected} onTimeSelect={onTimeSelect} onClose={onClose} />); });
+    const scroll = tree!.root.findByType(ScrollView);
+    const viewportStyle = StyleSheet.flatten(scroll.props.style);
+    expect(viewportStyle.direction).toBe('ltr');
+    expect(viewportStyle.padding).toBeUndefined();
+    expect(StyleSheet.flatten(scroll.props.contentContainerStyle)).toMatchObject({
+      direction: 'ltr', padding: Spacing.xl,
+    });
+    expect(tree!.root.findByType('NativeSpinner' as any).props.locale).toBe('ar-SA');
+  });
+
+  it('preserves the existing English dialog spacing', () => {
+    act(() => { tree = create(<TimePicker visible selectedTime={selected} onTimeSelect={onTimeSelect} onClose={onClose} />); });
+    const scroll = tree!.root.findByType(ScrollView);
+    expect(StyleSheet.flatten(scroll.props.style).padding).toBe(Spacing.xl);
+    expect(scroll.props.contentContainerStyle).toBeUndefined();
   });
 
   it('opens Android in 12-hour spinner mode and discards dismissal', () => {
