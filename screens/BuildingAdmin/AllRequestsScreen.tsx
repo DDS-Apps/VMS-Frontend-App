@@ -147,6 +147,7 @@ interface StatCardProps {
 }
 
 function StatCard({ value, label, color, isActive, loading, error, onPress, theme, isLargeScreen }: StatCardProps) {
+  const { toLocalNumerals } = useFormatters();
   const handlePress = () => {
     console.log('[StatCard] PRESSED:', label, 'value:', value, 'isActive:', isActive);
     onPress();
@@ -166,7 +167,7 @@ function StatCard({ value, label, color, isActive, loading, error, onPress, them
     >
       {value === null && loading
         ? <ActivityIndicator size="small" color={color} />
-        : <ThemedText style={[styles.statValue, { color }]}>{value ?? (error ? '!' : '—')}</ThemedText>}
+        : <ThemedText style={[styles.statValue, { color }]}>{value !== null ? toLocalNumerals(String(value)) : (error ? '!' : '—')}</ThemedText>}
       <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]} numberOfLines={2}>
         {label}
       </ThemedText>
