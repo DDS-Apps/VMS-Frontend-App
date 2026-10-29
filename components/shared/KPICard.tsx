@@ -191,25 +191,26 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    // Let each text block fill the content column so ThemedText's
+    // language-aware alignment also applies to wrapped KPI labels.
+    alignItems: 'stretch',
   },
   label: {
     ...Typography.bodySmall,
     fontSize: 12,
     fontWeight: '600',
-    textAlign: 'left',
   },
   value: {
     ...Typography.title,
     fontSize: 20,
-    lineHeight: 20,
+    // Clear the inherited title line height so each platform measures its font,
+    // including Arabic numerals and accessibility-scaled text, without clipping.
+    lineHeight: undefined,
     fontWeight: '700',
-    textAlign: 'left',
   },
   subtitle: {
     ...Typography.caption,
     fontSize: 10,
-    textAlign: 'left',
     marginTop: 2,
   },
 });

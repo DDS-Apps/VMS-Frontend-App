@@ -26,8 +26,19 @@ Keep the complete KPI label below the number; do not move its first word
 beside the value on mobile.
 
 **Why:** The user rejected the inline first-word layout after seeing it and
-requested restoring the previous arrangement with a 20px number line height.
+requested restoring the previous arrangement.
 
 **How to apply:** Keep number and complete label in separate text blocks,
 preserve content-driven card heights, and do not reintroduce inline-word
 measurement or split labels without a new request.
+
+KPI numbers must use natural font-measured line height, not a fixed line box,
+on every platform.
+
+**Why:** After reporting clipped Arabic KPI numerals on iOS, the user explicitly
+requested automatic line height rather than a fixed value. This supersedes
+the earlier request for a 20px number line height.
+
+**How to apply:** Keep the existing font size and clear inherited heading line
+height for KPI values. Do not change global typography, card columns, or label
+placement to solve numeric clipping.
