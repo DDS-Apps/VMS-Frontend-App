@@ -48,6 +48,7 @@ describe('Arabic badge caption metrics', () => {
     expect(StyleSheet.flatten(text.props.style)).toMatchObject({
       fontSize: 9, lineHeight: Math.round(12 * ArabicLineHeightScaling.caption),
       color, textAlignVertical: 'center',
+      transform: [{ translateY: 1 }],
     });
     expect(text.props.numberOfLines).toBeUndefined();
     const views = tree!.root.findAllByType(View);
@@ -63,6 +64,7 @@ describe('Arabic badge caption metrics', () => {
     expect(StyleSheet.flatten(tree!.root.findByType(Text).props.style)).toMatchObject({
       fontSize: 9, lineHeight: 12,
     });
+    expect(StyleSheet.flatten(tree!.root.findByType(Text).props.style).transform).toBeUndefined();
     expect(tree!.root.findAllByType(View)).toHaveLength(1);
   });
 });

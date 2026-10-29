@@ -9,6 +9,17 @@ Dashboard grid/list view buttons should keep a physical grid-left/list-right ord
 
 **How to apply:** When changing dashboard view toggles, keep both roles' and Receptionist controls visually consistent in Arabic and English, and avoid returning to a shared border around the pair.
 
+My Requests also keeps its complete grid/list control group on the physical
+right in Arabic, rather than mirroring the group to the left of the title.
+
+**Why:** The user explicitly chose to move the whole control group right after
+being told that this swaps its position with the title. This is not merely an
+icon-order correction.
+
+**How to apply:** Preserve physical grid-left/list-right order inside the group
+and independent complete button borders; do not apply this header-placement
+exception to unrelated screens without a request.
+
 Security, Buffet Admin, and Valet Admin dashboards must expose their card/table view controls on native apps as well as web.
 
 **Why:** The user reported missing native dashboard controls on 2026-10-09; web-only visibility and crowding by date controls did not meet the product requirement.

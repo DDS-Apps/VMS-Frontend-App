@@ -79,6 +79,8 @@ const styles = StyleSheet.create({
   },
   arabicLabel: {
     textAlignVertical: "center",
+    // Center the font's visible Arabic glyphs, not only its line box.
+    transform: [{ translateY: 1 }],
   },
   icon: {
     width: 12,

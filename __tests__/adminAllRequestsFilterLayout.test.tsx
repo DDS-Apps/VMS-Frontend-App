@@ -8,6 +8,9 @@ import { en } from '@/constants/i18n/en';
 import { ar } from '@/constants/i18n/ar';
 
 let mockRTL = false;
+jest.mock('@/contexts/LanguageContext', () => ({
+  useLanguage: () => ({ isRTL: mockRTL }),
+}));
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({ theme: { primary: '#f80', surface: '#fff', border: '#ddd', text: '#222' } }),
 }));

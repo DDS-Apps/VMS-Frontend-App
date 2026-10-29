@@ -200,6 +200,30 @@ describe.each(cases)('%s app RTL=%s native RTL=%s', (platform, rtl, nativeRTL) =
     expect(changes).toHaveBeenLastCalledWith(null);
   });
 
+  it('aligns every option to the locale edge, independently of native modal direction', () => {
+    act(() => trigger().props.onPress());
+    const flatten = (styles: any[]) => Object.assign({}, ...styles.filter(Boolean));
+    const checkAlignment = () => {
+      const options = modal().findAllByType('Pressable' as any).filter(node =>
+        node.props.accessibilityState?.selected !== undefined,
+      );
+      expect(options.length).toBeGreaterThan(1);
+      for (const option of options) {
+        expect(flatten(option.props.style)).toMatchObject({
+          direction: 'ltr', flexDirection: rtl ? 'row-reverse' : 'row',
+        });
+        const text = option.findByType('ThemedText' as any);
+        expect(flatten(text.props.style)).toMatchObject({
+          flex: 1, textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr',
+        });
+      }
+    };
+    checkAlignment();
+    pressOption((rtl ? ar : en).status.cancelled);
+    act(() => trigger().props.onPress());
+    checkAlignment();
+  });
+
   it('preserves the typed request picker undefined clear value', () => {
     act(() => tree.update(<Harness typed />));
     act(() => trigger().props.onPress());

@@ -46,7 +46,7 @@ import type { ManagerStackParamList } from "@/types/managerNavigation.types";
 import {
   mapVisitListItemToVisitorRequest,
 } from "@/utils/requestMappers";
-import { DirectionalRow, getFlexDirection } from "@/components/DirectionalRow";
+import { DirectionalRow, getFlexDirection, getPhysicalToggleStyle } from "@/components/DirectionalRow";
 import { formatAbsoluteTimestamp } from "@/utils/dateTimeUtils";
 import { resolveParkingDisplayDecision } from "@/utils/parkingDecision";
 import {
@@ -369,11 +369,10 @@ const SectionHeader = ({
   );
 
   const viewToggleElement = (
-    <DirectionalRow style={styles.viewToggle}>
+    <View style={[styles.viewToggle, getPhysicalToggleStyle(isRTL)]}>
       <Pressable
         style={[
           styles.viewToggleButton,
-          styles.viewToggleButtonLeft,
           {
             backgroundColor:
               viewMode === "card" ? theme.primary : theme.surface,
@@ -392,7 +391,6 @@ const SectionHeader = ({
       <Pressable
         style={[
           styles.viewToggleButton,
-          styles.viewToggleButtonRight,
           {
             backgroundColor:
               viewMode === "list" ? theme.primary : theme.surface,
@@ -408,15 +406,15 @@ const SectionHeader = ({
           color={viewMode === "list" ? theme.buttonText : theme.textSecondary}
         />
       </Pressable>
-    </DirectionalRow>
+    </View>
   );
 
   return (
     <>
-      <DirectionalRow style={[styles.sectionTitleRow, styles.paddedContent]}>
+      <View style={[styles.sectionTitleRow, styles.paddedContent, getPhysicalToggleStyle(isRTL)]}>
         {titleElement}
         {viewToggleElement}
-      </DirectionalRow>
+      </View>
 
       <Spacer height={LAYOUT.contentGap} />
 
@@ -1243,8 +1241,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
   },
   viewToggle: {
-    borderRadius: BorderRadius.sm,
-    overflow: "hidden",
+    gap: Spacing.xs,
   },
   viewToggleButton: {
     padding: Spacing.sm,
@@ -1253,19 +1250,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-  },
-  viewToggleButtonLeft: {
-    borderTopStartRadius: BorderRadius.sm,
-    borderBottomStartRadius: BorderRadius.sm,
-    borderTopEndRadius: 0,
-    borderBottomEndRadius: 0,
-    borderEndWidth: 0,
-  },
-  viewToggleButtonRight: {
-    borderTopEndRadius: BorderRadius.sm,
-    borderBottomEndRadius: BorderRadius.sm,
-    borderTopStartRadius: 0,
-    borderBottomStartRadius: 0,
+    borderRadius: BorderRadius.sm,
   },
 
   // Shared: Status Accent

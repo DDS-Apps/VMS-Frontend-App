@@ -101,9 +101,10 @@ interface ToastItemProps {
   toast: ToastMessage;
   onDismiss: (id: string) => void;
   index: number;
+  isRTL: boolean;
 }
 
-function ToastItem({ toast, onDismiss, index }: ToastItemProps) {
+function ToastItem({ toast, onDismiss, index, isRTL }: ToastItemProps) {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(-100);
@@ -148,17 +149,21 @@ function ToastItem({ toast, onDismiss, index }: ToastItemProps) {
         },
       ]}
     >
-      <View style={styles.toastContent}>
+      <View style={[
+        styles.toastContent,
+        // Physical ordering prevents native RTL from reversing this twice.
+        isRTL && { direction: 'ltr', flexDirection: 'row-reverse' },
+      ]}>
         <View style={[styles.iconContainer, { backgroundColor: colors.border + '20' }]}>
           <DDIcon name={icon} size={20} color={colors.icon} />
         </View>
         <View style={styles.textContainer}>
           {toast.title ? (
-            <Text style={[styles.toastTitle, { color: colors.text }]} numberOfLines={1}>
+            <Text style={[styles.toastTitle, isRTL && styles.rtlText, { color: colors.text }]} numberOfLines={1}>
               {toast.title}
             </Text>
           ) : null}
-          <Text style={[styles.toastMessage, { color: colors.text }]} numberOfLines={2}>
+          <Text style={[styles.toastMessage, isRTL && styles.rtlText, { color: colors.text }]} numberOfLines={2}>
             {toast.message}
           </Text>
         </View>
@@ -230,6 +235,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           toast={toast}
           onDismiss={hideToast}
           index={index}
+          isRTL={languageContext?.isRTL ?? locale === 'ar'}
         />
       ))}
     </View>
@@ -314,6 +320,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.md,
     gap: Spacing.md,
+  },
+  rtlText: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   iconContainer: {
     width: 36,

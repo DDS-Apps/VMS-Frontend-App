@@ -57,7 +57,10 @@ describe("shared status label styling", () => {
     expect(text.props.numberOfLines).toBeUndefined();
     expect(text.props.children).toBe(label);
     expect(text.props.variant).toBe("caption");
-    expect(text.props.style[2]).toEqual({ textAlignVertical: "center" });
+    expect(text.props.style[2]).toEqual({
+      textAlignVertical: "center",
+      transform: [{ translateY: 1 }],
+    });
     act(() => renderer!.unmount());
   });
 

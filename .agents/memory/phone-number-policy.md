@@ -34,3 +34,18 @@ has not changed.
 changes, which still need rehydration. Accept existing digit-only international
 API values and known presentation direction marks without dropping digits,
 emitting edits on mount, or relaxing save-time phone validity.
+
+Phone digits, country abbreviations, and calling codes retain Latin font metrics
+in Arabic UI; localize the surrounding labels, not the font of Latin content.
+
+**Why:** App-language font substitution gave Latin phone text the Arabic font's
+different vertical metrics. An iOS-only country-label offset did not address the
+number input or web rendering, and the user reported the alignment issue again.
+
+**How to apply:** Match fonts to the displayed script for phone digits and
+calling-code text. Preserve RTL field alignment, country-specific validation,
+formatting, and payloads; do not compensate with platform-only pixel offsets.
+Preserve the Arabic phone field's height relative to adjacent request-form
+inputs when changing fonts. The user explicitly rejected a shorter phone
+control after the font correction; a different glyph height must not resize
+the control or stop its contents being vertically centered.

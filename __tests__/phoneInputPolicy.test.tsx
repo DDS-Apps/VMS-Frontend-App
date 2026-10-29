@@ -1,10 +1,11 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { FlatList, Platform, StyleSheet, Text, TextInput } from 'react-native';
+import { FlatList, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { PhoneInputWithCountry } from '@/components/PhoneInputWithCountry';
 import { getTranslation } from '@/constants/i18n';
 import { getCountryByCode } from '@/constants/countryData';
 import { formatPhoneNumber, normalizePhoneNumber } from '@/utils/formatters';
+import { FontFamily } from '@/constants/theme';
 
 let mockLocale: 'en' | 'ar' = 'en';
 let mockDark = false;
@@ -66,7 +67,7 @@ describe.each([
   });
   afterEach(() => { act(() => tree.unmount()); Platform.OS = originalOS; });
 
-  it.each(['ios', 'android', 'web'] as const)('limits the country-label baseline adjustment to Arabic iOS (%s)', os => {
+  it.each(['ios', 'android', 'web'] as const)('uses Latin font metrics for phone digits and country codes (%s)', os => {
     Platform.OS = os;
     act(() => tree.update(<PhoneInputWithCountry {...props} value="+923453188360" />));
     const countryLabel = tree.root.findAllByType(Text).find(node =>
@@ -74,8 +75,30 @@ describe.each([
     )!;
     expect(countryLabel).toBeDefined();
     const style = StyleSheet.flatten(countryLabel.props.style);
-    expect(style.transform).toEqual(locale === 'ar' && os === 'ios' ? [{ translateY: 1 }] : undefined);
+    expect(style.transform).toBeUndefined();
     expect(style.writingDirection).toBe('ltr');
+    expect(style.fontFamily).toBe(FontFamily.latinRegular);
+    if (locale === 'ar') {
+      expect(style.fontSize).toBe(14);
+      expect(style.lineHeight).toBeUndefined();
+      expect(style.includeFontPadding).toBe(false);
+    }
+    expect(StyleSheet.flatten(input().props.style)).toMatchObject({
+      fontFamily: FontFamily.latinRegular,
+      textAlign: locale === 'ar' ? 'right' : 'left',
+      textAlignVertical: 'center',
+    });
+    const field = tree.root.findAllByType(View).find(node => {
+      const style = StyleSheet.flatten(node.props.style);
+      return style?.borderWidth === 1 && style?.overflow === 'hidden';
+    })!;
+    expect(field).toBeDefined();
+    const fieldStyle = StyleSheet.flatten(field.props.style);
+    if (locale === 'ar') {
+      expect(fieldStyle).toMatchObject({ minHeight: 48, alignItems: 'stretch' });
+    } else {
+      expect(fieldStyle.minHeight).toBeUndefined();
+    }
     expect(mockChange).not.toHaveBeenCalled();
   });
 

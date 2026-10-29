@@ -14,6 +14,7 @@ import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { applyOpacity } from "@/utils/statusStyles";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { REQUEST_STATUS_VALUES } from "@/constants/requestConstants";
 import type { RequestStatus } from "@/types/vms.types";
 import { Portal } from "@/contexts/PortalContext";
@@ -73,6 +74,17 @@ export function StatusDropdown({
   const StatusModalHost = Platform.OS === "ios" ? Portal : React.Fragment;
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
+  // A native modal may inherit a different direction from the app context.
+  const optionDirection = {
+    direction: "ltr" as const,
+    flexDirection: isRTL ? "row-reverse" as const : "row" as const,
+  };
+  const optionTextDirection = {
+    flex: 1,
+    textAlign: isRTL ? "right" as const : "left" as const,
+    writingDirection: isRTL ? "rtl" as const : "ltr" as const,
+  };
   const [isOpen, setIsOpen] = useState(false);
   const selectedLabel = value
     ? getStatusLabel(value, t)
@@ -135,6 +147,7 @@ export function StatusDropdown({
                 onPress={() => selectValue(null)}
                 style={[
                   styles.option,
+                  optionDirection,
                   !value && {
                     backgroundColor: applyOpacity(theme.primary, "18"),
                   },
@@ -143,6 +156,7 @@ export function StatusDropdown({
                 <ThemedText
                   style={[
                     Typography.body,
+                    optionTextDirection,
                     {
                       color: !value ? theme.primary : theme.text,
                       fontWeight: !value ? "600" : "400",
@@ -163,6 +177,7 @@ export function StatusDropdown({
                   onPress={() => selectValue(status)}
                   style={[
                     styles.option,
+                    optionDirection,
                     value === status && {
                       backgroundColor: applyOpacity(theme.primary, "18"),
                     },
@@ -171,6 +186,7 @@ export function StatusDropdown({
                   <ThemedText
                     style={[
                       Typography.body,
+                      optionTextDirection,
                       {
                         color:
                           value === status ? theme.primary : theme.text,

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
+  Text,
   TextInput,
   Pressable,
   Modal,
@@ -273,6 +274,7 @@ export const PhoneInputWithCountry = ({
       <DirectionalRow
         style={[
           styles.inputContainer,
+          isRTL && styles.arabicInputContainer,
           {
             backgroundColor: editable === false ? theme.surfaceSecondary : theme.background,
             borderColor: inputError ? theme.error : theme.border,
@@ -293,13 +295,15 @@ export const PhoneInputWithCountry = ({
         >
           <DirectionalRow gap={Spacing.xs} style={styles.countryButtonContent}>
             <FlagAvatar countryCode={selectedCountry.code} size={20} />
-            <ThemedText style={[
-              styles.dialCodeText,
-              { color: theme.text, writingDirection: 'ltr' },
-              Platform.OS === 'ios' && isRTL && styles.nativeArabicDialCode,
-            ]}>
-              {selectedCountry.code} {selectedCountry.dialCode}
-            </ThemedText>
+            {isRTL ? (
+              <Text style={[styles.dialCodeText, styles.latinDialCode, { color: theme.text }]}>
+                {selectedCountry.code} {selectedCountry.dialCode}
+              </Text>
+            ) : (
+              <ThemedText style={[styles.dialCodeText, { color: theme.text, writingDirection: 'ltr' }]}>
+                {selectedCountry.code} {selectedCountry.dialCode}
+              </ThemedText>
+            )}
             <DDIcon name="chevron-down" size={14} color={theme.textSecondary} />
           </DirectionalRow>
         </Pressable>
@@ -311,7 +315,10 @@ export const PhoneInputWithCountry = ({
             {
               color: theme.text,
               textAlign: isRTL ? 'right' : 'left',
-              fontFamily: getInputFontFamily(displayedNumber, isRTL),
+              // Formatting normalizes phone digits to Latin in every locale.
+              // Arabic UI must not switch those digits to Arabic font metrics.
+              fontFamily: FontFamily.latinRegular,
+              includeFontPadding: isRTL ? false : undefined,
               textAlignVertical: 'center',
             },
           ]}
@@ -513,6 +520,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
   },
+  arabicInputContainer: {
+    // Preserve the request form's 48px field height after font substitution.
+    minHeight: 48,
+    alignItems: 'stretch',
+  },
   countryButton: {
     paddingHorizontal: Spacing.md,
     justifyContent: 'center',
@@ -542,9 +554,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  nativeArabicDialCode: {
-    // Match the native Arabic font's optical center to the flag and chevron.
-    transform: [{ translateY: 1 }],
+  latinDialCode: {
+    // Country abbreviations and calling codes are Latin even in Arabic UI.
+    // Use Text here to avoid ThemedText's app-language font substitution.
+    fontFamily: FontFamily.latinRegular,
+    writingDirection: 'ltr',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   phoneInput: {
     flex: 1,
