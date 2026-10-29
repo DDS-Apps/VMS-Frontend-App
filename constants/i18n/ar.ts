@@ -588,6 +588,8 @@ export const ar: TranslationKeys & { movementHistory: Record<string, string> } =
     visitReminders: 'تذكيرات الزيارات',
     upcomingVisitReminderTitle: 'زيارة قادمة',
     upcomingVisitReminderMessage: '{{visitorName}} يصل خلال 15 دقيقة تقريباً',
+    upcomingVisitReminderTimedMessage: '{{visitorName}} سيصل في {{visitTime}}',
+    upcomingVisitReminderMinutesMessage: '{{visitorName}} سيصل خلال {{minutes}} دقيقة تقريباً في {{visitTime}}',
     approvalRequests: 'طلبات الموافقة',
     checkInOut: 'تسجيل الدخول والخروج',
     dailyAgenda: 'الأجندة اليومية',

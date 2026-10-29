@@ -31,6 +31,7 @@ type NotificationType =
   | 'reminder_now'
   | 'expected_today'
   | 'visitor_reminder'
+  | 'upcoming_visit'
   | 'auto_cancelled'
   | 'room_booked'
   | 'room_reminder'
@@ -117,9 +118,9 @@ export function sanitizeParkingNotificationMessage(
   }
 }
 
-function interpolate(template: string, params: NotificationParams): string {
+function interpolate(template: string, params: NotificationParams & { minutes?: string }): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
-    const value = params[key as keyof NotificationParams];
+    const value = params[key as keyof typeof params];
     return value !== undefined && value !== null ? String(value) : '';
   });
 }
@@ -136,6 +137,41 @@ export function localizeNotification(
 
   // Normalize the type to handle variations from backend
   const notificationType = normalizeNotificationType(type);
+
+  if (notificationType === 'upcoming_visit') {
+    // Older persisted reminders carry these values only in the English body.
+    // Translate that known format without recalculating remaining minutes from
+    // today's clock (which would change the meaning of historical reminders).
+    if (locale === 'en') {
+      return {
+        title: fallbackTitle || t.notifications.upcomingVisitReminderTitle,
+        message: fallbackMessage || '',
+      };
+    }
+    const legacy = fallbackMessage?.match(
+      /^(.+?) is arriving in\s*(?:~\s*|about\s+)?(\d+)\s+minutes?\s+at\s+(.+?)\s*$/i,
+    );
+    const visitorName = params?.visitorName || legacy?.[1];
+    const visitTime = (params?.visitTime || legacy?.[3])
+      ?.replace(/\bAM\b/gi, 'ص')
+      .replace(/\bPM\b/gi, 'م');
+    const title = t.notifications.upcomingVisitReminderTitle;
+    if (visitorName && visitTime) {
+      return {
+        title,
+        message: interpolate(
+          legacy
+            ? t.notifications.upcomingVisitReminderMinutesMessage
+            : t.notifications.upcomingVisitReminderTimedMessage,
+          { visitorName, visitTime, minutes: legacy?.[2] },
+        ),
+      };
+    }
+    // Preserve unrecognized or already translated backend bodies rather than
+    // inventing a visitor identity, scheduled time, or reminder threshold.
+    return { title, message: fallbackMessage || title };
+  }
+
   const template = templates[notificationType];
 
   if (notificationType === 'parking_assigned' || notificationType === 'parking_full') {

@@ -28,3 +28,15 @@ frontend type declarations alone would not establish the backend's format.
 Documentation and historical samples do not prove that every current
 authenticated row contains the field; distinguish format compatibility from
 live endpoint coverage.
+
+Persisted upcoming-notification localization must preserve the original
+server-authored minute value, not recompute it from the current clock or assume
+the default reminder threshold.
+
+**Why:** Notifications remain visible long after delivery, and the backend's
+English reminder body may be the only source of its original minute value.
+Recomputing it would change historical content, not just translate it.
+
+**How to apply:** Translate recognized legacy copy without changing its timing
+or identity. Prefer supplied structured display values and preserve unfamiliar
+server messages rather than inventing missing details.

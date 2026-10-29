@@ -588,6 +588,8 @@ export const en: TranslationKeys & { movementHistory: Record<string, string> } =
     visitReminders: 'Visit Reminders',
     upcomingVisitReminderTitle: 'Upcoming Visit',
     upcomingVisitReminderMessage: '{{visitorName}} arrives in about 15 minutes',
+    upcomingVisitReminderTimedMessage: '{{visitorName}} is arriving at {{visitTime}}',
+    upcomingVisitReminderMinutesMessage: '{{visitorName}} is arriving in ~{{minutes}} minutes at {{visitTime}}',
     approvalRequests: 'Approval Requests',
     checkInOut: 'Check-in / Check-out',
     dailyAgenda: 'Daily Agenda',

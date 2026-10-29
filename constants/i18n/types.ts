@@ -588,6 +588,8 @@ export interface TranslationKeys {
     visitReminders: string;
     upcomingVisitReminderTitle: string;
     upcomingVisitReminderMessage: string;
+    upcomingVisitReminderTimedMessage: string;
+    upcomingVisitReminderMinutesMessage: string;
     approvalRequests: string;
     checkInOut: string;
     dailyAgenda: string;
