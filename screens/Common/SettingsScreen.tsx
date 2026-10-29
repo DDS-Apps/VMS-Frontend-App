@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image } from "react-native";
+import { View, Text, StyleSheet, Pressable, Switch, ActivityIndicator, Platform, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,7 +11,7 @@ import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Spacer from "@/components/Spacer";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, containsArabic, getLocaleFontFamily } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { UserRole } from "@/types/vms.types";
@@ -146,14 +146,23 @@ export default function SettingsScreen({
             />
           ) : (
             <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}>
-              <ThemedText
-                style={[Typography.subtitle, { color: theme.primary, fontWeight: '700' }]}
+              <Text
+                style={[
+                  styles.avatarInitials,
+                  {
+                    color: theme.primary,
+                    fontFamily: getLocaleFontFamily(
+                      Typography.subtitle.fontFamily,
+                      containsArabic(getInitials(userName)),
+                    ),
+                  },
+                ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.5}
               >
                 {getInitials(userName)}
-              </ThemedText>
+              </Text>
             </View>
           )}
           <View style={{ flex: 1 }}>
@@ -401,6 +410,13 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md - 2,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarInitials: {
+    ...Typography.subtitle,
+    lineHeight: undefined,
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   userName: {
     fontSize: 16,

@@ -951,10 +951,10 @@ const styles = StyleSheet.create({
   cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: LAYOUT.contentGap,
   },
   cardNameSection: {
     flex: 1,
-    marginStart: LAYOUT.contentGap,
   },
   nameWithBadgeRow: {
     flexDirection: 'row',
