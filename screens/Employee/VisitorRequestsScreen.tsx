@@ -411,7 +411,11 @@ const SectionHeader = ({
 
   return (
     <>
-      <View style={[styles.sectionTitleRow, styles.paddedContent, getPhysicalToggleStyle(isRTL)]}>
+      <View style={[
+        styles.sectionTitleRow,
+        styles.paddedContent,
+        { direction: "ltr", flexDirection: isRTL ? "row-reverse" : "row" },
+      ]}>
         {titleElement}
         {viewToggleElement}
       </View>

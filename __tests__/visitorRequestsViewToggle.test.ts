@@ -6,9 +6,9 @@ const source = fs.readFileSync(
 );
 
 describe('My Requests view controls', () => {
-  it('keeps the controls physically right of the title in both languages', () => {
-    expect(source).toContain(
-      '<View style={[styles.sectionTitleRow, styles.paddedContent, getPhysicalToggleStyle(isRTL)]}>',
+  it('puts the title right and controls left in Arabic while preserving English placement', () => {
+    expect(source).toMatch(
+      /<View style=\{\[\s*styles\.sectionTitleRow,\s*styles\.paddedContent,\s*\{ direction: "ltr", flexDirection: isRTL \? "row-reverse" : "row" \},\s*\]\}>/,
     );
     expect(source).toMatch(/\{titleElement\}\s*\{viewToggleElement\}/);
   });
