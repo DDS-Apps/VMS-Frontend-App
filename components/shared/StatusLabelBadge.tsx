@@ -1,9 +1,9 @@
 import React from "react";
-import { StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { DDIcon, IconName } from "@/components/DDIcon";
 import { DirectionalRow } from "@/components/DirectionalRow";
-import { BorderRadius } from "@/constants/theme";
+import { BorderRadius, containsArabic } from "@/constants/theme";
 import { applyOpacity } from "@/utils/statusStyles";
 
 /** Shared typography for status labels, including titles in expired-visit notices. */
@@ -43,6 +43,7 @@ export function StatusLabelBadge({
   icon,
   alignSelf = "flex-start",
 }: StatusLabelBadgeProps) {
+  const arabicLabel = containsArabic(label);
   return (
     <DirectionalRow
       style={[
@@ -55,8 +56,17 @@ export function StatusLabelBadge({
       ]}
       gap={icon ? 4 : 0}
     >
-      {icon ? <DDIcon name={icon} size={12} color={color} /> : null}
-      <ThemedText style={[styles.label, { color }]}>{label}</ThemedText>
+      {icon ? (
+        arabicLabel ? (
+          <View style={styles.icon}>
+            <DDIcon name={icon} size={12} color={color} />
+          </View>
+        ) : <DDIcon name={icon} size={12} color={color} />
+      ) : null}
+      <ThemedText
+        variant={arabicLabel ? "caption" : undefined}
+        style={[styles.label, { color }, ...(arabicLabel ? [styles.arabicLabel] : [])]}
+      >{label}</ThemedText>
     </DirectionalRow>
   );
 }
@@ -66,5 +76,15 @@ const styles = StyleSheet.create({
   label: {
     ...STATUS_BADGE_TEXT,
     flexShrink: 1,
+  },
+  arabicLabel: {
+    textAlignVertical: "center",
+  },
+  icon: {
+    width: 12,
+    height: 12,
+    flexShrink: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

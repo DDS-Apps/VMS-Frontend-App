@@ -5,11 +5,13 @@ import path from "path";
 
 jest.mock("react-native", () => ({
   StyleSheet: { create: (styles: object) => styles },
+  View: "View",
 }));
 jest.mock("@/constants/theme", () => ({
   BorderRadius: { sm: 6 },
   BrandColors: { brandOrange: "#FF8800", brandGreen: "#008844" },
   StatusColors: { warning: "#AA6600", success: "#008844", error: "#AA0000", info: "#0055AA" },
+  containsArabic: (text: string) => /[\u0600-\u06FF]/.test(text),
 }));
 jest.mock("@/components/ThemedText", () => ({
   ThemedText: ({ children, ...props }: any) => require("react").createElement("ThemedText", props, children),
@@ -54,6 +56,33 @@ describe("shared status label styling", () => {
     expect(text.props.style[0]).toMatchObject({ fontSize: 9, flexShrink: 1 });
     expect(text.props.numberOfLines).toBeUndefined();
     expect(text.props.children).toBe(label);
+    expect(text.props.variant).toBe("caption");
+    expect(text.props.style[2]).toEqual({ textAlignVertical: "center" });
+    act(() => renderer!.unmount());
+  });
+
+  it("centers the Arabic icon in a nonshrinking box without enlarging the badge", () => {
+    let renderer: ReturnType<typeof create>;
+    act(() => { renderer = create(<StatusLabelBadge label="انتهت صلاحية الزيارة" color="#AA0000" icon="alert-circle" />); });
+    const row = renderer!.root.findByType("DirectionalRow");
+    const icon = renderer!.root.findByType("DDIcon");
+    expect(row.props.style[0]).toBe(STATUS_BADGE_CONTAINER);
+    expect(row.props.style[0].alignItems).toBe("center");
+    expect(icon.props.size).toBe(12);
+    expect(renderer!.root.findByType("View").props.style).toMatchObject({
+      width: 12, height: 12, flexShrink: 0,
+      alignItems: "center", justifyContent: "center",
+    });
+    expect(renderer!.root.findByType("ThemedText").props.variant).toBe("caption");
+    act(() => renderer!.unmount());
+  });
+
+  it("preserves English text metrics and the existing direct icon", () => {
+    let renderer: ReturnType<typeof create>;
+    act(() => { renderer = create(<StatusLabelBadge label="Visit Expired" color="#AA0000" icon="alert-circle" />); });
+    expect(renderer!.root.findByType("ThemedText").props.variant).toBeUndefined();
+    expect(renderer!.root.findByType("ThemedText").props.style).toHaveLength(2);
+    expect(renderer!.root.findAllByType("View")).toHaveLength(0);
     act(() => renderer!.unmount());
   });
 
