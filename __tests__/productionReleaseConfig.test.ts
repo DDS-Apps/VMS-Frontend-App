@@ -41,6 +41,7 @@ describe('production release configuration', () => {
     expect(deployment).toContain('"--precompress"');
     const preview = config.split('name = "Start application"')[1].split('[[workflows.workflow]]')[0];
     expect(preview).toContain('start --web');
+    expect(preview).toContain('--clear');
     expect(preview).not.toMatch(/APP_VARIANT=/);
     const pkg = require('../package.json');
     expect(pkg.scripts['build:web']).toContain('scripts/build-web.js');

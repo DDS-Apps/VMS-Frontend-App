@@ -21,6 +21,16 @@ Do not reuse QA sessions for production or silently fall back to live APIs when 
 metadata is invalid. Existing published exports/binaries require a
 separate rebuild and publish; changing workspace variables does not update them.
 
+Preview restarts must clear Metro's transform cache when switching variants.
+
+**Why:** A running preview received `APP_VARIANT=qa` and resolved QA correctly
+in app configuration, yet still served cached Expo Constants containing
+production API URLs after an ordinary restart.
+
+**How to apply:** Keep cache clearing in preview startup and inspect the served
+bundle's embedded environment/API values, not only the saved variable or a
+fresh config evaluation, when verifying an environment switch.
+
 Resolve variants explicitly rather than trusting loaded process dotenv values.
 
 **Why:** Expo loads `.env.production` for every export regardless of variant,
