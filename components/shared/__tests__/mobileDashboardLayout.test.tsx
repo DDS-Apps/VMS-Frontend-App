@@ -53,10 +53,12 @@ describe.each(['web', 'ios', 'android'] as const)('mobile dashboard layout on %s
     expect(rows).toHaveLength(mobile ? Math.ceil(count / 2) : 1);
     for (const row of rows) {
       expect(StyleSheet.flatten(row.props.style)).toMatchObject({
-        flexDirection: rtl ? 'row-reverse' : 'row',
+        flexDirection: os === 'web' ? 'row' : rtl ? 'row-reverse' : 'row',
         alignItems: 'stretch',
         flexWrap: mobile ? 'nowrap' : 'wrap',
       });
+      expect(StyleSheet.flatten(row.props.style).direction)
+        .toBe(os === 'web' ? (rtl ? 'rtl' : 'ltr') : undefined);
       if (mobile) {
         const cells = row.findAllByType(View).filter(node =>
           ['kpi-mobile-cell', 'kpi-empty-cell'].includes(node.props.testID));

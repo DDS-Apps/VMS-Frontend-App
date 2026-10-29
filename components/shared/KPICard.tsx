@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Platform, type ViewStyle } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { DDIcon, IconName } from '../DDIcon';
@@ -68,6 +68,11 @@ export interface KPICardRowProps {
 export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
   const { width: windowWidth } = useWindowDimensions();
   const { isRTL } = useLanguage();
+  // CSS direction already makes a normal row start on the right in Arabic.
+  // Reversing that row as well would place a lone card back on the left.
+  const rowDirection: ViewStyle = Platform.OS === 'web'
+    ? { direction: isRTL ? 'rtl' : 'ltr', flexDirection: 'row' }
+    : { flexDirection: isRTL ? 'row-reverse' : 'row' };
   const isMobile = windowWidth < 768;
   // Keep phone grids two-column at every text scale; text wraps and cards grow vertically.
   const columnsPerRow = isMobile ? 2 : 4;
@@ -89,9 +94,8 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
             <View
               key={rowIndex}
               testID="kpi-mobile-row"
-              style={[styles.row, {
+              style={[styles.row, rowDirection, {
                 flexWrap: 'nowrap',
-                flexDirection: isRTL ? 'row-reverse' : 'row',
                 gap: Spacing.sm,
               }]}
             >
@@ -146,8 +150,8 @@ export function KPICardRow({ children, singleCardWidth }: KPICardRowProps) {
       testID="kpi-desktop-row"
       style={[
         styles.row, 
+        rowDirection,
         { 
-          flexDirection: isRTL ? 'row-reverse' : 'row',
           gap: Spacing.sm,
         }
       ]} 

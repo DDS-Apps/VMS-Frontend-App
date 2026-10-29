@@ -42,3 +42,13 @@ the earlier request for a 20px number line height.
 **How to apply:** Keep the existing font size and clear inherited heading line
 height for KPI values. Do not change global typography, card columns, or label
 placement to solve numeric clipping.
+
+KPI rows must start at the right edge in Arabic and the left edge in English,
+including a single fixed-width card.
+
+**Why:** The user reported the lone Buffet Admin KPI starting on the left in
+Arabic. On web, inherited RTL plus a reversed flex row can reverse it twice.
+
+**How to apply:** Verify actual placement under both LTR and RTL parent
+directions, not just the flex-direction style. Keep web CSS direction handling
+separate from native mirroring and preserve the established card widths.
