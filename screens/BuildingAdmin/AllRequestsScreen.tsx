@@ -1782,7 +1782,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '700',
-    lineHeight: 34,
+    lineHeight: undefined,
   },
   statLabel: {
     fontSize: 11,
