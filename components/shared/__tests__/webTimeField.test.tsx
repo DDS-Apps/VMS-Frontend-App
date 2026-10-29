@@ -11,6 +11,7 @@ const mockListeners = new Map<string, Function>();
 const mockFocus = jest.fn();
 const mockPortal = jest.fn((children: React.ReactNode, _container: Element) => children);
 let mockDialog: Element | null = null;
+let mockAnchorRect = { top: 40, bottom: 90, left: 20, right: 320, width: 300 };
 jest.mock('react-native', () => {
   const React = require('react');
   return {
@@ -50,6 +51,7 @@ describe('editable web time dropdown', () => {
     mockRTL = false;
     mockDark = false;
     mockDialog = null;
+    mockAnchorRect = { top: 40, bottom: 90, left: 20, right: 320, width: 300 };
     mockListeners.clear();
     Object.defineProperty(global, 'document', { configurable: true, value: {
       body: {}, getElementById: () => ({ focus: mockFocus }),
@@ -68,7 +70,7 @@ describe('editable web time dropdown', () => {
           ignored native contents
         </TimeField>,
         { createNodeMock: () => ({
-          getBoundingClientRect: () => ({ top: 40, bottom: 90, left: 20, width: 300 }),
+          getBoundingClientRect: () => mockAnchorRect,
           closest: () => mockDialog,
           contains: () => false, focus: jest.fn(), clientHeight: 176,
         }) },
@@ -181,6 +183,44 @@ describe('editable web time dropdown', () => {
     type('2:30 PM');
     key('Enter');
     expect(input().props.value).toBe('4:00 PM');
+  });
+
+  it.each([
+    [true, 600],
+    [false, 20],
+  ])('anchors the dropdown to the language-appropriate field edge (Arabic=%s)', (rtl, left) => {
+    mockRTL = rtl;
+    mockAnchorRect = { top: 40, bottom: 90, left: 20, right: 920, width: 900 };
+    mount();
+    act(() => input().props.onFocus());
+    const popup = tree!.root.findByProps({ role: 'dialog' });
+    expect(popup.props.style).toMatchObject({ left, width: 320, top: 94 });
+    if (rtl) expect(popup.props.style.left + popup.props.style.width).toBe(mockAnchorRect.right);
+    expect(onTimeSelect).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [0, 150, 4],
+    [1180, 1200, 972],
+  ])('keeps Arabic dropdown within the viewport for field left=%s right=%s', (left, right, expectedLeft) => {
+    mockRTL = true;
+    mockAnchorRect = { top: 40, bottom: 90, left, right, width: right - left };
+    mount();
+    act(() => input().props.onFocus());
+    expect(tree!.root.findByProps({ role: 'dialog' }).props.style.left).toBe(expectedLeft);
+  });
+
+  it('reanchors an open dropdown when the language changes', () => {
+    mockAnchorRect = { top: 40, bottom: 90, left: 20, right: 920, width: 900 };
+    mount();
+    act(() => input().props.onFocus());
+    expect(tree!.root.findByProps({ role: 'dialog' }).props.style.left).toBe(20);
+    mockRTL = true;
+    act(() => tree!.update(
+      <TimeField value={reference} onTimeSelect={onTimeSelect} onPress={jest.fn()} label="Start Time" onValidityChange={onValidityChange} />,
+    ));
+    expect(tree!.root.findByProps({ role: 'dialog' }).props.style.left).toBe(600);
+    expect(onTimeSelect).not.toHaveBeenCalled();
   });
 
   it('supports Arabic 12-hour input and display', () => {

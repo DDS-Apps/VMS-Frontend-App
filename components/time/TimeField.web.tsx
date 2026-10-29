@@ -55,8 +55,9 @@ export function TimeField({
     const maxHeight = Math.max(40, Math.min(264, Math.max(below, rect.top - 8)));
     const top = below >= Math.min(264, rect.top - 8) ? rect.bottom + 4 : Math.max(4, rect.top - maxHeight - 4);
     const width = Math.min(Math.max(rect.width, 224), 320, window.innerWidth - 8);
-    setPosition({ top, left: Math.max(4, Math.min(rect.left, window.innerWidth - width - 4)), width, maxHeight });
-  }, []);
+    const alignedLeft = isRTL ? rect.right - width : rect.left;
+    setPosition({ top, left: Math.max(4, Math.min(alignedLeft, window.innerWidth - width - 4)), width, maxHeight });
+  }, [isRTL]);
 
   const commit = useCallback((time: Date) => {
     let applied = time;
