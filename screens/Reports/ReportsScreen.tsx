@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import {
   View,
+  Text,
   StyleSheet,
   Pressable,
   Platform,
@@ -19,6 +20,8 @@ import { DirectionalRow } from "@/components/DirectionalRow";
 import { Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { ArabicFontScaling, ArabicLineHeightScaling } from "@/utils/rtlStyles";
 import { applyOpacity } from "@/utils/statusStyles";
 import { getAccessToken } from "@/api/httpClient";
 import { apiConfig } from "@/api/config";
@@ -55,6 +58,7 @@ type DownloadStatus = "idle" | "success" | "error";
 export default function ReportsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   const [startDate, setStartDate] = useState<Date>(defaultStart);
   const [endDate, setEndDate] = useState<Date>(defaultEnd);
@@ -230,18 +234,26 @@ export default function ReportsScreen() {
                     size={14}
                     color={active ? theme.buttonText : theme.primary}
                   />
-                  <ThemedText
+                  <Text
                     style={[
                       Typography.bodySmall,
+                      isRTL && {
+                        // Retain the existing Arabic-mode text box dimensions,
+                        // but keep these Latin labels in the Latin font.
+                        fontSize: Math.round(Typography.bodySmall.fontSize * ArabicFontScaling.body),
+                        lineHeight: Math.round(Typography.bodySmall.lineHeight * ArabicLineHeightScaling.body),
+                      },
                       {
                         color: active ? theme.buttonText : theme.primary,
                         fontWeight: "600",
                         marginStart: 5,
+                        writingDirection: "ltr",
+                        textAlignVertical: "center",
                       },
                     ]}
                   >
                     {f === "xlsx" ? "Excel (.xlsx)" : "CSV (.csv)"}
-                  </ThemedText>
+                  </Text>
                 </Pressable>
               );
             })}

@@ -58,6 +58,7 @@
 - [Communication channel visibility](communication-channel-visibility.md) — hiding SMS in create forms does not authorize removing SMS support or changing delivery.
 - [Time picker consistency](time-picker-consistency.md) — use the spinner reference throughout mobile and editable time dropdowns on web; retain existing styling.
 - [Phone number policy](phone-number-policy.md) — use country-specific numbering rules, not a global nine-digit cap; retain existing labels and separate calling codes.
+- [Localized control text](localized-control-text.md) — match Latin-only labels to Latin fonts in Arabic UI without changing established control dimensions.
 - [App download scope](app-download-store-scope.md) — login QR codes target production store listings even when the frontend uses QA APIs.
 - [EAS release counters](eas-remote-release-counters.md) — query remote native counters before choosing increments; later auto-incrementing builds advance them again.
 - [Reminder instants](reminder-instant-contract.md) — retired local-time test expectations must not restore device-dependent reminders or guessed midnight starts.
