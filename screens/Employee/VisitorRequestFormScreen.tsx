@@ -1351,6 +1351,7 @@ export default function VisitorRequestFormScreen({
                         flex: 1,
                         lineHeight: 26,
                       },
+                      Platform.OS === "ios" && isRTL && styles.nativeArabicFieldValue,
                     ]}
                   >
                     {formatPickerDate(selectedDate)}
@@ -1409,6 +1410,7 @@ export default function VisitorRequestFormScreen({
                         flex: 1,
                         lineHeight: 26,
                       },
+                      Platform.OS === "ios" && isRTL && styles.nativeArabicFieldValue,
                     ]}
                   >
                     {formatPickerTime(selectedTime)}
@@ -1467,6 +1469,7 @@ export default function VisitorRequestFormScreen({
                         flex: 1,
                         lineHeight: 26,
                       },
+                      Platform.OS === "ios" && isRTL && styles.nativeArabicFieldValue,
                     ]}
                   >
                     {formatPickerTime(selectedEndTime)}
@@ -2600,6 +2603,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     flexDirection: "row",
     alignItems: "center",
+  },
+  nativeArabicFieldValue: {
+    // Optical baseline correction for FS Albert Arabic beside centered icons.
+    // A transform keeps the field geometry and existing text metrics intact.
+    transform: [{ translateY: 1 }],
   },
   sectionHeader: {
     alignItems: "center",

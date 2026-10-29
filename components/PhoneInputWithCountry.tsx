@@ -293,7 +293,11 @@ export const PhoneInputWithCountry = ({
         >
           <DirectionalRow gap={Spacing.xs} style={styles.countryButtonContent}>
             <FlagAvatar countryCode={selectedCountry.code} size={20} />
-            <ThemedText style={[styles.dialCodeText, { color: theme.text, writingDirection: 'ltr' }]}>
+            <ThemedText style={[
+              styles.dialCodeText,
+              { color: theme.text, writingDirection: 'ltr' },
+              Platform.OS === 'ios' && isRTL && styles.nativeArabicDialCode,
+            ]}>
               {selectedCountry.code} {selectedCountry.dialCode}
             </ThemedText>
             <DDIcon name="chevron-down" size={14} color={theme.textSecondary} />
@@ -537,6 +541,10 @@ const styles = StyleSheet.create({
   dialCodeText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  nativeArabicDialCode: {
+    // Match the native Arabic font's optical center to the flag and chevron.
+    transform: [{ translateY: 1 }],
   },
   phoneInput: {
     flex: 1,

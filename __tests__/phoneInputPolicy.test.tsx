@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { FlatList, TextInput } from 'react-native';
+import { FlatList, Platform, StyleSheet, Text, TextInput } from 'react-native';
 import { PhoneInputWithCountry } from '@/components/PhoneInputWithCountry';
 import { getTranslation } from '@/constants/i18n';
 import { getCountryByCode } from '@/constants/countryData';
@@ -9,6 +9,7 @@ import { formatPhoneNumber, normalizePhoneNumber } from '@/utils/formatters';
 let mockLocale: 'en' | 'ar' = 'en';
 let mockDark = false;
 const mockChange = jest.fn();
+const originalOS = Platform.OS;
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('@/contexts/LanguageContext', () => ({
@@ -63,7 +64,20 @@ describe.each([
     mockChange.mockClear();
     act(() => { tree = create(<PhoneInputWithCountry {...props} />); });
   });
-  afterEach(() => { act(() => tree.unmount()); });
+  afterEach(() => { act(() => tree.unmount()); Platform.OS = originalOS; });
+
+  it.each(['ios', 'android', 'web'] as const)('limits the country-label baseline adjustment to Arabic iOS (%s)', os => {
+    Platform.OS = os;
+    act(() => tree.update(<PhoneInputWithCountry {...props} value="+923453188360" />));
+    const countryLabel = tree.root.findAllByType(Text).find(node =>
+      Array.isArray(node.props.children) && node.props.children.join('') === 'PK +92',
+    )!;
+    expect(countryLabel).toBeDefined();
+    const style = StyleSheet.flatten(countryLabel.props.style);
+    expect(style.transform).toEqual(locale === 'ar' && os === 'ios' ? [{ translateY: 1 }] : undefined);
+    expect(style.writingDirection).toBe('ltr');
+    expect(mockChange).not.toHaveBeenCalled();
+  });
 
   it('keeps an empty optional field empty and emits the country code separately', () => {
     expect(text()).not.toContain(error());
